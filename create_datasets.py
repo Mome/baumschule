@@ -4,7 +4,8 @@ from data_sampler import *
 
 conf = Configuration()
 
-# --------- create tasks -------- #
+
+
 func_dists = [
     [
         'linear', linear,
@@ -60,10 +61,12 @@ for group in grouper(tasks,9):
         subplot(3,3,i+1)
         scatter(t.X, t.Y)
         x = linspace(min(t.X),max(t.X),1001)
-        plot(x,t.func(x))"""
+        plot(x,t.func(x))
+"""
 
 
-# create one dimensional data with gaussian noise for regession
+# --- create one dimensional data with gaussian noise for regession --- #
+
 func = lambda x : x**3 - 5*x + 2
 X = (2*rand(100)-1)*5
 Y = func(X) + randn(len(X))
@@ -81,4 +84,3 @@ dataset = DataSet(
     name='sin1',
     tables={'table1':table})
 dataset.save(conf.datasets_path)
-# ----------------------------------------------------- #

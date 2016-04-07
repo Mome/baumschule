@@ -67,6 +67,7 @@ class DataSet(dict):
  
     @classmethod
     def load_all(cls, path):
+
         dataset_list = []
         for dirname in os.listdir(path):
             dataset_path = os.path.join(path, dirname)
@@ -101,6 +102,7 @@ class DataSet(dict):
             
             table = numpy.loadtxt(filepath, delimiter='\t')
             table = table.T # transpose table, because table was stored transposed
+            filename = filename[:-4]
             tables[filename] = table
             
         dataset = cls(name, tables, meta)
@@ -160,8 +162,9 @@ class Configuration(configparser.ConfigParser):
         if Configuration.singleton:
             Configuration.singleton = False
         else:
-            raise Exception('Configuration already loaded!')
-        
+            #raise Exception('Configuration already loaded!')
+            pass 
+
         # add default configuration
         self.read_dict(Configuration._DEFAULT_DICT)
 
