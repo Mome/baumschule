@@ -4,7 +4,7 @@ import configparser
 import uuid
 import json
 import numpy
-
+import sys
 
 class Statistician:
     def __init__(self):
@@ -39,7 +39,7 @@ class DataSet(dict):
     """Represents multiple Datatables in a Dataset."""
 
     def __init__(self, name, tables=None, meta=None):
-        if tables:
+        if not (tables is None):
             for table_name, table in tables.items():
                 assert isinstance(table, numpy.ndarray)
                 self[table_name] = table
@@ -85,7 +85,7 @@ class DataSet(dict):
 
         # load meta file
         meta = None
-        meta_path = os.path.join(path, 'meta')
+        meta_path = os.path.join(path, 'meta.json')
         if os.path.exists(meta_path):
             with open(meta_path) as f:
                 meta = json.load(f)
@@ -99,7 +99,9 @@ class DataSet(dict):
             if filename.startswith('.'): continue
             if not filename.endswith('.csv'): continue
             
-            tables[filename] = numpy.loadtxt(filepath)
+            table = numpy.loadtxt(filepath, delimiter='\t')
+            table = table.T # transpose table, because table was stored transposed
+            tables[filename] = table
             
         dataset = cls(name, tables, meta)
         dataset.path = path
@@ -121,10 +123,11 @@ class DataSet(dict):
         # save tables
         for table_name, table in self.items():
             filepath = os.path.join(path, table_name + '.csv')
-            numpy.savetxt(filepath, table)
+            table = table.T # transpose table file looks nice
+            numpy.savetxt(filepath, table, delimiter='\t')
 
         # save metafile
-        meta_path = os.path.join(path, 'meta')
+        meta_path = os.path.join(path, 'meta.json')
         with open(meta_path, 'w') as f:
             json.dump(self.meta, f)
 
@@ -137,25 +140,88 @@ class DataSet(dict):
         return str(self)
 
 
-def load_configuration():
+
+class Configuration(configparser.ConfigParser):
 
     CONFPATH = os.path.dirname(__file__) # configuration file is stored in source folder
-    CONFNAME = 'memory_networks.cfg'
+    CONFNAME = 'statistician.cfg'
+    singleton = True
 
-    default_config = {
-    'DATA' : {
-        'path' : os.path.expanduser('~/data/statistician'),
+    _DEFAULT_DICT = {
+        'data' : {
+            'path' : os.path.expanduser('~/data/statistician'),
         }
     }
 
-    fullpath = os.path.join(CONFPATH, CONFNAME)
-    conf = configparser.ConfigParser()
-    conf.read_dict(default_config)
-    if os.path.exists(fullpath):
-        conf.read(fullpath)
-    else:
-        print('No configuration file found. Create new one in:', CONFPATH)
-        with open(fullpath, 'w') as f:
-            conf.write(f)
+    def __init__(self, path=None):
+        super(Configuration, self).__init__()
+        
+        # make sure only on instance is created of `Configuration`
+        if Configuration.singleton:
+            Configuration.singleton = False
+        else:
+            raise Exception('Configuration already loaded!')
+        
+        # add default configuration
+        self.read_dict(Configuration._DEFAULT_DICT)
 
-    return conf
+        # add configuration form custom file
+        if path is None:
+            path = os.path.join(Configuration.CONFPATH, Configuration.CONFNAME)
+            if os.path.exists(path):
+                self.read(path)
+        else:
+            self.read(path)
+        
+        self.datasets_path = os.path.join(self['data']['path'], 'datasets')
+        self.results_path = os.path.join(self['data']['path'], 'results')
+        self.tasks_path = os.path.join(self['data']['path'], 'tasks')
+        self.path = path
+
+    def save(self, path=None):
+        if path==None:
+            path = self.path
+        with open(path, 'w') as f:
+            self.write(f)
+
+    def load(self, path=None):
+        if path==None:
+            path = self.path
+        self.read(path)
+
+    def __del__(self):
+        Configuration.singleton = True
+
+def init_configfile(path=None):
+    # maybe remove old configfile here?
+    conf = Configuration(path)
+    print('Create new Configuration file in:', conf.path)
+    conf.save()
+
+def init_folders(conf=None):
+    if conf==None:
+        conf = Configuration()
+    os.makedirs(conf.datasets_path, exist_ok=True)
+    os.makedirs(conf.results_path, exist_ok=True)
+    os.makedirs(conf.tasks_path, exist_ok=True)
+
+def main():
+    args = sys.argv[1:]
+    if len(args)==1:
+        if args[0] == 'init':
+            init_configfile()
+            init_folders()
+    if len(args)==2:
+        if args[0] == 'init':
+            if args[1] == 'configfile':
+                init_configfile()
+            if args[1] == 'folders':
+                init_folders()
+            else:
+                print('Invalid argument for init!')
+    else:
+        print('invalid number of arguments!')
+
+
+if __name__=='__main__':
+    main()
