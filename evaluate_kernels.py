@@ -27,11 +27,11 @@ def perform_operation(K1, op, K2):
     return combi
 
 
-def build_kernel(node, c=0):
+def build_kernel(node):
     #print(node, c)
     if isinstance(node, GrammarTree):
-        K1 = build_kernel(node.first, c+1)
-        K2 = build_kernel(node.second, c+1)
+        K1 = build_kernel(node.first)
+        K2 = build_kernel(node.second)
         op = operation_dict[node.operation]
         kernel = perform_operation(K1, op, K2)
     elif isinstance(node, GrammarLeaf):
@@ -56,7 +56,7 @@ def evaluate_model(node, X, Y, targetfunc):
     m = GPy.models.GPRegression(X,Y,kernel)
     m.optimize()
 
-    n = 20
+    n = 50
     val_X = (X.max()-X.min())*np.random.rand(n,1) + X.min()
 
     real_Y = targetfunc(val_X)
@@ -70,6 +70,3 @@ def RMSE(x, y):
     x = x.ravel()
     y = y.ravel()
     return np.sqrt(sum((x-y)**2)/len(x))
-
-
-

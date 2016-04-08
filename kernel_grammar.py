@@ -1,24 +1,23 @@
 from itertools import combinations_with_replacement as combi_wr
-import nltk
-
+import time
 
 # ---- parser to construct kernel trees from string ---- #
 OPERATIONS = ['mul', 'add']
 KERNELS = ['EXP', 'RBF']
-
 cfg_grammar ="""
 node -> K | '(' K OP K ')'
 """
-
 cfg_grammar += '\n'.join([
         "OP -> '" + "' | '".join(OPERATIONS) + "'",
         "K -> '"  + "' | '".join(KERNELS) + "'",
     ])
-
-parser = nltk.ChartParser(nltk.CFG.fromstring(cfg_grammar))
+#import nltk
+#parser = nltk.ChartParser(nltk.CFG.fromstring(cfg_grammar))
 
 
 def kernel_search(kernels, operations, eval_func, time_out=0):
+
+    start = time.time()
     root = TreeRoot()
     best_error = float('inf')
 
@@ -50,6 +49,7 @@ def kernel_search(kernels, operations, eval_func, time_out=0):
                     error = eval_func(root)
                 except Exception as e:
                     print('Evaluation failed:', e)
+                    node.__dict__[pos] = GrammarLeaf
                     continue
                 
                 print('error', error, '\n')
@@ -67,6 +67,11 @@ def kernel_search(kernels, operations, eval_func, time_out=0):
             #print('improve:', str(node))
         else:
             node.__dict__[pos] = leaf
+
+        if time_out:
+            if time_out < time.time()-start:
+                print('# ---------------- Time out! --------------------- #')
+                break
 
     return root, best_error
 
