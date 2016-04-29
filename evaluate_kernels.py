@@ -36,7 +36,7 @@ def build_kernel(node):
         kernel = perform_operation(K1, op, K2)
     elif isinstance(node, GrammarLeaf):
         name = node.name.upper()
-        kernel = kernel_dict[name]()
+        kernel = kernel_dict[name]() ## importend here is a call
     else:
         raise Exception('Invalid class:', type(node), node)
     return kernel

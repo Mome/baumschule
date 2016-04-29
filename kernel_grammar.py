@@ -1,5 +1,6 @@
 from itertools import combinations_with_replacement as combi_wr
 import time
+from random import choice
 
 # ---- parser to construct kernel trees from string ---- #
 OPERATIONS = ['mul', 'add']
