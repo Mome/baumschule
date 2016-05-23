@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 import signal
 import sys
 import scipy.io as sio
+from numpy.random import shuffle
 
 max_depth = 10
-n = 50 
 compositions = ['*', '+']
 kernels = ['SE', 'LIN', 'PER', 'RQ']
+refresh_splitting = False
+do_crossval = False
 
 # create sample data
 # target_func = lambda x : np.sqrt(np.abs(x)) + np.sin(x) + np.cos(x*3)/2 + 3
@@ -27,6 +29,7 @@ X = data['X']
 Y = data['y']
 
 print('Data shape:', X.shape, Y.shape)
+print('Ctrl+C to stop search ones.')
 
 # finish search with Ctrl+C
 terminate = False
@@ -39,37 +42,55 @@ def signal_handler(signal, frame):
         terminate = True
 signal.signal(signal.SIGINT, signal_handler)
 
+init_kern = KernelComposition()
 
-kernel_search = KernelComposition.search(basekernels=kernels, compositions=compositions)
+kernel_search = init_kern.search(basekernels=kernels, compositions=compositions)
 
 scores = []
 error = None
 
 while not terminate:
 
+    if do_crossval and (error is None or refresh_splitting):
+        # split data in two sets
+        random_index = np.arange(len(X))
+        shuffle(random_index)
+        cutpoint = 2*len(X)//3
+        train_index = random_index[:cutpoint]
+        val_index = random_index[cutpoint:]
+        X_train = X[train_index]
+        X_val = X[val_index]
+        Y_train = Y[train_index]
+        Y_val = Y[val_index]
+
     try:
         K = kernel_search.send(error)
     except Exception as e:
-        print(e)
+        print('Search Error:', e)
         terminate = True
         continue
 
     if max_depth and len(K.kernels) > max_depth:
+        print('Max depth reached!')
         terminate = True
         continue
 
     # fit the model
-    m = GPy.models.GPRegression(X, Y, K.compile())
+    if do_crossval:
+        m = GPy.models.GPRegression(X_train, Y_train, K.compile())
+    else:
+        m = GPy.models.GPRegression(X, Y, K.compile())
     m.optimize() # magic
 
     # Crossvalidation
     #val_X = (X.max()-X.min())*np.random.rand(n,1) + X.min()
     #real_Y = target_func(val_X)
-    #pred_mean, pred_var = m.predict(val_X)
-    #error = RMSE(real_Y, pred_mean)
-
-    # Bayesian Information Criterion
-    error = calculate_BIC(m)
+    if do_crossval:
+        pred_mean, pred_var = m.predict(X_val)
+        error = RMSE(Y_val, pred_mean)
+    else:
+        # Bayesian Information Criterion
+        error = calculate_BIC(m)
 
     scores.append((K, error))
     print(error, '\t', K)
@@ -83,7 +104,7 @@ kernels, errors = zip(*scores)
 min_error = min(errors)
 best_K = kernels[errors.index(min_error)]
 
-m = GPy.models.GPRegression(X,Y, K.compile())
+m = GPy.models.GPRegression(X,Y, best_K.compile())
 
 # plotting
 #x = np.linspace(-7,7,101)
