@@ -12,14 +12,13 @@ class Parameter:
         'disc' : 'discrete',
     }
 
-    def __init__(self, values, type_=None):
+    def __init__(self, domain, type_, prior):
         
         if type_:
             if type_ in Parameter.typemap.keys():
                 type_ = Parameter.typemap[type_]
             elif not (type_ in Parameter.typemap.values()):
-                raise ValueError('Invalid parameter-type.')
-        else:
+                raise ValueError('Invalid parameter-type.'
             if isinstance(values, Number):
                 type_ = 'discrete'
             elif isinstance(values, str):
@@ -79,4 +78,5 @@ class Parameter:
     def __iter__(self):
         while True:
             yield next(self)
+        
         

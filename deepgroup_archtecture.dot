@@ -1,0 +1,28 @@
+digraph G {
+
+rankdir=LR
+
+	subgraph cluster_0 {
+		style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+		label = "process #1";
+		A1 [label="Algorithm 1"]
+		A2 [label="Algorithm 2"]
+		dots [label=".\n.\n."]
+		An [label="Algorithm n"]
+	}
+
+	subgraph cluster_1 {
+		node [style=filled];
+		b0 -> b1 -> b2 -> b3;
+		label = "process #2";
+		color=blue
+	}
+	start -> A1 -> end
+	start -> An -> end
+	start -> dots -> end
+	start -> An -> end
+	
+	start [shape=Mdiamond];
+}
