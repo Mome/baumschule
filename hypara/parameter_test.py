@@ -1,21 +1,23 @@
 from parameter import *
-from scipy import 
+import unittest
 
 class ParameterTest(unittest.TestCase):
-	def setUp(self):
-		pass
+    def setUp(self):
+        pass
 
-	def test_exceptions(self):
-		self.assertRaises(Parameter, ArgumentInferenceError)
-		self.assertRaises(ValueError, Parameter, [], infere_prior=0)
+    def test_exceptions(self):
+        self.assertRaises(ArgumentInferenceError, Parameter)
+        self.assertRaises(ValueError, Parameter, [], infere_prior=2)
+        self.assertRaises(ArgumentInferenceError, Parameter, type_='cat')
 
-	def test_infer_domain(self):
-		infdom = Parameter.infer_domain
-		self.assertEuqal(infdom, ArgumentInferenceError, (None,None,None))
-		self.assertEqual(infdom, ArgumentInferenceError, (None,None,None))
+    def test_domain(self):
+        self.assertEqual(Parameter(int).domain, Intervall(-float('inf'),float('inf')))
+        self.assertEqual(Parameter(float).domain, Intervall(-float('inf'),float('inf')))
+        self.assertEqual(Parameter(['a',1]).domain, ['a',1])
 
-	def test_infere_type(self):
-		...
+    def test_type(self):
+        ...
+        
 
 if __name__ == '__main__':
     unittest.main()
