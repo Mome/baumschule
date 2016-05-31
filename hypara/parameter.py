@@ -27,6 +27,9 @@ class Parameter:
 
     def __init__(self, domain=None, type_=None, prior=None, infere_prior=True):
 
+        if isinstance(domain, str):
+            domain = domain.strip().lower()
+
         self.original_parameters = {
             'domain': domain, 'type': type_, 'prior': prior}
 
@@ -40,14 +43,15 @@ class Parameter:
         if not (type_ in typemap.values()):
             raise ValueError('Invalid type: %s'%type_)
 
-        if not isinstance(domain, Sequence) and domain in intervall_keys:
-            domain = intervall_keys[domain]
+        if type_==None:
+            type_ = Parameter.infere_type(domain)
+
+        if isinstance(domain, (str,type)):
+            if domain in intervall_keys:
+                domain = intervall_keys[domain]
 
         if domain==None:
             domain = Parameter.infere_domain(type_)
-
-        if type_==None:
-            type_ = Parameter.infere_type(domain)
 
         if callable(infere_prior):
             prior = infere_prior(domain, type_, prior)
@@ -78,10 +82,10 @@ class Parameter:
         if domain == int:
             type_ = 'discrete'
 
-        elif domain == float:
+        elif domain in [float, 'probability']:
             type_ = 'continuous'
 
-        elif isinstance(domain, Sequence):
+        elif isinstance(domain, Sequence) and not isinstance(domain, str):
 
             if all(isinstance(val, Number) for val in domain):
                 type_ = 'discrete'
