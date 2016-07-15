@@ -6,10 +6,10 @@ rankdir=LR
 		style=filled;
 		color=lightgrey;
 		node [style=filled,color=white];
-		label = "process #1";
+		label = "Pool";
 		A1 [label="Algorithm 1"]
 		A2 [label="Algorithm 2"]
-		dots [label=".\n.\n."]
+		dots [label=".\n.\n." style=filled color=lightgrey]
 		An [label="Algorithm n"]
 	}
 
