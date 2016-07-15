@@ -1,0 +1,22 @@
+digraph {
+
+node [shape=box]
+
+start [shape=record, style=rounded, label="{Arguments|model\ntask}"]
+end [shape=record, style=rounded, label="{Return|best parameter}"]
+//input [label="model,task", shape=parallelogram]
+stopcond [label="stopping\ncondition?", shape=diamond]
+pickpara [label="Pick next\nparameter"]
+eval [label="evaluate\nmodel"]
+protocol [label="write to\nprotocol", shape="parallelogram"]
+
+start -> stopcond
+stopcond -> end [label="Yes"]
+stopcond -> pickpara [label="No"]
+pickpara -> eval
+eval -> protocol
+eval -> stopcond
+
+{rank=same; start, stopcond, end}
+{rank=same; pickpara, eval}
+}
