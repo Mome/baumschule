@@ -1,0 +1,36 @@
+digraph{
+
+//graph [splines=ortho]
+rankdir=LR;
+
+node [shape=point]
+
+dummy1, dummy2 
+
+node [shape=box];
+{rank=same; continuous, ordered, unordered}
+
+continuous [label="continuous (real-valued)"]
+ordered [label="ordered (integers)"]
+unordered [label="unordered (categories)"]
+
+V -> dummy1
+dummy1 -> continuous
+dummy1 -> discrete
+
+discrete -> ordered
+discrete -> unordered
+
+ordered   -> numerical
+continuous -> numerical
+
+numerical -> "lower-bound"
+numerical -> "upper-bound"
+
+"lower-bound" -> interval
+"upper-bound" -> interval
+
+unordered -> finite
+unordered -> infinite
+
+}

@@ -7,6 +7,7 @@ from itertools import chain
 from random import choice
 import operator
 import GPy.kern
+from functools import reduce
 
 
 class KernelComposition:
@@ -19,7 +20,7 @@ class KernelComposition:
         'Lin'      : lambda : GPy.kern.Linear(1),
         'MLP'      : lambda : GPy.kern.MLP(1),
         'Brown'    : lambda : GPy.kern.Brownian(1),
-        'Spline'    : lambda : GPy.kern.Spline(1),
+        'Spline'    :lambda : GPy.kern.Spline(1),
         'Mat32'    : lambda : GPy.kern.Matern32(1),
         'Mat52'    : lambda : GPy.kern.Matern52(1),
         'Per'      : lambda : GPy.kern.StdPeriodic(1),
@@ -34,7 +35,7 @@ class KernelComposition:
         '*'   : operator.mul,
     }
 
-    def __init__(self, kernels=(None,), compositions=()):
+    def __init__(self, kernels=('None',), compositions=()):
 
         assert (len(kernels)-1 == len(compositions))
 
@@ -88,21 +89,26 @@ class KernelComposition:
 
         # initialize with random basekernel
         if current == None:
-            current = KernelComposition([choice(basekernels)])
-            lowest_error = yield current
-        else:
+            current = KernelComposition()
             lowest_error = float('inf')
 
         already_yielded = set(str(current)) # stores all evaluated kernels
         kernel_path = []
 
+        print('Start with', current, 'for exapansion!\n')
+
         while True:
 
             lowest_error = float('inf')
 
-            new_kernels = chain(
-                current.basekernel_replacements(basekernels),
-                current.basekernel_compositions(basekernels, compositions))
+            if current.kernels[0] == 'None':
+                new_kernels = current.basekernel_replacements(basekernels)
+            elif not current.compositions:
+                new_kernels = current.basekernel_compositions(basekernels, compositions)
+            else:
+                new_kernels = chain(
+                    current.basekernel_replacements(basekernels),
+                    current.basekernel_compositions(basekernels, compositions))
 
             for new_K in new_kernels:
                 if str(new_K) in already_yielded:
@@ -119,36 +125,57 @@ class KernelComposition:
                     current = new_K
 
             kernel_path.append((current, lowest_error))
+            print('Chose', current, ' for exapansion!\n')
 
 
     def empty(self):
         return self.kernels[0] is None
 
 
-    def compile(self):
+    def compile(self, bind_multiplication_stronger=True):
         if self.empty(): raise Exception('Nothing to compile: KernelComposition is empty!')
 
         # normalize ids
         kernels = [k_id.upper() for k_id in self.kernels]
         compositions = [c_id.lower() for c_id in self.compositions]
 
-        # pick actual gpy kernels and composition functions
+        # pick actual gpy kernels
         kernels = [KernelComposition.TRANSLATIONS[k_id] for k_id in kernels]
-        compositions = [KernelComposition.TRANSLATIONS[c_id] for c_id in compositions]
+        kernels = [K() for K in kernels] # instanciate kernels
 
-        # instanciate kernels
-        kernels = [K() for K in kernels]
+        if bind_multiplication_stronger:
 
-        compiled_kernel = kernels[0]
+            # sort into bins for multiplication
+            bins = [[kernels[0]]]
+            for comp, K in zip(compositions, kernels[1:]):
+                if comp in ('+', 'add'):
+                    bins.append([K])
+                elif comp in ('*', 'mul'):
+                    bins[-1].append(K)
+                else:
+                    raise Exception('No a valid operator:' + c)
 
-        for K, comp in zip(kernels[1:], compositions):
-            compiled_kernel = comp(compiled_kernel, K)
+
+            # make a product of each bin and then sum it up
+            for i,b in enumerate(bins):
+                m = b[0]
+                for K in b[1:]:
+                    m = m*K
+                bins[i] = m
+
+            # sum up bins
+            compiled_kernel = bins[0]
+            for b in bins[1:]:
+                compiled_kernel = compiled_kernel + b
+
+        else: # strict left to right binding !
+            compositions = [KernelComposition.TRANSLATIONS[c_id] for c_id in compositions]
+            compiled_kernel = kernels[0]
+
+            for K, comp in zip(kernels[1:], compositions):
+                compiled_kernel = comp(compiled_kernel, K)
 
         return compiled_kernel
-
-    
-
-
 
 
 
