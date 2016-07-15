@@ -12,17 +12,26 @@ import GPy.kern
 class KernelComposition:
 
     TRANSLATIONS = {
-        'RQ' : lambda : GPy.kern.RatQuad(1),
-        'SE' : lambda : GPy.kern.ExpQuad(1),
-        'EXP' : lambda : GPy.kern.Exponential(1),
-        'BIAS': lambda : GPy.kern.Bias(1),
-        'LIN' : lambda : GPy.kern.Linear(1),
-        'PER' : lambda : GPy.kern.StdPeriodic(1),
-
+        'RQ'       : lambda : GPy.kern.RatQuad(1),
+        'SE'       : lambda : GPy.kern.ExpQuad(1),
+        'Exp'      : lambda : GPy.kern.Exponential(1),
+        'Bias'     : lambda : GPy.kern.Bias(1),
+        'Lin'      : lambda : GPy.kern.Linear(1),
+        'MLP'      : lambda : GPy.kern.MLP(1),
+        'Brown'    : lambda : GPy.kern.Brownian(1),
+        'Spline'    : lambda : GPy.kern.Spline(1),
+        'Mat32'    : lambda : GPy.kern.Matern32(1),
+        'Mat52'    : lambda : GPy.kern.Matern52(1),
+        'Per'      : lambda : GPy.kern.StdPeriodic(1),
+        'Cos'      : lambda : GPy.kern.Cosine(1),
+        'PerExp'   : lambda : GPy.kern.PeriodicExponential(1),
+        'PerMat32' : lambda : GPy.kern.PeriodicMatern32(1),
+        'PerMat52' : lambda : GPy.kern.PeriodicMatern52(1),
+        
         'add' : operator.add,
         'mul' : operator.mul,
-        '+' : operator.add,
-        '*' : operator.mul,
+        '+'   : operator.add,
+        '*'   : operator.mul,
     }
 
     def __init__(self, kernels=(None,), compositions=()):
