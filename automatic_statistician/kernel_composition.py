@@ -29,15 +29,13 @@ class KernelComposition:
         'PerMat32' : lambda : GPy.kern.PeriodicMatern32(1),
         'PerMat52' : lambda : GPy.kern.PeriodicMatern52(1),
         
-        'add' : operator.add,
-        'mul' : operator.mul,
         '+'   : operator.add,
         '*'   : operator.mul,
     }
 
     def __init__(self, kernels=('None',), compositions=()):
 
-        assert (len(kernels)-1 == len(compositions))
+        assert (len(kernels)-1 == len(compositions))    
 
         self.kernels = tuple(kernels)
         self.compositions = tuple(compositions)
@@ -75,7 +73,6 @@ class KernelComposition:
 
     @classmethod
     def from_string(cls, string):
-        #### TODO - whitespace independent parsing
         #### TODO - maybe integrate in constructor
         parts = [p for p in string.split() if p]
         return cls(parts[::2], parts[1::2])
