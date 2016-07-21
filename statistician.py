@@ -1,10 +1,15 @@
-import os
 import collections
 import configparser
-import uuid
 import json
-import numpy
+import os
+import pprint
 import sys
+import uuid
+
+import pandas
+import numpy
+import scipy.io as sio
+
 
 class Statistician:
     def __init__(self):
@@ -35,14 +40,12 @@ class PredictionAlgorithm(Statistic):
         super(PredictionAlgorithm, self).__init__(name, func)
 
 
-class DataSet(dict):
+class DataSet:
     """Represents multiple Datatables in a Dataset."""
 
     def __init__(self, name, tables=None, meta=None):
-        if not (tables is None):
-            for table_name, table in tables.items():
-                assert isinstance(table, numpy.ndarray)
-                self[table_name] = table
+        if tables is None:
+            tables = {}
         
         if meta is None:
             meta = {}
@@ -56,6 +59,7 @@ class DataSet(dict):
             meta['name'] = name
 
         self.name = name
+        self.tables = tables
         self.meta = meta
         self.path = None
 
@@ -64,52 +68,100 @@ class DataSet(dict):
     def uuid(self):
         return uuid.UUID(self.meta['uuid'])
 
- 
     @classmethod
-    def load_all(cls, path):
+    def list_all(cls, path=None):
 
-        dataset_list = []
-        for dirname in os.listdir(path):
-            dataset_path = os.path.join(path, dirname)
-            if not os.path.isdir(dataset_path):
-                continue
-            if dirname.startswith('.'):
-                continue
-            dataset = cls.load(dataset_path)
-            dataset_list.append(dataset)
-        return dataset_list
+        if path is None:
+            path = CONFIG.data_path
 
+        return [
+            name for name in os.listdir(path)
+            if DataSet.valid_dataset_format(os.path.join(path, name))
+            and not name.startswith('.')
+        ]
+
+    @staticmethod
+    def valid_dataset_format(path):
+        """Test whether a path is a folder or in mat format."""
+
+        if not os.path.exists(path):
+            return FileNotFoundError('No dataset in: ' + path)
+
+        if os.path.isdir(path):
+            return True
+        
+        ext = os.path.splitext(path)[-1]
+        return ext in ['.mat']
 
     @classmethod
-    def load(cls, path):
-        name = os.path.basename(path)
+    def load(cls, name, path=None):
 
-        # load meta file
-        meta = None
-        meta_path = os.path.join(path, 'meta.json')
-        if os.path.exists(meta_path):
-            with open(meta_path) as f:
-                meta = json.load(f)
+        if path is None:
+            path = os.path.join(CONFIG.data_path, name)
 
-        # load datafiles
-        tables = {}
-        for filename in os.listdir(path):
-            filepath = os.path.join(path, filename)
-            
-            if os.path.isdir(filepath): continue
-            if filename.startswith('.'): continue
-            if not filename.endswith('.csv'): continue
-            
-            table = numpy.loadtxt(filepath, delimiter='\t')
-            table = table.T # transpose table, because table was stored transposed
-            filename = filename[:-4]
-            tables[filename] = table
+        if os.path.isdir(path):
+
+            # load meta file
+            meta_path = os.path.join(path, 'meta.json')
+            if os.path.exists(meta_path):
+                with open(meta_path) as f:
+                    meta = json.load(f)
+            else:
+                meta = None
+
+            # load datafiles
+            tables = {}
+            for filename in os.listdir(path):
+                if filename.startswith('.'): continue
+                if filename.endswith('~'): continue
+                filepath = os.path.join(path, filename)
+                if os.path.isdir(filepath): continue
+                table = DataSet.read_table(filepath)
+                tablename = os.path.splitext(filename)[0]
+                tables[tablename] = table
+
+        elif path.endswith('.mat'):
+
+            mat = sio.loadmat(path)
+            meta = mat['meta'] if 'meta' in mat else None
+            tables = {key:mat[key] for key in mat
+                if not (key.startswith('__') or key == 'meta')}
             
         dataset = cls(name, tables, meta)
         dataset.path = path
         return dataset
 
+    @staticmethod
+    def read_table(path):
+        ext = os.path.splitext(path)[-1]
+        if ext == '.csv':
+            table = pandas.read_csv(path)
+        elif ext == '.tsv':
+            table = pandas.read_table(path)
+        elif ext == '.npy':
+            table = np.load(path)
+        else:
+            raise IOError('Invalid table format: ' + ext)
+        return table
 
+    def __getitem__(self, key):
+        return self.tables[key]
+
+    def __str__(self):
+        #TableInfo = collections.namedtuple('TableInfo', ['name', 'shape', 'columns'])
+        table_info = [
+            {'name':name, 'shape':table.shape, 'type':type(table)}
+            for name, table in self.tables.items()
+        ]
+        lines = [
+            'DataSet: ' + self.name,
+            '---------' + '-'*len(self.name),
+            pprint.pformat(table_info),
+            '', 'Meta:',
+            pprint.pformat(self.meta),
+        ]
+        return '\n'.join(lines)
+        
     def save(self, path=None):
         
         if path is None:
@@ -125,18 +177,17 @@ class DataSet(dict):
         # save tables
         for table_name, table in self.items():
             filepath = os.path.join(path, table_name + '.csv')
-            table = table.T # transpose table file looks nice
-            numpy.savetxt(filepath, table, delimiter='\t')
+            pandas.to_csv(filepath)
 
         # save metafile
         meta_path = os.path.join(path, 'meta.json')
         with open(meta_path, 'w') as f:
             json.dump(self.meta, f)
 
-    def __str__(self):
-        table_shapes = ['%sx%s'%tab.shape for tab in self.values()]
-        content = ' '.join([self.name, 'tables:', *table_shapes])
-        return ''.join([type(self).__name__, '(', content, ')'])
+    #def __str__(self):
+    #    table_shapes = ['%sx%s'%tab.shape for tab in self.values()]
+    #    content = ' '.join([self.name, 'tables:', *table_shapes])
+    #   return ''.join([type(self).__name__, '(', content, ')'])
 
     def __repr__(self):
         return str(self)
@@ -147,7 +198,6 @@ class Configuration(configparser.ConfigParser):
 
     CONFPATH = os.path.dirname(__file__) # configuration file is stored in source folder
     CONFNAME = 'statistician.cfg'
-    singleton = True
 
     _DEFAULT_DICT = {
         'data' : {
@@ -157,13 +207,6 @@ class Configuration(configparser.ConfigParser):
 
     def __init__(self, path=None):
         super(Configuration, self).__init__()
-        
-        # make sure only on instance is created of `Configuration`
-        if Configuration.singleton:
-            Configuration.singleton = False
-        else:
-            #raise Exception('Configuration already loaded!')
-            pass 
 
         # add default configuration
         self.read_dict(Configuration._DEFAULT_DICT)
@@ -171,14 +214,12 @@ class Configuration(configparser.ConfigParser):
         # add configuration form custom file
         if path is None:
             path = os.path.join(Configuration.CONFPATH, Configuration.CONFNAME)
-            if os.path.exists(path):
-                self.read(path)
-        else:
-            self.read(path)
+
+        self.read(path)
         
-        self.datasets_path = os.path.join(self['data']['path'], 'datasets')
-        self.results_path = os.path.join(self['data']['path'], 'results')
-        self.tasks_path = os.path.join(self['data']['path'], 'tasks')
+        self.data_path = os.path.join(self['data']['path'], 'data')
+        self.result_path = os.path.join(self['data']['path'], 'results')
+        self.task_path = os.path.join(self['data']['path'], 'tasks')
         self.path = path
 
     def save(self, path=None):
@@ -187,13 +228,6 @@ class Configuration(configparser.ConfigParser):
         with open(path, 'w') as f:
             self.write(f)
 
-    def load(self, path=None):
-        if path==None:
-            path = self.path
-        self.read(path)
-
-    def __del__(self):
-        Configuration.singleton = True
 
 def init_configfile(path=None):
     # maybe remove old configfile here?
@@ -201,12 +235,16 @@ def init_configfile(path=None):
     print('Create new Configuration file in:', conf.path)
     conf.save()
 
+
 def init_folders(conf=None):
     if conf==None:
         conf = Configuration()
-    os.makedirs(conf.datasets_path, exist_ok=True)
-    os.makedirs(conf.results_path, exist_ok=True)
-    os.makedirs(conf.tasks_path, exist_ok=True)
+    os.makedirs(conf.data_path, exist_ok=True)
+    os.makedirs(conf.result_path, exist_ok=True)
+    os.makedirs(conf.task_path, exist_ok=True)
+
+
+CONFIG = Configuration()
 
 def main():
     args = sys.argv[1:]
