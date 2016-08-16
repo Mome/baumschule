@@ -11,6 +11,10 @@ import numpy
 import scipy.io as sio
 import matplotlib.pyplot as plt
 
+import logging
+
+log = logging.getLogger(__name__)
+
 
 class Statistician:
     def __init__(self):
@@ -211,7 +215,7 @@ class DataSet:
 
 
 
-class Configuration(configparser.ConfigParser):
+class Configuration_alt(configparser.ConfigParser):
 
     CONFPATH = os.path.dirname(__file__) # configuration file is stored in source folder
     CONFNAME = 'statistician.cfg'
@@ -246,11 +250,72 @@ class Configuration(configparser.ConfigParser):
             self.write(f)
 
 
-def init_configfile(path=None):
-    # maybe remove old configfile here?
-    conf = Configuration(path)
-    print('Create new Configuration file in:', conf.path)
-    conf.save()
+class Configuration:
+
+    # paths of the config files, loaded in this order
+    CONFIGFILES = [
+        ('default', os.path.join(os.path.dirname(__file__), 'default_config.py')),
+        ('user', os.path.expanduser('~/.statistician/statistician_config.py')),
+    ]
+
+    _INSTANCE = None
+
+    _SUBCV = ['Dataset'] # Subconfigurations variabels
+
+    def _add_subc(self, subc_list):
+        subcv = {key:Configuration() for key in subc_list}
+        subcv.update(self.__dict__)
+        self.__dict__ = subcv
+
+
+    @classmethod
+    def load_config(cls, reload_=False):
+        """ Loads configuration files from Configuration.CONFIGFILES
+
+            Returns: Configuration instance
+        """
+
+        if not cls._INSTANCE or reload_:
+
+            # namespace definition for exec of CONFIGFILES
+            from os.path import join, expanduser
+            c = cls() # configuration object
+            c._add_subc(cls._SUBCV)
+
+            for name, path in cls.CONFIGFILES:
+                log.debug('load', name, 'configuration')
+                try:
+                    with open(path) as cfg_file:
+                        cfg_code = cfg_file.read()
+                except FileNotFoundError as e:
+                    log.warning(e)
+                else:
+                    exec(cfg_code)
+
+            cls._INSTANCE = c
+
+        return cls._INSTANCE
+    
+
+    @classmethod
+    def create_config_file(cls):
+        names = list(zip(*CONFIGFILES))
+        default_cfg_path = names.find('default')
+        user_cfg_path = names.find('user')
+
+        # load default configfile
+        with open(default_cfg_path) as default_cfg_file:
+            lines = default_cfg_file.readlines()
+
+        # comment every non-empty, uncommented line
+        for i, line in enumerate(lines):
+            if line and line[0] != '#':
+                lines[i] = '#' + line
+
+        log.info('Create new Configuration file in:', user_cfg_pathh)
+        os.makedir(os.path.dirname(user_cfg_path), exist_ok=True)
+        with open(user_cfg_path, 'w') as user_cfg_file:
+            user_cfg_file.writelines(lines)
 
 
 def init_folders(conf=None):
@@ -260,8 +325,6 @@ def init_folders(conf=None):
     os.makedirs(conf.result_path, exist_ok=True)
     os.makedirs(conf.task_path, exist_ok=True)
 
-
-CONFIG = Configuration()
 
 def main():
     args = sys.argv[1:]
