@@ -9,6 +9,7 @@ import uuid
 import pandas
 import numpy
 import scipy.io as sio
+import matplotlib.pyplot as plt
 
 
 class Statistician:
@@ -123,10 +124,18 @@ class DataSet:
         elif path.endswith('.mat'):
 
             mat = sio.loadmat(path)
-            meta = mat['meta'] if 'meta' in mat else None
+            
             tables = {key:mat[key] for key in mat
                 if not (key.startswith('__') or key == 'meta')}
             
+            if 'meta' in mat:
+                meta_json = mat['meta'][0]
+                meta = json.loads(meta_json)
+            else:
+                meta = None
+        else:
+            raise Exception('Invalid format ...')
+
         dataset = cls(name, tables, meta)
         dataset.path = path
         return dataset
@@ -150,39 +159,47 @@ class DataSet:
     def __str__(self):
         #TableInfo = collections.namedtuple('TableInfo', ['name', 'shape', 'columns'])
         table_info = [
-            {'name':name, 'shape':table.shape, 'type':type(table)}
+            {'name':name, 'shape':table.shape, 'type':type(table).__name__}
             for name, table in self.tables.items()
         ]
         lines = [
             'DataSet: ' + self.name,
             '---------' + '-'*len(self.name),
+            '', 'Tables:',
             pprint.pformat(table_info),
-            '', 'Meta:',
-            pprint.pformat(self.meta),
         ]
+        if self.meta and 'kernel' in self.meta:
+            lines += ['','Kernel:', self.meta['kernel']]
         return '\n'.join(lines)
         
-    def save(self, path=None):
+    def save(self, path=None, format_='.mat'):
         
         if path is None:
-            if not (self.path is None):
-                path = self.path
+            if self.path is None:
+                path = CONFIG.data_path
+                path = os.path.join(path, self.name)
             else:
-                raise Exception('Need path for dataset!')
+                path = self.path
+        
+        if format_ == '.csv':
+            if not os.path.exists(path):
+                os.mkdir(path)
 
-        path = os.path.join(path, self.name)
-        if not os.path.exists(path):
-            os.mkdir(path)
+            # save tables
+            for table_name, table in self.items():
+                filepath = os.path.join(path, table_name + '.csv')
+                pandas.to_csv(filepath)
 
-        # save tables
-        for table_name, table in self.items():
-            filepath = os.path.join(path, table_name + '.csv')
-            pandas.to_csv(filepath)
+            # save metafile
+            meta_path = os.path.join(path, 'meta.json')
+            with open(meta_path, 'w') as f:
+                json.dump(self.meta, f)
 
-        # save metafile
-        meta_path = os.path.join(path, 'meta.json')
-        with open(meta_path, 'w') as f:
-            json.dump(self.meta, f)
+        elif format_ == '.mat':
+            base, ext = os.path.splitext(path)
+            data = {'meta' : json.dumps(self.meta), **self.tables}
+            sio.savemat(path, data)
+
 
     #def __str__(self):
     #    table_shapes = ['%sx%s'%tab.shape for tab in self.values()]

@@ -7,28 +7,28 @@ import signal
 import sys
 import scipy.io as sio
 from numpy.random import shuffle
+from statistician import DataSet
 
-max_depth = 10
+import warnings
+warnings.filterwarnings("ignore", category=np.VisibleDeprecationWarning, module="numpy")
+
+
+max_depth = 4
 compositions = ['*', '+']
-kernels = ['SE', 'LIN', 'PER', 'RQ']
+kernels = ['RBF', 'Per', 'Lin', 'Brown', 'RQ']
 refresh_splitting = False
 do_crossval = False
 
-# create sample data
-# target_func = lambda x : np.sqrt(np.abs(x)) + np.sin(x) + np.cos(x*3)/2 + 3
-# minx, maxx = (-7,7)
-# X = (maxx-minx)*np.random.rand(200, 1) + minx
-# Y = target_func(X) + np.random.randn(len(X), 1)/2
 
 # load data
-#data = sio.loadmat('../data/03-mauna2003.mat') # figure 4
-data = sio.loadmat('../data/02-solar.mat') # figure 5
-#data = sio.loadmat('../data/01-airline.mat') # figure 6
+data = DataSet.load('02-solar.mat')
+
+print(data)
 
 X = data['X']
 Y = data['y']
 
-print('Data shape:', X.shape, Y.shape)
+print()
 print('Ctrl+C to stop search ones.')
 
 # finish search with Ctrl+C
@@ -93,7 +93,7 @@ while not terminate:
         error = calculate_BIC(m)
 
     scores.append((K, error))
-    print(error, '\t', K)
+    print(error, '\t', m.log_likelihood(), '\t', K)
 
 print('Search finished!')
 

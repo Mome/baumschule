@@ -88,10 +88,6 @@ class TreeRoot():
         bgt = cls._from_string(string)
         return TreeRoot(bgt)
 
-    @classmethod
-    def _from_string(cls, string):
-        string = string.strip()
-
     """@classmethod
     def _from_string(cls, string):
         string = string.strip()
@@ -128,8 +124,8 @@ class GrammarTree:
         self.second = second
 
     def __str__(self):
-        content = ' '.join([str(self.first), self.operation, str(self.second)])
-        return '(' + content + ')'
+        content = [str(self.first), self.operation, str(self.second)]
+        return '(' + ' '.join(content) + ')'
 
 
 class GrammarLeaf:

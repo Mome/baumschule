@@ -14,7 +14,7 @@ class KernelComposition:
 
     TRANSLATIONS = {
         'RQ'       : lambda : GPy.kern.RatQuad(1),
-        'SE'       : lambda : GPy.kern.ExpQuad(1),
+        'RBF'       : lambda : GPy.kern.RBF(1),
         'Exp'      : lambda : GPy.kern.Exponential(1),
         'Bias'     : lambda : GPy.kern.Bias(1),
         'Lin'      : lambda : GPy.kern.Linear(1),
@@ -132,19 +132,15 @@ class KernelComposition:
     def compile(self, bind_multiplication_stronger=True):
         if self.empty(): raise Exception('Nothing to compile: KernelComposition is empty!')
 
-        # normalize ids
-        kernels = [k_id.upper() for k_id in self.kernels]
-        compositions = [c_id.lower() for c_id in self.compositions]
-
         # pick actual gpy kernels
-        kernels = [KernelComposition.TRANSLATIONS[k_id] for k_id in kernels]
+        kernels = [KernelComposition.TRANSLATIONS[k_id] for k_id in self.kernels]
         kernels = [K() for K in kernels] # instanciate kernels
 
         if bind_multiplication_stronger:
 
             # sort into bins for multiplication
             bins = [[kernels[0]]]
-            for comp, K in zip(compositions, kernels[1:]):
+            for comp, K in zip(self.compositions, kernels[1:]):
                 if comp in ('+', 'add'):
                     bins.append([K])
                 elif comp in ('*', 'mul'):
