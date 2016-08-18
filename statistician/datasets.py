@@ -1,10 +1,15 @@
+from statistician import get_config
 import logging
+import openml
+from os.path import join
+import os
+import json
+import pandas as pd
 
 log = logging.getLogger(__name__)
+c = get_config()
 
-
-
-class DataSet:
+class Dataset:
     """Represents multiple Datatables in a Dataset."""
 
     def __init__(self, name, tables=None, meta=None):
@@ -13,9 +18,6 @@ class DataSet:
         
         if meta is None:
             meta = {}
-        
-        if 'uuid' not in meta:
-            meta['uuid'] = str(uuid.uuid4())
 
         if name in meta:
             assert name == meta['name']
@@ -27,10 +29,6 @@ class DataSet:
         self.meta = meta
         self.path = None
 
-    @property
-    def uuid(self):
-        return uuid.UUID(self.meta['uuid'])
-
     @classmethod
     def list_all(cls, path=None):
 
@@ -39,7 +37,7 @@ class DataSet:
 
         return [
             name for name in os.listdir(path)
-            if DataSet.valid_dataset_format(os.path.join(path, name))
+            if Dataset.valid_dataset_format(join(path, name))
             and not name.startswith('.')
         ]
 
@@ -60,12 +58,12 @@ class DataSet:
     def load(cls, name, path=None):
 
         if path is None:
-            path = os.path.join(CONFIG.data_path, name)
+            path = join(CONFIG.data_path, name)
 
         if os.path.isdir(path):
 
             # load meta file
-            meta_path = os.path.join(path, 'meta.json')
+            meta_path = join(path, 'meta.json')
             if os.path.exists(meta_path):
                 with open(meta_path) as f:
                     meta = json.load(f)
@@ -77,9 +75,9 @@ class DataSet:
             for filename in os.listdir(path):
                 if filename.startswith('.'): continue
                 if filename.endswith('~'): continue
-                filepath = os.path.join(path, filename)
+                filepath = join(path, filename)
                 if os.path.isdir(filepath): continue
-                table = DataSet.read_table(filepath)
+                table = Dataset.read_table(filepath)
                 tablename = os.path.splitext(filename)[0]
                 tables[tablename] = table
 
@@ -115,6 +113,34 @@ class DataSet:
             raise IOError('Invalid table format: ' + ext)
         return table
 
+    def save(self, path=None, format_='.mat'):
+        
+        if path is None:
+            if self.path is None:
+                path = CONFIG.data_path
+                path = join(path, self.name)
+            else:
+                path = self.path
+        
+        if format_ == '.csv':
+            if not os.path.exists(path):
+                os.mkdir(path)
+
+            # save tables
+            for table_name, table in self.items():
+                filepath = join(path, table_name + '.csv')
+                pandas.to_csv(filepath)
+
+            # save metafile
+            meta_path = join(path, 'meta.json')
+            with open(meta_path, 'w') as f:
+                json.dump(self.meta, f)
+
+        elif format_ == '.mat':
+            base, ext = os.path.splitext(path)
+            data = {'meta' : json.dumps(self.meta), **self.tables}
+            sio.savemat(path, data)
+
     def __getitem__(self, key):
         return self.tables[key]
 
@@ -125,7 +151,7 @@ class DataSet:
             for name, table in self.tables.items()
         ]
         lines = [
-            'DataSet: ' + self.name,
+            'Dataset: ' + self.name,
             '---------' + '-'*len(self.name),
             '', 'Tables:',
             pprint.pformat(table_info),
@@ -133,60 +159,61 @@ class DataSet:
         if self.meta and 'kernel' in self.meta:
             lines += ['','Kernel:', self.meta['kernel']]
         return '\n'.join(lines)
+
+
+class DatasetIndex(dict):
+    """Stores a list of available datasets information."""
+
+    def __init__(self):
+        try:
+            self.load()
+        except FileNotFoundError:
+            self.update_index()
+
+    def save(self):
+        filepath = join(c.basepath, 'dataset_index.json')
+        with open(filepath, 'w') as f:
+            json.dump(dict(self), f)
+
+    def load(self):
+        filepath = join(c.basepath, 'dataset_index.json')
+        with open(filepath) as f:
+            dsi_dict = json.load(f)
+        self.clear()
+        self.update(dsi_dict)
+
+    def as_dataframe(self, source):
+        df = pd.DataFrame(self[source])
+        df.set_index('did', inplace=True)
+        return df
+
+    def update_index(self, source='all'):
         
-    def save(self, path=None, format_='.mat'):
-        
-        if path is None:
-            if self.path is None:
-                path = CONFIG.data_path
-                path = os.path.join(path, self.name)
-            else:
-                path = self.path
-        
-        if format_ == '.csv':
-            if not os.path.exists(path):
-                os.mkdir(path)
+        if source == 'all' or source == 'local':
+            local_dataindex = self.get('local', {})
+            for fname in os.listdir():
+                meta_info = Dataset.load_meta(fname)
+                local_dataindex[fname] = meta_info
+            self['local'] = local_dataindex
 
-            # save tables
-            for table_name, table in self.items():
-                filepath = os.path.join(path, table_name + '.csv')
-                pandas.to_csv(filepath)
+        if source == 'all' or source == 'local':
+            openml_dataindex = openml.datasets.list_datasets()
+            self['openml'] = openml_dataindex
 
-            # save metafile
-            meta_path = os.path.join(path, 'meta.json')
-            with open(meta_path, 'w') as f:
-                json.dump(self.meta, f)
-
-        elif format_ == '.mat':
-            base, ext = os.path.splitext(path)
-            data = {'meta' : json.dumps(self.meta), **self.tables}
-            sio.savemat(path, data)
+        log.debug('dataset index updating complete')
 
 
-    #def __str__(self):
-    #    table_shapes = ['%sx%s'%tab.shape for tab in self.values()]
-    #    content = ' '.join([self.name, 'tables:', *table_shapes])
-    #   return ''.join([type(self).__name__, '(', content, ')'])
+class DatabaseAdapter:
+    def list_datasets(self):
+        raise NotImplementedError()
 
-    def __repr__(self):
-        return str(self)
+    def download(self):
+        raise NotImplementedError()
 
-class DataSetInfoDatabase:
-    ...
 
-class DataSetInfo:
+class DatasetInfo:
     """Stores meta-information of a dataset."""
 
     def __init__(self, name, location, original):
         ...
-
-    def download(self, overwrite=False):
-        ...
-
-    def downloadable(self):
-        ...
-
-class OpenMLDataInfo:
-    """DataInfo of OpenML"""
-    ...
 
