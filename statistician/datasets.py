@@ -4,7 +4,9 @@ import openml
 from os.path import join
 import os
 import json
-import pandas as pd
+import pandas
+import numpy
+import scipy
 
 log = logging.getLogger(__name__)
 c = get_config()
@@ -100,20 +102,10 @@ class Dataset:
         dataset.path = path
         return dataset
 
-    @staticmethod
-    def read_table(path):
-        ext = os.path.splitext(path)[-1]
-        if ext == '.csv':
-            table = pandas.read_csv(path)
-        elif ext == '.tsv':
-            table = pandas.read_table(path)
-        elif ext == '.npy':
-            table = np.load(path)
-        else:
-            raise IOError('Invalid table format: ' + ext)
-        return table
+    def save(self, path=None, format_=None):
 
-    def save(self, path=None, format_='.mat'):
+        if format_ is None:
+            format_ = c.Dataset.default_format
         
         if path is None:
             if self.path is None:
@@ -161,6 +153,27 @@ class Dataset:
         return '\n'.join(lines)
 
 
+class DatasetInfo:
+    """Stores meta-information of a dataset."""
+
+    mendatory = ['name', 'files']
+
+    def __init__(self):
+        ...
+
+    @classmethod
+    def load(cls, name):
+        ...
+
+    def save(self, name=None):
+        if name is None:
+            name = self.name
+        ...
+
+    def get_dataset(self):
+        ...
+
+
 class DatasetIndex(dict):
     """Stores a list of available datasets information."""
 
@@ -183,7 +196,7 @@ class DatasetIndex(dict):
         self.update(dsi_dict)
 
     def as_dataframe(self, source):
-        df = pd.DataFrame(self[source])
+        df = pandas.DataFrame(self[source])
         df.set_index('did', inplace=True)
         return df
 
@@ -211,9 +224,30 @@ class DatabaseAdapter:
         raise NotImplementedError()
 
 
-class DatasetInfo:
-    """Stores meta-information of a dataset."""
+# -------------- Data File IO -------------- #
 
-    def __init__(self, name, location, original):
-        ...
+read_funcs = {
+    '.csv' : pandas.read_csv, 
+    '.tsv' : pandas.read_table,
+    '.npy' : numpy.load,
+    '.mat' : scipy.io.loadmat,
+    #'.h5'  : lambda path : h5py.File(path).read(),
+}
 
+table_write_funcs = {
+    ''
+}
+
+
+def read_table(path):
+
+    ext = os.path.splitext(path)[-1]
+    read = read_funcs('.csv')
+
+    return table
+
+@staticmethod
+def write_table(table, path, format_):
+    ...
+
+# -------------------------------------------- #
