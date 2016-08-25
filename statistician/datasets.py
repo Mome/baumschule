@@ -216,11 +216,27 @@ class DatasetIndex(dict):
         log.debug('dataset index updating complete')
 
 
-class DatabaseAdapter:
+class SourceAdapter:
     def list_datasets(self):
         raise NotImplementedError()
 
-    def download(self):
+    def get_dataset(self, source):
+        raise NotImplementedError()
+
+class DatasetAdapter: # or call GroupAdapter ???
+    def __init__(self, path):
+        self.path = path
+
+    def load(self):
+        raise NotImplementedError()
+
+    def save(self):
+        raise NotImplementedError()
+
+    def load_info(self):
+        raise NotImplementedError()
+
+    def save_info(self):
         raise NotImplementedError()
 
 

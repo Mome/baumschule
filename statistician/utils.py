@@ -3,6 +3,21 @@ import scipy.io  # this is the SciPy module that loads mat-files
 from datetime import datetime, date, time
 import pandas as pd
 import os
+import subprocess
+from collections import namedtuple
+
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    import magic
+except Exception as e:
+    logger.debug('No magic module available: %s' % e)
+    magic_available = False
+else:
+    magic_available = True
+
+
 
 
 def read_mat(path):
@@ -26,6 +41,7 @@ def read_mat(path):
                       columns=columns)
     return df
 
+
 def mat_to_csv(path):
     d = scipy.io.loadmat(path)
     x = pd.DataFrame(d['X'], columns=['x'])
@@ -35,6 +51,7 @@ def mat_to_csv(path):
     new_name = os.path.splitext(os.path.basename(path))[0] + '.csv'
     df.to_csv(new_name)
 
+
 def mat_to_hdf(path):
     d = scipy.io.loadmat(path)
     x = pd.DataFrame(d['X'])
@@ -43,3 +60,18 @@ def mat_to_hdf(path):
     x.to_hdf(new_name, 'X')
     y.to_hdf(new_name, 'y')
 
+
+def get_filetype(path):
+    if magic_available:
+        if os.path.isdir(path):
+            mime_type = 'inode/directory'
+        else:
+            mime_type = m.from_file(path)
+    else:
+        cmd = 'file -b --mime-type'.split()
+        cmd.append(path)
+        mime_type = subprocess.check_output(cmd)
+    #type_, subtype = mime_type.split('/')
+    return mime_type
+
+#MimeType = namedtuple('MimeType', ['type', 'subtype'])
