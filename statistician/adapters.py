@@ -5,7 +5,7 @@ from glob import glob
 import logging
 import os
 import utils
-from os.path import split, splitext
+from os.path import split, splitext, join
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +16,28 @@ if 'openml_apikey' in c:
     openml.apikey = c.openml_apikey
 
 
-
+local_dataset_adapters = {
+    'inode/directory' : DirectoryAdapter
+}
 
 
 class LocalSourceAdapter(datasets.SourceAdapter):
-    
-    dataset_adapters = 
 
+    
     def list_datasets(self):
 
         dataset_info = {}
 
-        for abspath in glob(self.path):
-            fname = split(abspath)[-1]
-            base, ext = splitext(fname)
+        for fullpath in glob(self.path):
+            parts = split(fullpath)
+            i = _first_wildcard(parts)
+            rel_path = ...
+            base, ext = splitext(fname) # TODO: chage this to first okkurance of a * or ?
 
-            mimetype = utils.get_filetype(abspath)
+            mimetype = utils.get_filetype(fullpath)
 
-            if mimetype == 'inode/directory':
-                info_dict = DirectoryAdapter(abspath).get_info()
+            dsa = local_dataset_adapters[mimetype]
+            info_dict = DirectoryAdapter(fullpath).get_info()
 
             else:
                 logger.debug(
@@ -43,15 +46,30 @@ class LocalSourceAdapter(datasets.SourceAdapter):
                 continue
 
             if 'name' not in info_dict:
-               info_dict['name'] = base 
+               info_dict['name'] = base
+
+            if ext:
+                info_dict['file_extension'] = ext
 
             info_dict['mimetype'] = mimetype
-            info_dict['abspath'] = abspath
-            info_dict['file_extension'] = ext
+            info_dict['fullpath'] = fullpath
             
             dataset_info[info_dict['name']] = info_dict
 
         return dataset_info
+
+    
+
+    def get_data(self, info):
+        info['mimetype']
+
+
+def _first_wildcard(parts)
+    """Finds index first posix-path part with wildcard"""
+    for i, part in enumerate(parts):
+        if '*' in part or '?' in part:
+            return i
+    return len(parts)
 
 
 
