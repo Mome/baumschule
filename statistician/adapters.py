@@ -103,7 +103,6 @@ class DirectoryAdapter(datasets.DatasetAdapter):
         'text/plain' : utils.read_str,
     }
 
-
     def list_files(self):
         filenames = iglob(join(self.path, '**'), recursive=True)
         no_metafile = lambda path : not DirectoryAdapter._is_metafile(path)

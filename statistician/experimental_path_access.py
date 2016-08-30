@@ -1,23 +1,11 @@
 from pathlib import PurePosixPath, _Flavour
-from statistician import get_config
 from itertools import chain
+import utils
+from collections import defaultdict
+from functools import partial
 
+from statistician import get_config
 
-c = get_config()
-
-class Path(PurePath):
-
-    def __new__(cls, *args, source=None):
-        if cls is Path:
-            ppath = PurePath(args)
-
-            if source not in c.Dataset.sources:
-                raise ValueError('Unknown source!')
-
-            cls = c.Dataset.sources[source]
-
-        return object.__new__(cls, *parts, source=source)
-        
 
 class PurePath:
 
@@ -91,3 +79,118 @@ class PurePath:
     def __repr__(self):
         return "{}({!r})".format(self.__class__.__name__, str(self))
 
+
+
+class Path(PurePath):
+
+    sources = {}
+
+    def __new__(cls, *args, source=None):
+        if cls is Path:
+            ppath = PurePath(args)
+
+            if not (source in cls.sources):
+                raise ValueError('Unknown source!')
+
+            cls = cls.sources[source]
+
+        return object.__new__(cls, *parts, source=source)
+
+
+class Group(LocalPath):
+    def __init__(self):
+        print(self)
+
+    def list_groups(self):
+        raise NotImplementedError()
+
+    def list_files(self):
+        raise NotImplementedError()
+
+
+class File(Path):
+    
+    def load(self):
+        raise NotImplementedError()
+
+    def meta(self):
+        raise NotImplementedError()
+
+    def save(self, obj):
+        raise NotImplementedError()
+
+
+class LocalPath(Path):
+
+    group_classes = {
+        'inode/direcotry' : LocalDirectory,
+    }
+
+    def __new__(cls, base_path):
+
+        filetype = utils.get_filetype(base_path)
+
+        if cls is LocalPath:
+            cls = get_access_class(filetype)
+
+        self = object.__new__(cls, base_path)
+        return self        
+
+    @classmethod
+    def get_access_class(cls, filetype):
+        if filetype in cls.group_classes:
+            return cls.group_classes[filetype]
+
+        if filetype in LocalFile.file_classes:
+            return partial(LocalFile, filetype=filetype)
+
+        raise Exception('Unsupported pathtype:%s' % filetype)
+
+
+class LocalFile(LocalPath, File):
+
+    file_readers = {
+        'application/json' : utils.read_json,
+        'text/plain' : utils.read_str,
+    }
+
+    file_writers = {
+        str : utils.write_text,
+        dict : utils.wirte_json,
+        list : utils.wirte_json,
+    }
+
+    def __init__(self, base_path, filetype=None):
+        if filetype is None:
+            filetype = utils.get_filetype(base_path)
+        self.base_path = base_path
+        self.filetype = filetype
+
+    def load(self):
+        ...
+
+    def save(self, obj):
+        ...
+
+
+class LocalDirectory(LocalPath, Group):
+    pass
+
+
+def configure_clases(c=None):
+    if c is None:
+        c = get_config().Dataset
+
+    if 'sources' in c:
+        Path.sources.update(c.sources)
+
+    if 'local_group_classes' in c:
+        LocalPath.group_classes.update(c.local_group_classes)
+
+    if 'local_file_readers' in c:
+        File.file_readers.update(c.local_file_readers)
+
+    if 'local_file_writers' in c:
+        File.file_readers.update(c.local_file_writers)
+
+        
