@@ -5,6 +5,9 @@ import pandas as pd
 import os
 import subprocess
 from collections import namedtuple
+from itertools import chain
+import mimetypes
+import json
 
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +20,10 @@ except Exception as e:
 else:
     magic_available = True
 
-
+# add mimetypes
+module_path = os.path.dirname(__file__)
+custom_types_path = os.path.join('mime.type', module_path)
+mimetypes.init(mimetypes.knownfiles + [custom_types_path])
 
 
 def read_mat(path):
@@ -61,7 +67,29 @@ def mat_to_hdf(path):
     y.to_hdf(new_name, 'y')
 
 
+def read_json(path):
+    with open(path, 'r') as f:
+        jdict = json.load(f)
+    return jdict
+
+def write_json(path, jdict):
+    with open(path, 'w') as f:
+        json.dump(jdict, f)
+
+def read_str(path):
+    with open(path, 'w') as f:
+        string = f.read(string)
+    return string
+
+
+def write_str(path, string):
+    with open(path, 'w') as f:
+        f.write(string)
+
+
 def get_filetype(path):
+
+    # get mimetype of file
     if magic_available:
         if os.path.isdir(path):
             mime_type = 'inode/directory'
@@ -71,7 +99,11 @@ def get_filetype(path):
         cmd = 'file -b --mime-type'.split()
         cmd.append(path)
         mime_type = subprocess.check_output(cmd)
-    #type_, subtype = mime_type.split('/')
-    return mime_type
 
-#MimeType = namedtuple('MimeType', ['type', 'subtype'])
+    # for unknown and text type, try to determine by file extension
+    if mime_type in ['application/octet-stream', 'text/plain']:
+        type_, encoding = mimetypes.guess_type(path)
+        if type_:
+            mime_type = type_
+
+    return mime_type

@@ -6,10 +6,6 @@ import pprint
 import sys
 import uuid
 
-import pandas
-import numpy
-import scipy.io as sio
-import matplotlib.pyplot as plt
 
 import logging
 

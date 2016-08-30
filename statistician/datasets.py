@@ -11,6 +11,28 @@ import scipy
 log = logging.getLogger(__name__)
 c = get_config()
 
+class Group:
+
+    def __init__(self, info, adapter=None):
+        
+        if adapter:
+            datasets = 
+        else:
+            datasets = {}
+
+        info['datasets'] = adapter.list_datasets()
+
+
+        self.info = info
+
+        self.adapter = adapter
+        self.datasets = datasets
+
+    def join(self, *groups):
+        ...
+
+
+
 class Dataset:
     """Represents multiple Datatables in a Dataset."""
 
@@ -151,30 +173,10 @@ class Dataset:
         if self.meta and 'kernel' in self.meta:
             lines += ['','Kernel:', self.meta['kernel']]
         return '\n'.join(lines)
+"""
 
 
-class DatasetInfo:
-    """Stores meta-information of a dataset."""
-
-    mendatory = ['name', 'files']
-
-    def __init__(self):
-        ...
-
-    @classmethod
-    def load(cls, name):
-        ...
-
-    def save(self, name=None):
-        if name is None:
-            name = self.name
-        ...
-
-    def get_dataset(self):
-        ...
-
-
-class DatasetIndex(dict):
+class DataIndex(dict):
     """Stores a list of available datasets information."""
 
     def __init__(self):
@@ -213,7 +215,7 @@ class DatasetIndex(dict):
             openml_dataindex = openml.datasets.list_datasets()
             self['openml'] = openml_dataindex
 
-        log.debug('dataset index updating complete')
+        log.debug('dataset index updating complete')"""
 
 
 class SourceAdapter:
@@ -223,7 +225,7 @@ class SourceAdapter:
     def get_dataset(self, source):
         raise NotImplementedError()
 
-class DatasetAdapter: # or call GroupAdapter ???
+class GroupAdapter: # or call GroupAdapter ???
     def __init__(self, path):
         self.path = path
 
@@ -238,6 +240,9 @@ class DatasetAdapter: # or call GroupAdapter ???
 
     def save_info(self):
         raise NotImplementedError()
+
+class UsupportedFiletypeError(Exception):
+    pass
 
 
 # -------------- Data File IO -------------- #

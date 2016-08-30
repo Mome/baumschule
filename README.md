@@ -1,18 +1,20 @@
 # Statistician 
 
-**Version 0.1, Dataset Interface:**
+**Dataset Interface:**
  - [x] ipython style configuration
  - [ ] Local dataset managemente
  - [ ] download datasets from various sources
  - [ ] Dataset interface for hdf5 and matlabfiles
+ - [ ] group files in folders support
+ - [ ] support zip, tzr, gz ...
 
-**Version 0.2:**
+**Simple Hyperparameter Selection**
  - [ ] Automatically run ml-algorithms on datasets + store results 
  - [ ] Hyperparameter specification system, for continuous, categorical and discrete values
  - [ ] Wrapper Class for ML-Algorithms
  - [ ] ml-algorithms configuration file
  - [ ] random serach hyperparameter optimizer
 
-**Version 0.3:**
+**Complex Hyperparameter Selection**
  - [ ] Specification System for Grammar based HyperParameters
  - [ ] GeneticProgramming based Hyperparameter optimization

@@ -1,0 +1,33 @@
+###############################################################################
+#
+#  MIME-TYPES and the extensions that represent them
+#
+#  The format of this file is a MIME type on the left and zero or more
+#  filename extensions on the right.  Programs using this file will map
+#  files ending with those extensions to the associated type.
+#
+#  This file is part of the "mime-support" package.  Please send email (not a
+#  bug report) to mime-support@packages.debian.org if you would like new types
+#  and/or extensions to be added.
+#
+#  The reason that all types are managed by the mime-support package instead
+#  allowing individual packages to install types in much the same way as they
+#  add entries in to the mailcap file is so these types can be referenced by
+#  other programs (such as a web server) even if the specific support package
+#  for that type is not installed.
+#
+#  Users can add their own types if they wish by creating a ".mime.types"
+#  file in their home directory.  Definitions included there will take
+#  precedence over those listed here.
+#
+#  Note: Compression schemes like "gzip", "bzip", and "compress" are not
+#  actually "mime-types".  They are "encodings" and hence must _not_ have
+#  entries in this file to map their extensions.  The "mime-type" of an
+#  encoded file refers to the type of data that has been encoded, not the
+#  type of encoding.
+#
+###############################################################################
+
+
+application/x-matlab-data			mat
+application/x-numpy-data			npy
