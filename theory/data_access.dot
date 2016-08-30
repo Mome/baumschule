@@ -1,0 +1,28 @@
+digraph FileAccess{
+
+fontname = "Bitstream Vera Sans"
+fontsize = 8
+
+node [
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    shape = "record"
+]
+
+PurePath [label="{PurePath|+ parent\l+ child\l}"]
+
+Path -> PurePath 
+Group -> Path
+File -> Path
+LocalPath -> Path
+
+LocalFile -> LocalPath
+LocalFile -> File
+
+LocalDirectory -> LocalPath
+LocalDirectory -> Group
+
+HdfGroup -> LocalPath
+HdfGroup -> Group
+
+}
