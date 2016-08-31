@@ -1,5 +1,6 @@
 *.cfg
 *.log
 *.pyc
-
+*.svg
+try_.*
 __pycache__

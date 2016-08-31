@@ -5,6 +5,7 @@ from collections import defaultdict
 from functools import partial
 import os
 from statistician import get_config
+from glob import iglob
 
 
 class PurePath:
@@ -42,10 +43,21 @@ class PurePath:
 
     @classmethod
     def _to_parts(cls, args):
+        # TODO: can I use glob here???
         parts = (a.strip(cls.sep).split(cls.sep) for a in args)
-        parts = chain(*parts)
-        parts = filter(lambda p : p != '.', parts)
-        parts = tuple(chain(parts))
+
+        # remove single dots
+        parts = list(filter(lambda p : p != '.', chain(*parts)))
+
+        # process /../ parts
+        i = 1
+        while i < len(parts):
+            if parts[i] == '..' and parts[i-1] != '..':
+                del parts[i-1:i+1]
+                i = max(i-2, 1)
+            else:
+                i += 1
+
         return parts
 
     @property
@@ -66,10 +78,13 @@ class PurePath:
     def relative_path(self):
         return self.sep + self.__class__.sep.join(self.parts)
 
-
     def child(self, *relative_path):
         parts = self.parts + self._to_parts(relative_path)
-        return self.__class__(*parts, source=self.source)
+        cls = self.__class__
+        new_child = cls(*parts, source=self.source)
+        if '_init' in cls.__dict__:
+            cls._init(new_child, PurePath(*parts, source=self.source))            
+        return new_child
 
 
     def __truediv__(self, key):
@@ -110,6 +125,9 @@ class Path(PurePath):
 
     def __init__(self, *args, **keyargs):
         print('boing!!', type(self), args, keyargs)
+
+    def list_sources(self):
+        return list(self.source_classes.keys())
 
     def exists(self):
         raise NotImplementedError()
@@ -203,6 +221,7 @@ class LocalPath(Path):
         return self.basepath.rstrip('/') + self.relative_path
 
     def exists(self):
+        print(self.real_path)
         return os.path.exists(self.real_path)
 
 
@@ -270,10 +289,16 @@ class LocalDirectory(LocalPath, Group):
         return list(filter(os.path.isfile, iglob(self.real_path)))
 
     def list_all(self, meta=False):
-        return [
-            f + self.__calss__.sep if os.path.isdir(path) else path
-            for path in iglob(self.real_path)
-        ]
+        real_paths = (
+            path + self.sep if os.path.isdir(path) else path
+            for path in iglob(self.real_path + self.sep + '*')
+        )
+        return [self._cut_basepath(rp) for rp in real_paths]
+
+    def _cut_basepath(self, path):
+        base = os.path.commonpath((path, self.basepath))
+        return path[len(base)+1:]
+
 
 
 Path.source_classes['local'] = LocalPath
