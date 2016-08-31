@@ -9,7 +9,10 @@ node [
     shape = "record"
 ]
 
-PurePath [label="{PurePath|+ parent\l+ child\l}"]
+PurePath [label="{PurePath|parent : PurePath\lparts : list\lsource : str\l|child(relative_path) : PurePath\l}"]
+Path [label="{Path|source_classes : dict\lmeta : dict\l}"]
+Group [label="{Group|list_files() : list\llist_groups() : list\l}"]
+File [label="{File|read() : obj\lwrite() : None\l}"]
 
 Path -> PurePath 
 Group -> Path

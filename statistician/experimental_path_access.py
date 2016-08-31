@@ -3,7 +3,7 @@ from itertools import chain
 import utils
 from collections import defaultdict
 from functools import partial
-
+import os
 from statistician import get_config
 
 
@@ -13,12 +13,12 @@ class PurePath:
     sep = '/'
 
     def __init__(self, *args, source=None):
-        pars, source = self.__class__._parse_args(source, args)
+        source, parts = self.__class__._parse_args(args, source)
         self._parts = parts
         self._source = source
 
     @classmethod
-    def _parse_args(args, source):
+    def _parse_args(cls, args, source):
         if (source is None) and (len(args) == 0):
             raise ValueError('Source requiered!')
 
@@ -26,17 +26,17 @@ class PurePath:
         
         if source is None:
             first_arg = args[0]
-            if self.source_sep in first_arg:
-                source, rest = first_arg.split(self.source_sep, maxsplit=1)
+            if cls.source_sep in first_arg:
+                source, rest = first_arg.split(cls.source_sep, maxsplit=1)
                 args[0] = rest
             else:
                 source = first_arg
                 args = args[1:]
 
-        if self.sep in source:
-            raise ValueError('Separator %s cannot be in source string!' % self.sep)
+        if cls.sep in source:
+            raise ValueError('Separator %s cannot be in source string!' % cls.sep)
 
-        parts = self.to_parts(*args)
+        parts = cls.to_parts(*args)
         return source, parts
 
     @classmethod
@@ -61,10 +61,16 @@ class PurePath:
     def source(self):
         return self._source
 
+    @property
+    def relative_path(self):
+        return self.sep + self.__class__.join(self.parts)
+
+
     def child(self, *relative_path):
         parts = self.parts + self.to_parts(*relative_path)
         return self.__class__(*parts, source=self.source)
-     
+
+
     def __truediv__(self, key):
         if isinstance(key, str):
             key = (key,)
@@ -74,7 +80,7 @@ class PurePath:
         return str(self) == str(key)
 
     def __str__(self):
-        return self.source + self.source_sep + self.sep + self.sep.join(self.parts)
+        return self.source + self.source_sep + self.relative_path
 
     def __repr__(self):
         return "{}({!r})".format(self.__class__.__name__, str(self))
@@ -83,23 +89,27 @@ class PurePath:
 
 class Path(PurePath):
 
-    sources = {}
+    source_classes = {}
 
     def __new__(cls, *args, source=None):
         if cls is Path:
-            ppath = PurePath(args)
+            purepath = PurePath(*args, source)
 
-            if not (source in cls.sources):
+            if not (purepath.source in cls.source_classes):
                 raise ValueError('Unknown source!')
 
-            cls = cls.sources[source]
+            cls = cls.source_classes[purepath.source]
 
-        return object.__new__(cls, *parts, source=source)
+            print(cls)
+            input('enter --- !')
+
+        return cls(purepath)
+
+    def exists(self):
+        raise NotImplementedError()
 
 
-class Group(LocalPath):
-    def __init__(self):
-        print(self)
+class Group(Path):
 
     def list_groups(self):
         raise NotImplementedError()
@@ -123,74 +133,142 @@ class File(Path):
 class LocalPath(Path):
 
     group_classes = {
-        'inode/direcotry' : LocalDirectory,
     }
 
-    def __new__(cls, base_path):
+    source_base_paths = {
+    }
 
+    def __new__(cls, purepath):
+
+        base_path = cls.source_base_paths[purepath.source]
         filetype = utils.get_filetype(base_path)
 
         if cls is LocalPath:
             cls = get_access_class(filetype)
 
-        self = object.__new__(cls, base_path)
-        return self        
+        return cls(purepath, base_path, filetype)
+
+    def __init__(self, purepath, base_path=None, filetype=None):
+        if base_path is None:
+            base_path = self.__class__.source_base_paths[purepath.source]
+        if filetype is None:
+            filetype = utils.get_filetype(base_path)
+
+        self._base_path = base_path
+        self._filetype = filetype
+        self._source = purepath.source
+        self._parts = purepath.parts
+
 
     @classmethod
     def get_access_class(cls, filetype):
         if filetype in cls.group_classes:
             return cls.group_classes[filetype]
 
-        if filetype in LocalFile.file_classes:
-            return partial(LocalFile, filetype=filetype)
+        if filetype in LocalFile.read_functions:
+            return LocalFile
 
         raise Exception('Unsupported pathtype:%s' % filetype)
+
+    @property
+    def filetype(self):
+        return self._filetype
+
+    @property
+    def base_path(self):
+        return self._base_path
+
+    @property
+    def real_path(self):
+        return self.base_path.rstrip('/') + self.relative_path
+
+    def exists(self):
+        return os.path.exists(self.real_path)
 
 
 class LocalFile(LocalPath, File):
 
-    file_readers = {
+    read_function = {
         'application/json' : utils.read_json,
-        'text/plain' : utils.read_str,
+        'text/plain' : utils.read_text,
     }
 
-    file_writers = {
+    write_functions = {
         str : utils.write_text,
-        dict : utils.wirte_json,
-        list : utils.wirte_json,
+        dict : utils.write_json,
+        list : utils.write_json,
     }
 
-    def __init__(self, base_path, filetype=None):
-        if filetype is None:
-            filetype = utils.get_filetype(base_path)
-        self.base_path = base_path
-        self.filetype = filetype
+    def __init__(self, purepath, base_path=None, filetype=None):
+        LocalPath.__init__(self, purepath, base_path, filetype)
+        self.reader = read_functions.get(filetype, None)
+    
+    def read(self):
+        if self.reader == None:
+            raise TypeError('No reader function for %s.' % self.filetype)
+        return self.reader(self.real_path)
 
-    def load(self):
-        ...
+    def write(self, obj):
+        if type(obj) in self.write_functions:
+            write = self.write_functions[type(obj)]
+        else:
+            # find valid writers
+            valid_writers = tuple(
+                filter(
+                    partial(isinstance, obj),
+                    write_functions.keys(),
+                ))
 
-    def save(self, obj):
-        ...
+            if len(valid_writers) == 0:
+                raise ValueError('No writer for object type:%s' % type(obj))
+            elif len(valid_writers) == 1:
+                write = self.write_functions[valid_writers[0]]
+            else:
+                raise ValueError('Ambigous write functions for type %s: %s' % type(obj), valid_writers)
+
+        return write(self.real_path, obj)
 
 
+ 
 class LocalDirectory(LocalPath, Group):
-    pass
+
+    def __init__(self, purepath, base_path=None, filetype=None):
+        LocalPath.__init__(self, purepath, base_path, filetype)
+
+    def list_groups(self):
+        return list(filter(os.path.isdir, iglob(self.real_path)))
+
+    def list_files(self):
+        return list(filter(os.path.isfile, iglob(self.real_path)))
+
+    def list_all(self, meta=False):
+        return [
+            f + self.__calss__.sep if os.path.isdir(path) else path
+            for path in iglob(self.real_path)
+        ]
 
 
-def configure_clases(c=None):
+Path.source_classes['local'] = LocalPath
+LocalPath.group_classes['inode/direcotry'] = LocalDirectory
+
+
+def configure_classes(c=None):
     if c is None:
         c = get_config().Dataset
 
-    if 'sources' in c:
-        Path.sources.update(c.sources)
+    if 'source_classes' in c:
+        Path.source_classes.update(c.source_classes)
 
     if 'local_group_classes' in c:
         LocalPath.group_classes.update(c.local_group_classes)
 
-    if 'local_file_readers' in c:
-        File.file_readers.update(c.local_file_readers)
+    if 'local_source_base_paths' in c:
+        LocalPath.source_base_paths.update(c.local_source_base_paths)
 
-    if 'local_file_writers' in c:
-        File.file_readers.update(c.local_file_writers)
+    if 'local_read_functions' in c:
+        LocalFile.read_functions.update(c.local_read_functions)
 
-        
+    if 'local_write_functions' in c:
+        LocalFile.write_functions.update(c.local_write_functions)
+
+configure_classes()

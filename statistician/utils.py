@@ -76,13 +76,13 @@ def write_json(path, jdict):
     with open(path, 'w') as f:
         json.dump(jdict, f)
 
-def read_str(path):
+def read_text(path):
     with open(path, 'w') as f:
         string = f.read(string)
     return string
 
 
-def write_str(path, string):
+def write_text(path, string):
     with open(path, 'w') as f:
         f.write(string)
 
