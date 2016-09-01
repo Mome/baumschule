@@ -6,6 +6,11 @@ from functools import partial
 import os
 from statistician import get_config
 from glob import iglob
+import logging
+
+log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('DEBUG')
 
 
 class PurePath:
@@ -13,14 +18,19 @@ class PurePath:
     source_sep = ':'
     sep = '/'
 
-    def __init__(self, *args, source=None):
-        source, parts = self.__class__._parse_args(args, source)
+    def __init__(self, source, parts):
+        log.debug('PurePath.init(source=%s, parts=%s)' % (source, parts))
+
+        #source, parts = self.__class__._parse_args(args, source)
+        if all(p == '..' for p in parts):
+            parts = []
+        
         self._parts = parts
         self._source = source
 
     @classmethod
     def _parse_args(cls, args, source):
-        print('_parse_args(args=%s, source=%s)' % (args, source))
+        log.debug('_parse_args(args=%s, source=%s)' % (args, source))
         if (source is None) and (len(args) == 0):
             raise ValueError('Source requiered!')
 
@@ -47,7 +57,7 @@ class PurePath:
         parts = (a.strip(cls.sep).split(cls.sep) for a in args)
 
         # remove single dots
-        parts = list(filter(lambda p : p != '.', chain(*parts)))
+        parts = list(filter(lambda p : p not in ('.', ''), chain(*parts)))
 
         # process /../ parts
         i = 1
@@ -78,14 +88,9 @@ class PurePath:
     def relative_path(self):
         return self.sep + self.__class__.sep.join(self.parts)
 
-    def child(self, *relative_path):
-        parts = self.parts + self._to_parts(relative_path)
-        cls = self.__class__
-        new_child = cls(*parts, source=self.source)
-        if '_init' in cls.__dict__:
-            cls._init(new_child, PurePath(*parts, source=self.source))            
-        return new_child
-
+    def child(self, *relative_parts):
+        cls = type(self)
+        return cls(*self.parts, *relative_parts, source=self.source)
 
     def __truediv__(self, key):
         if isinstance(key, str):
@@ -107,24 +112,27 @@ class Path(PurePath):
 
     source_classes = {}
 
-    def __new__(cls, *args, source=None):
-        print('first thing')
+    def __new__(cls, *args, **kwargs):
+        log.debug('Path.new(cls=%s, args=%s, kwargs=%s)' % (cls.__name__, args, kwargs))
+        
         if cls is Path:
-            purepath = PurePath(*args, source=source)
 
-            if not (purepath.source in cls.source_classes):
+            source, parts = PurePath._parse_args(
+                args = args,
+                source=kwargs.get('source', None))
+
+            if not (source in cls.source_classes):
                 raise ValueError('Unknown source!')
 
-            cls = cls.source_classes[purepath.source]
-            print('Regular call in Path: %s' % cls.__name__)
-            self = cls(purepath)
+            # choose source class
+            # print('Path.source_classes=%s' % cls.source_classes)
+            cls = cls.source_classes[source]
+
+            self = cls.__new__(cls, source, parts)
         else:
             self = object.__new__(cls)
 
         return self
-
-    def __init__(self, *args, **keyargs):
-        print('boing!!', type(self), args, keyargs)
 
     def list_sources(self):
         return list(self.source_classes.keys())
@@ -134,6 +142,8 @@ class Path(PurePath):
 
 
 class Group(Path):
+    def __init__(self, source, parts):
+        log.debug('Group.init(source=%s, parts=%s)' % (source, parts))
 
     def list_groups(self):
         raise NotImplementedError()
@@ -143,6 +153,8 @@ class Group(Path):
 
 
 class File(Path):
+    def __init__(self, source, parts):
+        log.debug('File.init(source=%s, parts=%s)' % (source, parts))
     
     def load(self):
         raise NotImplementedError()
@@ -162,38 +174,36 @@ class LocalPath(Path):
     source_basepaths = {
     }
 
-    def __new__(cls, purepath, *args, **keyargs):
-        print('Call __new__ in LocalPath: %s' % cls.__name__)
+    def __new__(cls, *args, **kwargs):
+        log.debug('LocalPath.new(cls=%s, args=%s, kwargs=%s)' % (cls.__name__, args, kwargs))
 
         if cls is LocalPath:
-            basepath = cls.source_basepaths[purepath.source]
+            source = kwargs['source'] if 'source' in kwargs else args[0]
+            parts  = kwargs['parts']  if 'parts'  in kwargs else args[1]
+
+            basepath = cls.source_basepaths[source]
             filetype = utils.get_filetype(basepath)
             cls = cls.get_access_class(filetype)
-            
-            print('Regular call of: %s' % cls.__name__)
-            self = object.__new__(cls)
-            self._init(purepath, basepath, filetype)
+
+            self = cls.__new__(cls, parts, source)
         else:
-            self = object.__new__(cls)
-            print('!skipp')
-            
+            self = object.__new__(cls) # solve this with super ????
 
         return self
 
-    def _init(self, purepath, basepath=None, filetype=None):
+    def __init__(self, source, parts, basepath=None, filetype=None):
+        log.debug('LocalPath.init(self=%s, source=%s, parts=%s'
+            % (type(self).__name__, source, parts))
 
-        print('%s : LocalPath._init(self=%s, purepath=%s, filetype=%s'
-            % (id(self), type(self).__name__, purepath, filetype))
+        Path.__init__(self, source, parts)
 
         if basepath is None:
-            basepath = self.__class__.source_basepaths[purepath.source]
+            basepath = self.__class__.source_basepaths[source]
         if filetype is None:
             filetype = utils.get_filetype(basepath)
 
         self._basepath = basepath
         self._filetype = filetype
-        self._source = purepath.source
-        self._parts = purepath.parts
 
 
     @classmethod
@@ -204,8 +214,8 @@ class LocalPath(Path):
         if filetype in LocalFile.read_functions:
             return LocalFile
 
-        print('GroupPathTypes: %s' % cls.group_classes)
-        print('FilePathTypes: %s' % LocalFile.read_functions)
+        #print('GroupPathTypes: %s' % cls.group_classes)
+        #print('FilePathTypes: %s' % LocalFile.read_functions)
         raise Exception('Unsupported pathtype:%s' % filetype)
 
     @property
@@ -221,7 +231,7 @@ class LocalPath(Path):
         return self.basepath.rstrip('/') + self.relative_path
 
     def exists(self):
-        print(self.real_path)
+        #print(self.real_path)
         return os.path.exists(self.real_path)
 
 
@@ -238,14 +248,14 @@ class LocalFile(LocalPath, File):
         list : utils.write_json,
     }
 
-    def _init(self, purepath, basepath=None, filetype=None):
+    def __init__(self, *args, source=None):
+        source, parts = self._parse_args(args, source)
+        log.debug('LocalFile.init(source=%s, parts=%s)' % (source, parts))
+        LocalPath.__init__(self, source, parts)
 
-        print('%s : LocalFile.__init__(self=%s, purepath=%s, filetype=%s'
-            % (id(self), type(self).__name__, purepath, filetype))
-
-        LocalPath._init(self, purepath, basepath, filetype)
         self.reader = read_functions.get(self.filetype, None)
-    
+   
+
     def read(self):
         if self.reader == None:
             raise TypeError('No reader function for %s.' % self.filetype)
@@ -275,12 +285,10 @@ class LocalFile(LocalPath, File):
  
 class LocalDirectory(LocalPath, Group):
 
-    def _init(self, purepath, basepath=None, filetype=None):
-
-        print('%s : LocalDirectory._init(self=%s, purepath=%s, filetype=%s'
-            % (id(self), type(self).__name__, purepath, filetype))
-
-        LocalPath._init(self, purepath, basepath, filetype)
+    def __init__(self, *args, source=None):
+        source, parts = self._parse_args(args, source)
+        log.debug('LocalDirectory.init(source=%s, parts=%s)' % (source, parts))
+        LocalPath.__init__(self, source, parts)
 
     def list_groups(self):
         return list(filter(os.path.isdir, iglob(self.real_path)))
