@@ -22,9 +22,9 @@ else:
 
 # add mimetypes
 module_path = os.path.dirname(__file__)
-custom_types_path = os.path.join('mime.type', module_path)
-mimetypes.init(mimetypes.knownfiles + [custom_types_path])
-
+custom_types_file = os.path.join(module_path, 'mime.types')
+mimetypes.init(mimetypes.knownfiles + [custom_types_file])
+print(mimetypes.knownfiles + [custom_types_file])
 
 def read_mat(path):
     """Reads a pandas.DataFrame from a matfile"""
@@ -77,8 +77,8 @@ def write_json(path, jdict):
         json.dump(jdict, f)
 
 def read_text(path):
-    with open(path, 'w') as f:
-        string = f.read(string)
+    with open(path, 'r') as f:
+        string = f.read()
     return string
 
 
@@ -94,7 +94,7 @@ def get_filetype(path):
         if os.path.isdir(path):
             mime_type = 'inode/directory'
         else:
-            mime_type = m.from_file(path)
+            mime_type = magic.from_file(path, mime=True)
     else:
         cmd = 'file -b --mime-type'.split()
         cmd.append(path)
@@ -105,5 +105,8 @@ def get_filetype(path):
         type_, encoding = mimetypes.guess_type(path)
         if type_:
             mime_type = type_
+
+        print('try to guess type', type_, encoding)
+
 
     return mime_type

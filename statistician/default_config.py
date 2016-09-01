@@ -13,6 +13,8 @@ c.Dataset.local_source_basepaths = {
     'local' : join(c.basepath, 'datasets')
 }
 
+c.Dataset.local_default_source = 'local'
+
 c.Dataset.local_group_classes = {
 }
 

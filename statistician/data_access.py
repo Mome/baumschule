@@ -17,6 +17,7 @@ class PurePath:
 
     source_sep = ':'
     sep = '/'
+    default_source = None
 
     def __init__(self, source, parts):
         log.debug('PurePath.init(source=%s, parts=%s)' % (source, parts))
@@ -24,31 +25,35 @@ class PurePath:
         #source, parts = self.__class__._parse_args(args, source)
         if all(p == '..' for p in parts):
             parts = []
-        
+
         self._parts = parts
         self._source = source
 
     @classmethod
     def _parse_args(cls, args, source):
         log.debug('_parse_args(args=%s, source=%s)' % (args, source))
+
         if (source is None) and (len(args) == 0):
-            raise ValueError('Source requiered!')
+            source = cls.default_source
+            parts = ()
 
-        args = list(args)
-        
-        if source is None:
-            first_arg = args[0]
-            if cls.source_sep in first_arg:
-                source, rest = first_arg.split(cls.source_sep, maxsplit=1)
-                args[0] = rest
-            else:
-                source = first_arg
-                args = args[1:]
+        else:
+            args = list(args)
+            
+            if source is None:
+                first_arg = args[0]
+                if cls.source_sep in first_arg:
+                    source, rest = first_arg.split(cls.source_sep, maxsplit=1)
+                    args[0] = rest
+                else:
+                    source = first_arg
+                    args = args[1:]
 
-        if cls.sep in source:
-            raise ValueError('Separator %s cannot be in source string!' % cls.sep)
+            if cls.sep in source:
+                raise ValueError('Separator %s cannot be in source string!' % cls.sep)
 
-        parts = cls._to_parts(args)
+            parts = cls._to_parts(args)
+
         return source, parts
 
     @classmethod
@@ -134,6 +139,9 @@ class Path(PurePath):
 
         return self
 
+    def child(self, *relative_parts):
+        return Path(*self.parts, *relative_parts, source=self.source)
+
     def list_sources(self):
         return list(self.source_classes.keys())
 
@@ -182,8 +190,11 @@ class LocalPath(Path):
             parts  = kwargs['parts']  if 'parts'  in kwargs else args[1]
 
             basepath = cls.source_basepaths[source]
-            filetype = utils.get_filetype(basepath)
+            realpath = cls.sep.join([basepath.rstrip('/'), *parts])
+            filetype = utils.get_filetype(realpath)
+
             cls = cls.get_access_class(filetype)
+            #print('This is the chose class now!!', cls)
 
             self = cls.__new__(cls, parts, source)
         else:
@@ -199,10 +210,10 @@ class LocalPath(Path):
 
         if basepath is None:
             basepath = self.__class__.source_basepaths[source]
-        if filetype is None:
-            filetype = utils.get_filetype(basepath)
-
         self._basepath = basepath
+
+        if filetype is None:
+            filetype = utils.get_filetype(self.real_path)
         self._filetype = filetype
 
 
@@ -216,7 +227,7 @@ class LocalPath(Path):
 
         #print('GroupPathTypes: %s' % cls.group_classes)
         #print('FilePathTypes: %s' % LocalFile.read_functions)
-        raise Exception('Unsupported pathtype:%s' % filetype)
+        raise Exception('Unsupported pathtype: %s' % filetype)
 
     @property
     def filetype(self):
@@ -253,7 +264,7 @@ class LocalFile(LocalPath, File):
         log.debug('LocalFile.init(source=%s, parts=%s)' % (source, parts))
         LocalPath.__init__(self, source, parts)
 
-        self.reader = read_functions.get(self.filetype, None)
+        self.reader = self.read_functions.get(self.filetype, None)
    
 
     def read(self):
@@ -294,6 +305,7 @@ class LocalDirectory(LocalPath, Group):
         return list(filter(os.path.isdir, iglob(self.real_path)))
 
     def list_files(self):
+        print('glob', list(iglob(self.real_path)))
         return list(filter(os.path.isfile, iglob(self.real_path)))
 
     def list_all(self, meta=False):
@@ -331,5 +343,8 @@ def configure_classes(c=None):
 
     if 'local_write_functions' in c:
         LocalFile.write_functions.update(c.local_write_functions)
+
+    if 'local_default_source' in c:
+        PurePath.default_source = c.local_default_source
 
 configure_classes()
