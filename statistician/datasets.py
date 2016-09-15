@@ -11,28 +11,6 @@ import scipy
 log = logging.getLogger(__name__)
 c = get_config()
 
-class Group:
-
-    def __init__(self, info, adapter=None):
-        
-        if adapter:
-            datasets = 
-        else:
-            datasets = {}
-
-        info['datasets'] = adapter.list_datasets()
-
-
-        self.info = info
-
-        self.adapter = adapter
-        self.datasets = datasets
-
-    def join(self, *groups):
-        ...
-
-
-
 class Dataset:
     """Represents multiple Datatables in a Dataset."""
 
@@ -243,32 +221,3 @@ class GroupAdapter: # or call GroupAdapter ???
 
 class UsupportedFiletypeError(Exception):
     pass
-
-
-# -------------- Data File IO -------------- #
-
-read_funcs = {
-    '.csv' : pandas.read_csv, 
-    '.tsv' : pandas.read_table,
-    '.npy' : numpy.load,
-    '.mat' : scipy.io.loadmat,
-    #'.h5'  : lambda path : h5py.File(path).read(),
-}
-
-table_write_funcs = {
-    ''
-}
-
-
-def read_table(path):
-
-    ext = os.path.splitext(path)[-1]
-    read = read_funcs('.csv')
-
-    return table
-
-@staticmethod
-def write_table(table, path, format_):
-    ...
-
-# -------------------------------------------- #

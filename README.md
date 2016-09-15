@@ -2,11 +2,11 @@
 
 **Dataset Interface:**
  - [x] ipython style configuration
- - [ ] Local dataset managemente
+ - [x] Local dataset managemente
  - [ ] download datasets from various sources
  - [ ] Dataset interface for hdf5 and matlabfiles
  - [ ] group files in folders support
- - [ ] support zip, tzr, gz ...
+ - [ ] support zip, tar, gz ...
 
 **Simple Hyperparameter Selection**
  - [ ] Automatically run ml-algorithms on datasets + store results 
