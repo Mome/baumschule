@@ -1,0 +1,19 @@
+digraph MlManager{
+
+fontname = "Bitstream Vera Sans"
+fontsize = 8
+
+node [
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+    shape = "record"
+]
+
+edge [
+    fontname = "Bitstream Vera Sans"
+    fontsize = 8
+]
+
+dataset [label="{DataSet|name : str\linfo : dict\ltables : dict\l|save()\lload()\llist_all()\l}"]
+
+}

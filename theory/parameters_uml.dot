@@ -1,0 +1,31 @@
+digraph PrameterSpace{
+
+rankdir = BT;
+
+node [shape=record]
+
+parameter [label="{Parameter\l|domain\ldist\l|__contiains__\l}"]
+simple [label="{Simple\l|\l|}"]
+operator [label="{Operator\l|\l|}"]
+product [label="{ProductSpace\l|args\lkwargs\l|}"]
+joined [label="{JoinedSpace\l|\l|}"]
+operatorspace [label="{OperatorSpace\l|\l|}"]
+operatorset [label="{OperatorSet\l|\l|}"]
+
+op [shape=circle style=filled color=lightgray]
+os [shape=circle style=filled color=lightgray ]
+
+joined -> parameter 
+product -> parameter
+simple -> parameter
+operatorspace -> product
+operatorset -> operator
+
+operator -> op
+op -> product
+operatorset -> os 
+os -> operatorspace 
+
+{rank=same; operatorspace operatorset os}
+{rank=same; product operator op}
+}

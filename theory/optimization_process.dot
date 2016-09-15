@@ -1,0 +1,68 @@
+digraph OptPro{
+
+rankdir=LR
+compound=true
+ 	
+node [shape="Mrecord"]
+train [label="training\ndata"]
+hypara [label="hyper-\nparameters"]
+eval_func [label="evaluation\nfunction"]
+perf [label="performance"]
+error [label="error\nfunction"]
+test [label="testing\ndata"]
+
+split [shape=oval style=filled, color=lightgrey]
+eval [shape=oval style=filled, color=lightgrey]
+
+
+subgraph cluster0 {
+
+	ungrounded_model [label="ungrounded\nmodel"]
+	unfit_model [label="unfitted\nmodel"]
+	fit_model [label="fitted\nmodel"]
+
+	node [shape=oval style=filled, color=lightgrey]
+	ground
+	fit
+
+	label = "ALGORITHM"
+	style = "rounded"
+
+}
+
+subgraph cluster1{
+	select [shape=oval style=filled, color=lightgrey]
+
+	label = "HYPARA\nOPTIMIZER"
+	style = "rounded"
+
+}
+
+
+ungrounded_model -> ground [arrowhead=none] 
+hypara -> ground [arrowhead=none]
+ground -> unfit_model
+unfit_model -> fit [arrowhead=none]
+train -> fit [arrowhead=none]
+fit -> fit_model 
+eval_func -> eval [arrowhead=none]
+
+
+error -> eval_func
+test -> eval_func
+
+data -> split [arrowhead=none]
+split -> train
+split -> test
+
+fit_model -> eval [ltail=cluster0 arrowhead=none]
+eval -> perf
+perf -> select [arrowhead=none]
+select -> hypara
+
+//{rank=same; split hypara}
+{rank=same; perf eval}
+//{rank=same; test train}
+//{rank=same; eval_func error}
+
+}

@@ -1,0 +1,9 @@
+digraph Classes{
+    
+node [shape=Mrecord]
+
+algorithm [label="{Algorithm|dom\lcodom\lparameters : dict\l|assign(**kwargs)\lexecute(dom) : codom\l}"]
+
+parameter [label="{Parameter|dom\lcalls : list(Call)|\l__call__()}"]
+
+}
