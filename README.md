@@ -18,3 +18,5 @@
 **Complex Hyperparameter Selection**
  - [ ] Specification System for Grammar based HyperParameters
  - [ ] GeneticProgramming based Hyperparameter optimization
+ - [ ] Q-leanring based selection
+ - [ ] Q-learning + expected Improvment
