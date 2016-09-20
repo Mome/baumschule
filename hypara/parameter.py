@@ -56,6 +56,13 @@ class ParameterSpace:
             return True
         return False
 
+    def print_deep(self, depth=float('inf'), _tabu=None):
+        if _tabu is None:
+            _tabu = []
+        if depth <= 0:
+            return ''
+        ...
+
     def __or__(self, arg):
         return JoinedSpace([self, arg])
 
@@ -81,7 +88,12 @@ class JoinedSpace(CombinedSpace):
             return self.symbol
         csl = [str(D) for D in self.domain]
         csl = ', '.join(csl)
-        return '{' + csl + '}'      
+        return '{' + csl + '}'
+
+    def __ior__(self, arg):
+        print('ior')
+        self.domain.append(arg)
+        return self        
 
 
 class GeneralProductSpace(CombinedSpace):
