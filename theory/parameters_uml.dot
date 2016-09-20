@@ -4,21 +4,17 @@ rankdir = BT;
 
 node [shape=record]
 
-parameter [label="{ParameterSpace\l|domain\ldist\l|__contiains__(space)\l}"]
-simple [label="{SimpleSimple\l|\l|}"]
+parameter [label="{ParameterSpace\l|domain\ldist\lname\lsymbole|__contiains__(space)\l}"]
+simple [label="{Simple}"]
 //operator [label="{Operator\l|\l|}"]
 product [label="{ProductSpace\l||}"]
-cartesian [label="{CartesianProduct\l|args\l|}"]
-named [label="{NamedProduct\l|kwargs\l|}"]
-mixed [label="{MixedProduct\l||}"]
-
+//cartesian [label="{CartesianProduct\l|args\l|}"]
+//named [label="{NamedProduct\l|kwargs\l|}"]
+//mixed [label="{MixedProduct\l||}"]
 
 joined [label="{JoinedSpace\l|\l|}"]
 operatorspace [label="{OperatorSpace\l|operators\l|}"]
 //operatorset [label="{OperatorSet\l|\l|}"]
-mixed
-named
-
 
 cat  [label="Categorical"]
 cont [label="Continuous"]
@@ -31,11 +27,12 @@ joined -> parameter
 product -> parameter
 simple -> parameter
 
-cartesian -> product
-named -> product
-mixed -> cartesian
-mixed -> named
-operatorspace -> mixed
+//cartesian -> product
+//named -> product
+//mixed -> cartesian
+//mixed -> named
+//operatorspace -> mixed
+operatorspace -> product
 
 cat -> simple
 cont -> simple
