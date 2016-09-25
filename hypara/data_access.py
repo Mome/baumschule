@@ -1,12 +1,12 @@
-from pathlib import PurePosixPath, _Flavour
 from itertools import chain
-import utils
 from collections import defaultdict
 from functools import partial
 import os
-from statistician import get_config
 from glob import iglob
 import logging
+
+from . import utils
+from .statistician import get_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig()

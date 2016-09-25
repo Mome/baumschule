@@ -1,8 +1,14 @@
-from collections.abc import Sequence
 from random import choice
 import operator as python_operator
+from collections.abc import Mapping, Sequence
+import logging
 
 import numpy.random as rnd
+
+log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('DEBUG')
+
 
 type_abbr = {
     'cat'     : 'categorical',
@@ -32,7 +38,6 @@ def normalize_type(arg):
 class ParameterSpace:
 
     def __init__(self, domain, *, dist=None, name=None, symbol=None):
-        print('call da self')
         self.domain = domain
         self._dist = dist
         self.name = name
@@ -56,6 +61,7 @@ class ParameterSpace:
             return True
         return False
 
+    # TODO: may change this to __pformat__
     def print_deep(self, depth=float('inf'), _tabu=None):
         if _tabu is None:
             _tabu = []
@@ -63,12 +69,24 @@ class ParameterSpace:
             return ''
         ...
 
+    def __add__(self, arg):
+        return add(self, arg)  
+
+    def __sub__(self, arg):
+        return sub(self, arg)
+
+    def __mul__(self, arg):
+        return mul(self, arg)
+
+    def __truediv__(self, arg):
+        return div(self, arg)
+
     def __or__(self, arg):
         return JoinedSpace([self, arg])
 
 class CombinedSpace(ParameterSpace):
     def __iter__(self):
-        return self.domain
+        return iter(self.domain)
 
     def __getitem__(self, key):
         return self.domain.__getitem__(key)
@@ -91,7 +109,6 @@ class JoinedSpace(CombinedSpace):
         return '{' + csl + '}'
 
     def __ior__(self, arg):
-        print('ior')
         self.domain.append(arg)
         return self        
 
@@ -100,9 +117,12 @@ class GeneralProductSpace(CombinedSpace):
     pass
 
 
-class NamedProductSpace(GeneralProductSpace):
+class NamedSpace(GeneralProductSpace):
     def infer_dist(self):
         return lambda : {k:v.sample() for k,v in self.domain.items()}
+
+    def items(self):
+        return self.items()
 
     def __str__(self):
         if self.symbol != None:
@@ -126,6 +146,8 @@ class ProductSpace(GeneralProductSpace):
 
 class SimpleSpace(ParameterSpace):
     def __str__(self):
+        if self.symbol:
+            return self.symbol
         return str(self.domain)
 
 
@@ -241,106 +263,182 @@ class Intervall:
         return 'Intervall(%s, %s, %s)' % (self.sub, self.sup, self.type_)
 
 
-class OperatorSpace(GeneralProductSpace):
-    pass
+class OperatorSpace(CombinedSpace):
+    def __init__(self, operator, domain):
+        self.operator = operator
+        self.domain = domain
+
+    def __str__(self):
+        op = self.operator
+
+        if op.notation == 'name':
+            if op.symbols:
+                return str(op.symbols)
+            return op.name
+
+        if op.symbols:
+            if len(op.symbols) == 3:
+                left, sep, right = op.symbols
+            elif len(op.symbols) == 2:
+                left, right = op.symbols
+                sep = ', '
+            elif len(op.symbols) == 1:
+                sep, = op.symbols
+                left, right = '()'  
+            else:
+                raise ValueError('len(symboles) must be >=3')
+        else:
+            left, sep, right = ('(', ', ', ')')
+
+        if isinstance(self.domain, NamedSpace):
+            params = sep.join('%s=%s' % item for item in self.domain.items())
+        else:
+            params = sep.join(str(d) for d in self.domain)
+
+        if op.notation == 'prefix':
+            return '%s%s' % (name, params)
+        elif op.notation == 'postfix':
+            return '%s%s' % (params, name)
+        elif op.notation == 'infix':
+            return params
+        else:
+            raise ValueError('unvalid notation')
+
+    def sample(self):
+        domsamp = self.domain.sample()
+        log.debug('In sample of %s: %s, %s' % (self.operator.name, type(domsamp), type(self.domain)))
+        if isinstance(domsamp, Sequence) and isinstance(domsamp, Mapping):
+            res = self.operator.func(*domsamp, **domsamp)
+        elif isinstance(domsamp, Sequence):
+            res = self.operator.func(*domsamp)
+        elif isinstance(domsamp, Mapping):
+            res = self.operator.func(**domsamp)
+        else:
+            res = self.operator.func(domsamp)
+        return res
+
 
 class Operator:
-    def __init__(self, func, name=None, symbol=None, notation=None):
-        if notation is None:
-            if symbol is None:
-                notation = 'postfix'
-            else:
-                notation = 'infix'
 
+    notation_values = ['prefix', 'postfix', 'infix', 'name']
+
+    def __init__(self, func, name, notation=None, symbols=None):
+        """
+        symbols : Tripel or str the form of (left, sep, right)
+        """
+        
+        if notation is None:
+            notation = 'prefix'
+
+        assert notation in self.notation_values         
+        
         self.func = func
-        self.name = name.strip() if name else name
-        self.symbol = symbol
+        self.name = name
+        self.symbols = symbols
         self.notation = notation
 
-    def __call__(self, *args, **kwargs):
-        OperatorSpace
-        return op
 
-    def __str__(self):
-        assert ('args' in self.__dict__) == ('kwargs' in self.__dict__)
-        if 'args' in self.__dict__:
-            args = map(str, self.args)
-            item_format = lambda item : str(item[0]) + '=' + str(item[1])
-            kwargs = map(item_format, self.kwargs.items())
+    def __call__(self, *args, **kwargs):
+        assert bool(args) != bool(kwargs)
+
+        if args:
+            params = prod(*args)
         else:
-            args = [self.name]
-            kwargs = []
+            params = prod(**kwargs)
 
-        cls_name = type(self).__name__
-        args_str = ', '.join([*args, *kwargs])
-
-        return "{name}({args})".format(cls_name, args_str)
-
-    def __call__(self, *args, **kwargs):
-        calls.append(Call(args, kwargs))
-
-    def __str__(self):
-        str(domain)
+        log.debug('call %s %s %s %s' % (self.name, args, kwargs, params))
+        return OperatorSpace(operator=self, domain=params)
 
 
 def Parameter(domain, *args, **kwargs):
-    if isinstance(domain, Sequence):    
-        high_level = any(isinstance(val, ParameterSpace) for val in domain)
-    if isinstance(domain, dict):
-        high_level = any(isinstance(val, ParameterSpace) for val in domain.values())
+
+    if isinstance(domain, ParameterSpace):
+        assert not (args or kwargs)
+        return domain
+
+    if isinstance(domain, Sequence):
+        value_iter = domain
+    elif isinstance(domain, Mapping):
+        value_iter = domain.values()
     else:
         high_level = False
 
-    if high_level and type(domain) is set:
-        cls = JoinedSpace
-    elif high_level and type(domain) in (list, tuple):
-        cls = ProductSpace
-    elif high_level and type(domain) is dict:
-        cls = NamedProductSpace
-    elif not high_level and type(domain) is set:
-        cls = Categorical
-    elif not high_level and type(domain) in (list, tuple):
-        cls = Discrete
-    elif not high_level and type(domain) is Intervall:
-        if domain.type_ == 'continuous':
-            cls = Continuous
-        elif domain.type_ == 'discrete':
-            cls = Discrete
-    elif not high_level:
-        cls = Constant
+    if 'value_iter' in locals():
+        hl_classes = (Mapping, Sequence, ParameterSpace)
+        high_level = any(isinstance(val, hl_classes) for val in value_iter)
+        domain = parametrify(domain)
+
+    if high_level:
+        if type(domain) is set:
+            cls = JoinedSpace
+        elif type(domain) in (list, tuple):
+            cls = ProductSpace
+        elif type(domain) is dict:
+            cls = NamedSpace
     else:
+        if type(domain) is set:
+            cls = Categorical
+        elif type(domain) in (list, tuple):
+            cls = Discrete
+        elif type(domain) is Intervall:
+            if domain.type_ == 'continuous':
+                cls = Continuous
+            elif domain.type_ == 'discrete':
+                cls = Discrete
+        else:
+            cls = Constant
+    
+    if 'cls' not in locals():
         raise Parameter_inferenceError('Cound not find fitting Parameter class!')
 
-    print('put', domain, ',', args, 'and', kwargs, 'in', cls)
+    log.debug('New Parameter: %s, %s and %s in %s' % (domain, args, kwargs, cls))
     
     return cls(domain, *args, **kwargs)
 
 
+def parametrify(seq_or_map):
+    """
+    Converts values inside a Sequence or a Mapping into ParameterSpaces.
+    """
+    arg_cls = type(seq_or_map)
+    if isinstance(seq_or_map, Sequence):
+        seq = map(Parameter, seq_or_map)
+        out = arg_cls(seq)
+    else:
+        mapping = ((k, Parameter(v)) for k,v in seq_or_map.items())
+        out = arg_cls(mapping)
+    return out
+
+
 def prod(*args, **kwargs):
-    if args and kwargs:
-        raise Parameter_inferenceError('Cannot construct product from args and kwargs (Sequence and map)!')
+    # ether args or kwargs must be given
+    assert bool(args) != bool(kwargs)
+   
     if args:
-        return ProductSpace(args)
-    if kwargs:
-        return NamedProductSpace(kwargs)
+        args = parametrify(args)
+        out = ProductSpace(args) 
+    elif kwargs:
+        kwargs = parametrify(kwargs)
+        out = NamedSpace(kwargs)
+
+    return out
+
 
 def join(*args):
-    args = [a if isinstance(a, ParameterSpace) else Parameter(a) for a in args]
+    args = parametrify(args)
     return JoinedSpace(args)
-
 
 
 N = Intervall(float('-inf'), float('inf'), type_='discrete', bounding='unbounded')
 R = Intervall(float('-inf'), float('inf'), type_='continuous', bounding='unbounded')
-
+#N, R = Parameter(N, symbol='N'), Parameter(R, symbol='R') 
 
 # predefinde operators
-add = Operator(name="add", func=python_operator.add, symbol='+', notation='infix')
-sub = Operator(name="add", func=python_operator.sub, symbol='-', notation='infix')
-mul = Operator(name="mul", func=python_operator.mul, symbol='*', notation='infix')
-pow = Operator(name="pow", func=python_operator.mul, symbol='^', notation='infix')
-
-
+add = Operator(name="add", func=python_operator.add, symbols='+', notation='infix')
+sub = Operator(name="add", func=python_operator.sub, symbols='-', notation='infix')
+mul = Operator(name="mul", func=python_operator.mul, symbols='*', notation='infix')
+div = Operator(name="div", func=python_operator.truediv, symbols='/', notation='infix')
+pow = Operator(name="pow", func=python_operator.mul, symbols='^', notation='infix')
 
 
 

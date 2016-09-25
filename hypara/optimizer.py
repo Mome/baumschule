@@ -5,41 +5,40 @@ Created on Tue May 24 08:55:01 2016
 @author: mome
 """
 
-class ParameterOptimizer:
-    def __init__(self, type_, sample_number):
-        self.samples_number = sample_number
-        self.type_ = type_
+from collections import namedtuple
+from collections.abc import Sequence, Mapping
 
-    def optimize(model_class, parameters=None):
-        if not parameters:
-            parameters = {}
-        pdist = model_class.default_parameters
-        pdist.update(parameters)
-        ...
+Run = namedtuple('Run', ['algorithm', 'parameter', 'result'])
 
-        return results
+class RandomOptimizer:
 
-
-class FunctionOptimizer:
-    def __init__(self, number_of_samples, parameter_distribution):
-        self.nos = number_of_samples
-        self.paradist = copy(parameter_distribution)
-
-    def send_result(self, sample_index, result):
-        raise NotImplementedError()
-
-    def next_parameter(self):
-        raise NotImplementedError()
-
-    def __next__(self):
-        return self.next_parameter()
-
-
-
-class RandomOptimizer(self):
+    def __init__(self, computing_engine, algorithm, parameterspace):
+        self.computing_engine = computing_engine
+        self.records = []
     
-    def sample(self):
-        pass
+    def optimize(iterations):
+        for i in range(iterations):
+            sample = parameterspace()
+            result = computing_engine.evaluate(algorithm, sample)
+            records.append(Run(function, sample, result))
+
+    def get_best(self):
+        if not self.records:
+            return None
+        best = self.records[0]
+        for run in self.records:
+            if run.result < best.result:
+                best = run
+        return best
 
 
+def ComputingEngine:
 
+    def evaluate(function, parameters):
+        if type(parameters) == Sequence:
+            result = function(*parameters)
+        elif type(parameters) == Mapping:
+            result = function(**parameters)
+        else:
+            result = function(parameters)
+    return result
