@@ -10,7 +10,7 @@ from .statistician import get_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 
 class PurePath:

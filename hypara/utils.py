@@ -90,7 +90,9 @@ def write_text(path, string):
 def get_filetype(path):
 
     # get mimetype of file
-    if magic_available:
+    if not os.path.exists(path):
+        mime_type = 'text/plain'
+    elif magic_available:
         if os.path.isdir(path):
             mime_type = 'inode/directory'
         else:
@@ -107,6 +109,5 @@ def get_filetype(path):
             mime_type = type_
 
         print('try to guess type', type_, encoding)
-
 
     return mime_type

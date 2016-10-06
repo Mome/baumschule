@@ -29,8 +29,14 @@ c.Dataset.local_read_functions = {
     'application/x-matlab-data' : scipy.io.loadmat,
 }
 
+
+def df_to_csv(path, df):
+	import pandas
+	pandas.DataFrame.to_csv(df, path)
+
 # maps from a object type to write function
 c.Dataset.local_write_functions = {
     numpy.ndarray : numpy.save,
-    pandas.DataFrame : pandas.DataFrame.to_csv,
+    pandas.DataFrame : df_to_csv, 
 }
+
