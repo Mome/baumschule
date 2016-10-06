@@ -10,6 +10,7 @@ from collections.abc import Sequence, Mapping, Callable
 
 Run = namedtuple('Run', ['algorithm', 'parameter', 'result'])
 
+
 class Algorithm:
     def __init__(self, name, function):
         self.name = name
@@ -17,8 +18,8 @@ class Algorithm:
 
 
     def __call__(self, *args, **kwargs):
+        print(args, kwargs)
         return self.function(*args, **kwargs)
-
 
 
 class RandomOptimizer:
@@ -35,10 +36,12 @@ class RandomOptimizer:
         self.parameterspace = parameterspace
         self.computing_engine = computing_engine if computing_engine else ComputingEngine()
         self.records = []
+        self.silent = False
     
     def optimize(self, iterations):
         for i in range(iterations):
             sample = self.parameterspace.sample()
+            print('sampletype', [type(s) for s in sample.keys()])
             result = self.computing_engine.evaluate(self.algorithm, sample)
             self.records.append(
                 Run(self.algorithm.name, sample, result))
@@ -48,6 +51,8 @@ class RandomOptimizer:
             return None
         best = self.records[0]
         for run in self.records:
+            if not silent:
+                print(run)
             if run.result < best.result:
                 best = run
         return best
