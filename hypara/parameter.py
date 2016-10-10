@@ -1,4 +1,4 @@
-from random import choice
+import random
 import operator as python_operator
 from collections.abc import Mapping, Sequence
 import logging
@@ -7,7 +7,7 @@ import numpy.random as rnd
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 
 type_abbr = {
@@ -32,7 +32,7 @@ def normalize_type(arg):
     if arg in type_abbr.keys():
         return type_abbr[arg]
     else:
-        raise Parameter_inferenceError('Unknown type: %s' % arg)
+        raise ParameterInferenceError('Unknown type: %s' % arg)
 
 
 class ParameterSpace:
@@ -82,7 +82,8 @@ class ParameterSpace:
         return div(self, arg)
 
     def __or__(self, arg):
-        return JoinedSpace([self, arg])
+        return join(self, arg)
+
 
 class CombinedSpace(ParameterSpace):
     def __iter__(self):
@@ -97,7 +98,7 @@ class JoinedSpace(CombinedSpace):
     def infer_dist(self):
         def dist():
             # choose subspace
-            ss = choice(self.domain)
+            ss = random.sample(self.domain, 1)[0]
             return ss.sample()
         return dist
 
@@ -153,7 +154,7 @@ class SimpleSpace(ParameterSpace):
 
 class Categorical(SimpleSpace):
     def infer_dist(self):
-        return lambda : choice(self.domain)
+        return lambda : random.sample(self.domain, 1)[0]
 
 
 class Discrete(SimpleSpace):
@@ -356,40 +357,34 @@ def Parameter(domain, *args, **kwargs):
         assert not (args or kwargs)
         return domain
 
-    if isinstance(domain, Sequence):
-        value_iter = domain
-    elif isinstance(domain, Mapping):
-        value_iter = domain.values()
-    else:
-        high_level = False
+    if type(domain) in (list, tuple):
+        domain = list(map(Parameter, domain))
+        cls = ProductSpace 
 
-    if 'value_iter' in locals():
-        hl_classes = (Mapping, Sequence, ParameterSpace)
-        high_level = any(isinstance(val, hl_classes) for val in value_iter)
-        domain = parametrify(domain)
+    elif type(domain) == dict:
+        assert all(type(k) == str for k in domain.keys())
+        domain = {k:Parameter(v) for k,v in domain.items()}
+        cls = NamedSpace
 
-    if high_level:
-        if type(domain) is set:
-            cls = JoinedSpace
-        elif type(domain) in (list, tuple):
-            cls = ProductSpace
-        elif type(domain) is dict:
-            cls = NamedSpace
-    else:
-        if type(domain) is set:
-            cls = Categorical
-        elif type(domain) in (list, tuple):
-            cls = Discrete
-        elif type(domain) is Intervall:
-            if domain.type_ == 'continuous':
-                cls = Continuous
-            elif domain.type_ == 'discrete':
-                cls = Discrete
+    elif type(domain) == set:
+        high_level = any(isinstance(d, ParameterSpace) for d in domain)
+        if high_level:
+            domain = set(map(Parameter, domain))
+            cls = JoinedSpace      
         else:
-            cls = Constant
+            cls = Categorical
+
+    elif type(domain) == Intervall:
+        if domain.type_ == 'continuous':
+            cls = Continuous
+        elif domain.type_ == 'discrete':
+            cls = Discrete
+
+    else:
+        cls = Constant
     
     if 'cls' not in locals():
-        raise Parameter_inferenceError('Cound not find fitting Parameter class!')
+        raise ParameterInferenceError('Cound not find fitting Parameter class!')
 
     log.debug('New Parameter: %s, %s and %s in %s' % (domain, args, kwargs, cls))
     
@@ -425,7 +420,7 @@ def prod(*args, **kwargs):
 
 
 def join(*args):
-    args = parametrify(args)
+    args = [Parameter(a) for a in args]
     return JoinedSpace(args)
 
 
@@ -440,6 +435,23 @@ mul = Operator(name="mul", func=python_operator.mul, symbols='*', notation='infi
 div = Operator(name="div", func=python_operator.truediv, symbols='/', notation='infix')
 pow = Operator(name="pow", func=python_operator.mul, symbols='^', notation='infix')
 
+
+# predefinde distribution
+def normal(mean=0, std=1, *, name=None):
+    return Parameter(
+        domain = R,
+        dist = lambda : rnd.normal(mean, std),
+        name = name,
+    )
+gauss = normal
+
+
+lognormal = rnd.lognormal()
+poisson = ...
+binomial = ...
+bernoulli = ...
+uniform = rnd.randint(0, 1)
+laplace = ...
 
 
 # ------ Distributions ------ #
@@ -546,7 +558,7 @@ class Parameter:
             return self.domain.mini
         return min(self.domain)
 '''
-class Parameter_inferenceError(Exception):
+class ParameterInferenceError(Exception):
     pass
 
 
