@@ -2,18 +2,31 @@
 \usepackage[utf8]{inputenc}
 \usepackage{babel}
 \usepackage[backend=bibtex]{biblatex}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+
 \bibliography{master.bib}
 
 \begin{document}  
 
-\title{Bayesian Hyperparameter Optimization in Grammer-Based Search Spaces}
+\title{Bayesian Hyperparameter-Optimization in Grammer-Based Search Spaces}
 \author{Moritz Meier}
+\maketitle
 \tableofcontents
+\newpage
 
 \section{Introduction}
 \paragraph{Motivation}
 
-\section{Optimization}
+\section{Global Black-Box Optimization}
  - Local Optimization
  - Global Optimization
  - Criteria for optimization
@@ -22,7 +35,7 @@
 
 \section{Hyperparameter Optimization}
 
-\section{Machine Learning as Optimization}
+\subsection{Machine Learning as Optimization}
  - Types and Error Functions
  - Model Selection
 
@@ -42,47 +55,72 @@ Copied from: \cite{snoek_practical_2012}
  - Manual Search
  - Random Search
  - Grid Search
-
 \subsection{Search Space}
-\paragraph{Structure}
+\subsubsection{Structure}
  - Categrorical
  - Discrete
  - Continunous
-
 \paragraph{Assumptions}
- - Search Spaces (examples)
- - Searchspace Hierachy
+\subsection{Search Space Construction}
+\subsubsection{Search Space Hierachy}
 
-\subsection{Demands to a HYPO-Algorithm}
- - ...
+
+\begin{tabular}{ l | c | c }
+Language Feature & Search Space & Parameter Structure \\
+\hline
+atomic parameters   & one-dim          & single value \\
+join                & tree             &              \\
+product / operators & multi-dim        & tree         \\
+recursion           & infinite tree    &              \\
+expression equality & DAG              &              \\
+value identity      & ?                & DAG          \\
+recursive values    & ?                & ? 
+\end{tabular}
+
+\subsection{Demands to a good HPO-Algorithm}
 
 \section{Gaussian Processes Regression}
 \subsection{Kernel Combination}
+
 
 \section{Bayesian Optimization}
 \subsection{SMBO}
 \subsection{SMAC}
 \subsection{The Tree-Parzen Algorithm}
-\subsection{Tree and Graph Kernels}
+\subsection{Tree and Graph Kernels/Metrics}
 
-\section{An Algorithm for Grammar-based Optimization}
+
+\section{Algorithm for Optimization in Grammar-based Search Spaces}
+\subsection{Extention to DAG-structured search spaces}
 \subsection{Parallelization}
 \subsection{Integration with Manual Search}
-- Prior Information - 
+\subsubsection{Prior Information}
+\subsubsection{Search Hints}
+\subsection{Objective Function Approximation}
 
 
 \section{Implementation}
-\subsubsection{Search Space Construction DSL}
+\subsection{Search Space Construction DSL}
+\subsection{Algorithm Templates}
 
 
 \section{Experiments}
-\subsection{Application to Kernel Search of Gaussian Process Regression}
+\subsection{Gaussian Process Regression}
 \subsubsection{Kernel Combination Optimization}
-\subsubsection{Combined Kernel Parameter and kernel Combination Optimization}
-\subsection{Application to Elastic Net Linear Regression}
-\subsection{Application to Feat-Forward Networks}
+\subsubsection{Kernel Parameter and Kernel Combination Optimization}
+\subsection{Elastic Net Linear Regression}
+\subsection{Feat-Forward Networks}
+
+\section{Conclusion}
+
+\section{Outlook}
+\paragraph{Connection to Functional Programming}
+\paragraph{Connection to Constraint Satisfaction Problems}
+\paragraph{Connection to Probabilistic Programming}
+\paragraph{Connection to Reinforcement Learning}
+\paragraph{Integration with Workflow-Managers}
+\paragraph{}
 
 \printbibliography
 
 \end{document}  
-
