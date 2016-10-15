@@ -1,0 +1,88 @@
+\documentclass[english]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage[backend=bibtex]{biblatex}
+\bibliography{master.bib}
+
+\begin{document}  
+
+\title{Bayesian Hyperparameter Optimization in Grammer-Based Search Spaces}
+\author{Moritz Meier}
+\tableofcontents
+
+\section{Introduction}
+\paragraph{Motivation}
+
+\section{Optimization}
+ - Local Optimization
+ - Global Optimization
+ - Criteria for optimization
+
+\subsection{Bandit Problem}
+
+\section{Hyperparameter Optimization}
+
+\section{Machine Learning as Optimization}
+ - Types and Error Functions
+ - Model Selection
+
+\begin{quote}
+Machine learning algorithms, however, have certain characteristics that distinguish them from other
+black-box optimization problems.  First, each function evaluation can require a variable amount of
+time:  training a small neural network with 10 hidden units will take less time than a bigger net-
+work with 1000 hidden units.  Even without considering duration, the advent of cloud computing
+makes it possible to quantify economically the cost of requiring large-memory machines for learn-
+ing, changing the actual cost in dollars of an experiment with a different number of hidden units.
+Second, machine learning experiments are often run in parallel, on multiple cores or machines.  In
+both situations, the standard sequential approach of GP optimization can be suboptimal.
+\end{quote}
+Copied from: \cite{snoek_practical_2012}
+
+\subsection{Algorithm Types}
+ - Manual Search
+ - Random Search
+ - Grid Search
+
+\subsection{Search Space}
+\paragraph{Structure}
+ - Categrorical
+ - Discrete
+ - Continunous
+
+\paragraph{Assumptions}
+ - Search Spaces (examples)
+ - Searchspace Hierachy
+
+\subsection{Demands to a HYPO-Algorithm}
+ - ...
+
+\section{Gaussian Processes Regression}
+\subsection{Kernel Combination}
+
+\section{Bayesian Optimization}
+\subsection{SMBO}
+\subsection{SMAC}
+\subsection{The Tree-Parzen Algorithm}
+\subsection{Tree and Graph Kernels}
+
+\section{An Algorithm for Grammar-based Optimization}
+\subsection{Parallelization}
+\subsection{Integration with Manual Search}
+- Prior Information - 
+
+
+\section{Implementation}
+\subsubsection{Search Space Construction DSL}
+
+
+\section{Experiments}
+\subsection{Application to Kernel Search of Gaussian Process Regression}
+\subsubsection{Kernel Combination Optimization}
+\subsubsection{Combined Kernel Parameter and kernel Combination Optimization}
+\subsection{Application to Elastic Net Linear Regression}
+\subsection{Application to Feat-Forward Networks}
+
+\printbibliography
+
+\end{document}  
+
