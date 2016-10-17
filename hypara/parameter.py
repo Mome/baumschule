@@ -11,6 +11,20 @@ log.setLevel('INFO')
 
 default_sampler = random_variables.sample
 
+class OperatorCallable:
+    def __call__(self, *args, **kwargs):
+        assert bool(args) != bool(kwargs)
+
+        if args and kwargs:
+            domain = MixedProduct(args, kwargs)
+        elif args:
+            params = list(args)
+        elif kwargs:
+            params = dict(kwargs)
+
+        log.debug('call %s %s %s %s' % (self.name, args, kwargs, params))
+        return OperatorCall(operator=self, domain=params)
+
 class ParameterSpace:
 
     def __init__(self, domain, *, dist=None, name=None, symbol=None):
@@ -84,7 +98,7 @@ class CombinedSpace(ParameterSpace):
         return self.domain.__getitem__(key)
 
 
-class JoinedSpace(CombinedSpace):
+class JoinedSpace(CombinedSpace, OperatorCallable):
 
     def __str__(self):
         if self.symbol != None:
@@ -163,10 +177,10 @@ class Continuous(SimpleSpace):
 class Constant(SimpleSpace):
     pass
 
-class Call(CombinedSpace):
-    def __init__(self, operator, domain):
+class OperatorCall(CombinedSpace):
+    def __init__(self, operator, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.operator = operator
-        self.domain = domain
 
     def __str__(self):
         op = self.operator
@@ -196,16 +210,16 @@ class Call(CombinedSpace):
             params = sep.join(str(d) for d in self.domain)
 
         if op.notation == 'prefix':
-            return '%s%s' % (name, params)
+            return ''.join([op.name, left, params, right])
         elif op.notation == 'postfix':
-            return '%s%s' % (params, name)
+            return ''.join([left, params, right, op.name])
         elif op.notation == 'infix':
             return params
         else:
             raise ValueError('unvalid notation')
 
         
-class Operator:
+class Operator(OperatorCallable):
 
     notation_values = ['prefix', 'postfix', 'infix', 'name']
 
@@ -224,19 +238,11 @@ class Operator:
         self.symbols = symbols
         self.notation = notation
 
-
-    def __call__(self, *args, **kwargs):
-        assert bool(args) != bool(kwargs)
-
-        if args and kwargs:
-            domain = MixedProduct(args, kwargs)
-        elif args:
-            params = list(args)
-        elif kwargs:
-            params = dict(kwargs)
-
-        log.debug('call %s %s %s %s' % (self.name, args, kwargs, params))
-        return Call(operator=self, domain=params)
+    def __str__(self):
+        return '%s(name=%s)' % (
+            self.__class__.__name__,
+            self.name
+        )
 
 
 class MixedProduct:
