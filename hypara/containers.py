@@ -1,43 +1,6 @@
-class Variable:
-    def __init__(self):
-        pass
 
 
-class Operator:
-
-    notation_values = ['prefix', 'postfix', 'infix', 'name']
-
-    def __init__(self, func, name, notation=None, symbols=None):
-        """
-        symbols : Tripel or str the form of (left, sep, right)
-        """
-        
-        if notation is None:
-            notation = 'prefix'
-
-        assert notation in self.notation_values         
-        
-        self.func = func
-        self.name = name
-        self.symbols = symbols
-        self.notation = notation
-
-
-    def __call__(self, *args, **kwargs):
-        assert bool(args) != bool(kwargs)
-
-        if args and kwargs:
-            domain = MixedProduct(args, kwargs)
-        elif args:
-            params = list(args)
-        elif kwargs:
-            params = dict(kwargs)
-
-        log.debug('call %s %s %s %s' % (self.name, args, kwargs, params))
-        return Call(operator=self, domain=params)
-
-
-class MixedProduct:
+class Product:
     """Prepresents a product of a list and a dictionary."""
     # TODO: add slices ?
 
@@ -45,14 +8,83 @@ class MixedProduct:
         self.args = list(args)
         self.kwargs = dict(kwargs)
 
+    def keys(self):
+        yield from range(len(self.args))
+        yield from self.kwargs.keys()
+
+    def values(self):
+        yield from self.args
+        yield from self.kwargs.values()
+
+    def items(self):
+        yield from enumerate(self.args)
+        yield from self.kwargs.items()
+
+    def append(self, value):
+        self.args.append(value)
+
+    def extend(self, arg):
+        self.args.append(arg)
+
+    def update(self, arg):
+        self.kwargs.update(arg)
+
+    def get(self, key, default=None):
+        if key in self.keys():
+            return self[key]
+        else:
+            return default
+
+    def __iter__(self):
+        return self.values()
+
+    @staticmethod
+    def _test_slice(key):
+        if key.start == None:
+            raise KeyError('Start cannot be None!')
+        if key.stop == None:
+            raise KeyError('Stop cannot be None!')
+        if key.step != None:
+            raise KeyError('Step must be None!')
+
     def __getitem__(self, key):
-        print(key, type(key))
-        if type(key) == int:
+
+        if type(key) in int:
             return self.args[key]
         elif type(key) == str:
-            return self.kwargs[key]
+            return  self.kwargs[key]
+
+        if type(key) == slice:
+            key = tuple(key)
+
+        if type(key) == tuple:
+            list_part = []
+            dict_part = {}
+            
+            for k in key:
+                if type(k) in (int, str):
+                    list_part.append(self[k])
+
+                elif type(k) == slice:
+                    _test_slice(k)
+                    dict_part[].append()
+                    ...
+
+
+                for k in key
+                
+            dict_part = {
+                k : self.kwargs[k]
+                for k in key
+                if type(k) == str
+            }
+
+            out = Product(list_part, dict_part)
+
         else:
-            raise ValueError('Only str and int are valied keys.')
+            raise ValueError('Invalid index/key type: %s' % type(key))
+
+        return out
 
     def __setitem__(self, key, val):
         if type(key) == int:
@@ -62,27 +94,19 @@ class MixedProduct:
         else:
             raise ValueError('Only str and int are valied keys.')
 
-    def __iter__(self):
-        yield from self.args
-        yield from self.kwargs.values()
-
-    def keys(self):
-        return [*range(len(self.args)), *self.kwargs.values()]
-
-    def values(self):
-        return list(self) # calls __iter__
-
     def __str__(self):
         args_str = map(str, self.args) 
         kwargs_str = ('%s=%s' % item for item in self.kwargs.items())
         return '(%s)' % ', '.join([*args_str, *kwargs_str])
 
+    def __len__(self):
+        return len(self.args) + len(self.kwargs)
+
     def __repr__(self):
-        return 'MixedProduct(%s)' % str(self)
+        return 'Product%s' % str(self)
 
-mixed = MixedProduct
 
-class Call(MixedProduct):
+class Call(Product):
     def __init__(self, operator, args, kwargs):
         super().__init__(args, kwargs)
         self.operator = operator
@@ -123,6 +147,7 @@ class Intervall:
             return self.sub < num <= self.sup      
         
     def __getitem__(self, key):
+
         if type(key) is slice:
 
             start, stop, step = key.start, key.stop, key.step
@@ -143,8 +168,8 @@ class Intervall:
                 sub = start,
                 sup = stop,
                 type_ = self.type_,
-                bounding = step)
-
+                bounding = step,
+            )
         else:
             raise KeyError(key)
 
@@ -152,24 +177,3 @@ class Intervall:
 
     def __str__(self):
         return 'Intervall(%s, %s, %s)' % (self.sub, self.sup, self.type_)
-
-    def __add__(self, other):
-        return Parameter(self) + Parameter(other)
-
-    def __sub__(self, other):
-        return Parameter(self) - Parameter(other)
-
-    def __mul__(self, other):
-        return Parameter(self) * Parameter(other)
-
-    def __truediv__(self, other):
-        return Parameter(self) / Parameter(other)
-
-    def __floordiv__(self, other):
-        return Parameter(self) // Parameter(other)
-
-    def __pow__(self, other):
-        return Parameter(self) ** Parameter(other)
-
-    def __or__(self, other):
-        return join(self, other)
