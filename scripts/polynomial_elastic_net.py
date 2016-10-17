@@ -15,11 +15,6 @@ from hypara.optimizer import RandomOptimizer
 data = (Path() / "automatic_statistician/02-solar.csv").read()
 X,y = data['X'], data['y']
 
-def RMSE(x, y):
-    x = x.ravel()
-    y = y.ravel()
-    return np.sqrt(sum((x-y)**2)/len(x))
-
 
 def ml_algorithm(alpha, l1_ratio, maxorder, bias):
 
