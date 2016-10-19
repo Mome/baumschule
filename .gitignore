@@ -3,4 +3,5 @@
 *.pyc
 *.svg
 try_.*
+.ipynb_checkpoints
 __pycache__

@@ -162,36 +162,42 @@ class CallSpace(ProductSpace):
     def __str__(self):
         op = self.operator
 
-        if op.notation == 'name':
+        if type(op) == Operator:
+            if op.notation == 'name':
+                if op.symbols:
+                    return str(op.symbols)
+                return op.name
+
             if op.symbols:
-                return str(op.symbols)
-            return op.name
-
-        if op.symbols:
-            if len(op.symbols) == 3:
-                left, sep, right = op.symbols
-            elif len(op.symbols) == 2:
-                left, right = op.symbols
-                sep = ', '
-            elif len(op.symbols) == 1:
-                sep, = op.symbols
-                left, right = '()'  
+                if len(op.symbols) == 3:
+                    left, sep, right = op.symbols
+                elif len(op.symbols) == 2:
+                    left, right = op.symbols
+                    sep = ', '
+                elif len(op.symbols) == 1:
+                    sep, = op.symbols
+                    left, right = '()'  
+                else:
+                    raise ValueError('len(symboles) must be >=3')
             else:
-                raise ValueError('len(symboles) must be >=3')
-        else:
-            left, sep, right = ('(', ', ', ')')
+                left, sep, right = ('(', ', ', ')')
 
-        params = str(self.domain)[1:-1].split(', ')
-        params = sep.join(params)
+            params = str(self.domain)[1:-1].split(', ')
+            params = sep.join(params)
 
-        if op.notation == 'prefix':
-            return ''.join([op.name, left, params, right])
-        elif op.notation == 'postfix':
-            return ''.join([left, params, right, op.name])
-        elif op.notation == 'infix':
-            return params
+            if op.notation == 'prefix':
+                out = ''.join([op.name, left, params, right])
+            elif op.notation == 'postfix':
+                out = ''.join([left, params, right, op.name])
+            elif op.notation == 'infix':
+                out = params
+            else:
+                raise ValueError('unvalid notation')
+        
         else:
-            raise ValueError('unvalid notation')
+            return str(op) + super().__str__()
+
+        return out
 
 
 class Operator(Callable):
@@ -217,7 +223,7 @@ class Operator(Callable):
         return self.name
 
     def __repr__(self):
-        return self.name
+        return 'Operator(' + self.name + ')'
 
 
 # ---------- Functions ------------------------------------------------------- #
