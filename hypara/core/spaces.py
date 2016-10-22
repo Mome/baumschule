@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 logging.basicConfig()
 log.setLevel('INFO')
 
-# ---------- Classes --------------------------------------------------------- #
+# ---------- Classes -------------------------------------------------------- #
 
 class Callable:
     def __call__(self, *args, **kwargs):
@@ -17,6 +17,28 @@ class Callable:
         return CallSpace(self, domain)
 
 class Space(Callable):
+
+    # TODO - add this feature maybe later
+    """def __new__(cls, domain=None, *args, **kwargs):
+
+        if cls is Space:
+            log.debug('new_sapce:' + str(domain))
+
+            if domain is None:
+                domain = JoinedSpace([])
+
+            if isinstance(domain, Space):
+                assert not (args or kwargs)
+                return domain
+
+            other_cls = _pick_class(domain)
+
+            #return cls(domain, *args, **kwargs)
+            #self = cls.__new__(cls, source, parts)
+        else:
+            self = object.__new__(cls)
+
+        return self"""
 
     def __init__(self, domain, *, dist=None, name=None, symbol=None):
 
@@ -45,15 +67,15 @@ class Space(Callable):
 
     def __repr__(self):
         return '%s(%s)' % (
-            repr(self.__class__.__name__),
+            self.__class__.__name__,
             repr(self.domain)
         )
 
     def __or__(self, arg):
-        return join(self, arg)
+        return TempCollection([self, arg])
 
     def __add__(self, arg):
-        return add(self, arg)  
+        return add(self, arg)
 
     def __sub__(self, arg):
         return sub(self, arg)
@@ -70,39 +92,75 @@ class Space(Callable):
 
 
 class AtomicSpace(Space):
-    pass
+    def __str__(self):
+        if type(self.domain) == Intervall:
+            return '%s(%s, %s)' % (
+                self.__class__.__name__,
+                self.domain.sub,
+                self.domain.sup,)
+        else:
+            return super().__str__()
 
 
 class Categorical(AtomicSpace):
-    pass
+    def __len__(self):
+        return len(self.domain)
 
 
 class Discrete(AtomicSpace):
-    def __str__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            self.domain.sub,
-            self.domain.sup,
-        )        
+    def __repr__(self):
+        return str(self)
 
 
 class Continuous(AtomicSpace):
-    def __str__(self):
-        return '%s(%s, %s)' % (
-            self.__class__.__name__,
-            self.domain.sub,
-            self.domain.sup,
-        )
+    def __repr__(self):
+        return str(self)
+
 
 class Constant(AtomicSpace):
     pass
 
+
+class Variable(AtomicSpace):
+    def __init__(self, name, domain=None, *args, **kwargs):
+        super().__init__(domain, *args, **kwargs)
+        self.name = name
+
+    @property
+    def value(self):
+        return self.domain
+
+    @value.setter
+    def value(self, value):
+        self.domain = value
+var = Variable
+
 class CombinedSpace(Space):
+    def __str__(self):
+        return pformat(self, linebreaks=False)
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.domain)
+
     def __iter__(self):
         return iter(self.domain)
 
     def __getitem__(self, key):
         return self.domain.__getitem__(key)
+
+    def __lshift__(self, arg):
+        if type(arg) == TempCollection:
+            arg = _spacify(arg)
+            self.domain.extend(arg)
+        else:
+            self.domain.append(to_space(arg))
+
+    def __ilshift__(self, arg):
+        self.__lshift__(arg)
+        return self
+
+    def __len__(self):
+        return len(self.domain)
 
 
 class JoinedSpace(CombinedSpace):
@@ -118,10 +176,6 @@ class JoinedSpace(CombinedSpace):
             s =  '{' + csl + '}'
         return s
 
-    def __ior__(self, arg):
-        self.domain.append(arg)
-        return self        
-
 
 class ProductSpace(CombinedSpace):
     def __init__(self, domain, *args, **kwargs):
@@ -130,13 +184,13 @@ class ProductSpace(CombinedSpace):
         elif type(domain) == dict:
             domain = Product([], domain)
         super().__init__(domain, *args, **kwargs)
- 
+
     def keys(self):
         return self.domain.keys()
 
     def values(self):
         return self.domain.values()
-        
+
     def items(self):
         return self.domain.items()
 
@@ -154,7 +208,7 @@ class CallSpace(ProductSpace):
 
     def __repr__(self):
         return '%s(%s, %s)' % (
-            repr(self.__class__.__name__),
+            self.__class__.__name__,
             repr(self.operator),
             repr(self.domain),
         )
@@ -176,7 +230,7 @@ class CallSpace(ProductSpace):
                     sep = ', '
                 elif len(op.symbols) == 1:
                     sep, = op.symbols
-                    left, right = '()'  
+                    left, right = '()'
                 else:
                     raise ValueError('len(symboles) must be >=3')
             else:
@@ -193,7 +247,7 @@ class CallSpace(ProductSpace):
                 out = params
             else:
                 raise ValueError('unvalid notation')
-        
+
         else:
             return str(op) + super().__str__()
 
@@ -208,12 +262,12 @@ class Operator(Callable):
         """
         symbols : Tripel or str the form of (left, sep, right)
         """
-        
+
         if notation is None:
             notation = 'prefix'
 
-        assert notation in self.notation_values         
-        
+        assert notation in self.notation_values
+
         self.func = func
         self.name = name
         self.symbols = symbols
@@ -226,113 +280,118 @@ class Operator(Callable):
         return 'Operator(' + self.name + ')'
 
 
-# ---------- Functions ------------------------------------------------------- #
+# ---------- Functions ------------------------------------------------------ #
 
-def space(domain, *args, **kwargs):
+def to_space(domain=None, *args, **kwargs):
 
-    log.debug('space:' + str(domain))
-    
+    log.debug('to_space:' + str(domain))
+
+    if domain is None:
+        domain = JoinedSpace([])
+
     if isinstance(domain, Space):
         assert not (args or kwargs)
         return domain
 
-    domain = _spacify(domain)
+    if not _is_atomic(domain):
+        domain = _spacify(domain)
+
     cls = _pick_class(domain)
-    
+
     return cls(domain, *args, **kwargs)
 
 
 def _spacify(domain):
     """
-    If argument has a valid container type:
-    convert elements to Spaces.
+    Converts the elements of a container to spaces.
     """
 
-    log.debug('_spacify:' + str(domain))
+    #log.debug('_spacify:' + str(domain))
 
     if isinstance(domain, Space):
-        pass
+        raise SpaceInferenceError('Should not be called with a Space.')
 
-    elif _is_atomic(domain):
-        log.debug('_spacify:isatomic')
-        pass
+    elif isinstance(domain, (list, tuple)):
+        domain = list(map(to_space, domain))
 
-    elif type(domain) in (list, tuple):
-        domain = list(map(space, domain))
-
-    elif type(domain) == dict:
+    elif isinstance(domain, dict):
         # TODO: maybe allow numerical indices
         assert all(type(k) == str for k in domain.keys())
-        domain = {k:space(v) for k,v in domain.items()}
+        domain = {k:to_space(v) for k,v in domain.items()}
 
-    elif type(domain) == set:
-        domain = set(map(space, domain))
+    elif isinstance(domain, set):
+        domain = set(map(to_space, domain))
 
     elif type(domain) == Product:
-        list_part = list(map(space, domain.args))
-        dict_part = {k:space(v) for k,v in domain.kwargs.items()}
+        list_part = list(map(to_space, domain.args))
+        dict_part = {k:to_space(v) for k,v in domain.kwargs.items()}
         domain = Product(list_part, dict_part)
 
     return domain
 
 
-atomic_classes = (list, tuple, set, frozenset, Intervall)
-non_atomics_classes = (dict, Product, Space)
-all_classes = atomic_classes + non_atomics_classes
+_always_atomic = (Intervall,)
+_potential_atomic = (list, tuple, set, frozenset)
+_never_atomic = (dict, Product, Space)
 
 def _is_atomic(domain):
     """
-    Check if argument would evaluate to an atomic sapace.
+    Check whether the argument should evaluate to an atomic space.
     """
-    assert not isinstance(domain, Space)
+    if isinstance(domain, Space):
+        raise SpaceError('Should not be called with a Space.')
 
-    if type(domain) in atomic_classes:
-
-        if type(domain) is Intervall:
-            return False
-
-        for d in domain:
-            if isinstance(d, all_classes):
-                return False
-
-    elif type(domain) in non_atomics_classes:
+    if type(domain) in _never_atomic:
         return False
 
-    return True
+    elif type(domain) in _potential_atomic:
+        all_cls = _always_atomic + _potential_atomic + _never_atomic
+        return not any(
+            isinstance(d, all_cls)
+            for d in domain)
+
+    else:
+        return True
 
 
 def _pick_class(domain):
 
-    log.debug('_pick_class:' + str(domain))
+    #log.debug('_pick_class:' + str(domain))
 
     if isinstance(domain, Space):
-        raise SpaceInferenceError('Already a Space!')
+        raise SpaceInferenceError('Should not be called with a Space.')
 
-    if type(domain) in (list, tuple, dict, Product):
-        cls = ProductSpace
+    atomic = _is_atomic(domain)
 
-    elif type(domain) == Call:
-        cls = CallSpace
+    if atomic:
 
-    elif type(domain) == Intervall:
-        if domain.type_ == 'continuous':
-            cls = Continuous
-        elif domain.type_ == 'discrete':
+        if type(domain) in (tuple,list):
             cls = Discrete
 
-    elif type(domain) == set:
-        if _is_atomic(domain):
+        elif type(domain) == set:
             cls = Categorical
-        else:
-            cls = JoinedSpace
+
+        elif type(domain) == Intervall:
+            if domain.type_ == 'continuous':
+                cls = Continuous
+            elif domain.type_ == 'discrete':
+                cls = Discrete
+
+        else: cls = Constant
 
     else:
-        cls = Constant
+        if type(domain) == set:
+            cls = JoinedSpace
+        elif type(domain) in (list, tuple, dict, Product):
+            cls = ProductSpace
 
-    """else:
+        elif type(domain) == Call:
+            cls = CallSpace
+
+    if 'cls' not in locals():
         raise SpaceInferenceError(
-            'Cound not find fitting Space class: %s'
-            % type(domain))"""
+            'Cound not find fitting Space class for %satomic %s'
+            % ('' if atomic else 'non-', type(domain)))
 
     return cls
 
@@ -368,81 +427,109 @@ def prod(*args, **kwargs):
 
 
 def join(*args):
+    if len(args) == 0:
+        return JoinedSpace([])
     if _is_atomic(args):
-        domain = set(args)
+        return Categorical(args)
     else:
         domain = _spacify(args)
-    return JoinedSpace(domain)
+        return JoinedSpace(domain)
 
 
-def pprint(space):
-    print(pformat(space))
+def pprint(space, linebreaks=True, str_func=str):
+    print(pformat(space, linebreaks, str_func))
 
 
-def pformat(space):
+def pformat(space, linebreaks=True, str_func=str):
     stack = []
     prefix = ' '*4
-    
-    def deeper(space):
+    sep1 = '\n' if linebreaks else ''
+    sep2 = '\n' if linebreaks else ' '
+    sep3 = ',\n' if linebreaks else ''
+    sep4 = ' = '  if linebreaks else '='
+
+    def go_deeper(space):
+        log.debug('spacetype:%s' % type(space))
         if isinstance(space, AtomicSpace):
-            return str(space)
+            return str_func(space)
+
+        only_constants = all(
+            isinstance(v, Constant) or not isinstance(v, Space)
+            for v in space.domain)
+
+        if (only_constants):
+            return str_func(space)
 
         if space in stack:
-            return '...'
+            return type(space).__name__ + ' ...'
 
         stack.append(space)
 
         if type(space.domain) == Product:
             params = [
-                deeper(arg)
+                go_deeper(arg)
                 for arg in space.domain.args
             ]
             params += [
-                k + ' = ' + deeper(v)
+                k + sep4 + go_deeper(v)
                 for k,v in space.domain.kwargs.items()
             ]
 
         elif type(space.domain) == list:
-            params = [
-                deeper(arg)
-                for arg in space.domain
-            ]
+            params = [go_deeper(arg) for arg in space.domain]
+
         else:
-            raise SpacePrintingError('No good reason!')
+            raise SpaceFormattingError(
+                'Invalid domain type: %s' % type(space.domain))
 
-        params = textwrap.indent(
-            text = ',\n'.join(params),
-            prefix = prefix,
-        )
+        params = (',' + sep2).join(params)
 
+        if linebreaks:
+            params = textwrap.indent(params, prefix)
+
+        # TODO: This part should be changed for repr
         if type(space) == ProductSpace:
-            out = '[\n', params, ',\n]'
+            out = '[', sep1, params, sep3, ']'
         elif type(space) == JoinedSpace:
-            out = '{\n', params, ',\n}'
+            out = '{', sep1, params, sep3, '}'
         elif type(space) == CallSpace:
-            out = str(space.operator), '(\n', params, ',\n)'
+            out = str_func(space.operator), '(', sep1, params, sep3, ')'
         else:
-            raise SpacePrintingError('No good reason!')
+            raise SpaceFormattingError(
+                'Invalid domain type: %s' % type(space.domain))
 
         stack.pop()
         return ''.join(out)
 
 
-    return deeper(space)
+    return go_deeper(space)
 
 
-# ---------- Exceptions ------------------------------------------------------ #
+class TempCollection(list):
+    def __or__(self, arg):
+        if type(arg) == TempCollection:
+            self.extend(arg)
+        else:
+            self.append(arg)
+        return self
 
-class SpaceInferenceError(Exception):
+
+# ---------- Exceptions ----------------------------------------------------- #
+
+class SpaceError(Exception):
     pass
 
-class SpaceCombinationError(Exception):
+class SpaceInferenceError(SpaceError):
     pass
 
-class SpacePrintingError(Exception):
+class SpaceCombinationError(SpaceError):
     pass
 
-# ------ Predifined operators ---------------------------------------------------- #
+class SpaceFormattingError(SpaceError):
+    pass
+
+
+# ------ Predifined operators ----------------------------------------------- #
 
 add = Operator(
     name="add",

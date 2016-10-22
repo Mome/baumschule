@@ -2,6 +2,7 @@
 *.log
 *.pyc
 *.svg
-try_.*
+*.aux
 .ipynb_checkpoints
+
 __pycache__
