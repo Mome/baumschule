@@ -20,7 +20,7 @@ class TestProduct(unittest.TestCase):
         self.assertEqual(Space(float).type_, 'continuous')
         self.assertEqual(Space(int).type_, 'discrete')
         self.assertEqual(Space('probability').type_, 'continuous')
-        
+
 
 class TestIntervall(unittest.TestCase):
     def setUp(self):
