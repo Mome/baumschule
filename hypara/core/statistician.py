@@ -12,36 +12,58 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class Statistician:
+class System:
     def __init__(self):
-        self.tasks = []
-        self.statistics = []
-        self.prediction_algorithms = []
+        ...
+
+class Configuration(dict):
+    """
+    Calss to store configurations.
+    Basically a wrapper for a dict with some extra properties.
+    One instance is unique each system instance.
+    """
+
+    # paths of the config files, loaded in this order
+    _CONFIGFILES = (
+        os.path.join(os.path.dirname(__file__), 'default_config.py'),
+        os.path.expanduser('~/.config/hypa_config.py'), # user configuration
+    )
+
+    def __init__(self, config_files=()):
+        config_files = Configuration._CONFIGFILES + config_files
 
 
-class Task:
-    def __init__(self, dataset_path, validation_function):
-        self.statistic_dict = {}
-        self.dataset = DataSet(dataset_path)
-        self.target_function = None
-        self.task_description = None
+    def _reload(self, path)
 
+    def _load(self, path):
+        pass
 
-class Statistic(collections.abc.Callable):
-    def __init__(self, name, func):
-        self.name = name
-        self.func = func
+    def __get_attr__(self, key):
+        _check_key_is_valid(key)
+        return super().__get_attr__(key)
 
-    def __call__(self, *args, **keyargs):
-        return self.func(*args, **keyargs)
+    def __get_item__(self, key):
+        _check_key_is_valid(key)
+        return super().__get_item__(key)
 
+    def __set_attr__(self, key):
+        _check_key_is_valid(key)
+        return super().__set_attr__(key)
 
-class PredictionAlgorithm(Statistic):
-    def __init__(self, name, func):
-        super(PredictionAlgorithm, self).__init__(name, func)
+    def __set_item__(self, key):
+        _check_key_is_valid(key)
+        return super().__set_item__(key)
 
+    @staticmethod
+    def _check_key_is_valid(key):
+        if (type(key) != str or
+            not key.isidentifier() or
+            key[0] == '_'):
+            raise ValueError('Key must be Python identifier \
+                and must not start with an underscore.')
+            
 
-class Configuration: # maybe make a dict?
+class Configuration2: # maybe make a dict?
 
     # paths of the config files, loaded in this order
     CONFIGFILES = [
