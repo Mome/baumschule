@@ -21,7 +21,6 @@ from .domains import (
 def sample(space):
     if space.dist:
         dist = space.dist
-
     dist = get_default_dist(space)
     return dist()
 
@@ -32,31 +31,32 @@ def get_default_dist(space):
 
     if type(space) is JoinedSpace:
         def dist():
-            # choose subspace
-            ss = random.sample(space.domain, 1)[0]
-            return ss.sample()
+            sub = random.sample(space.domain, 1)[0]
+            return sample(sub)
 
     elif isinstance(space, ProductSpace):
         def inner_dist():
-            arg_samps = [
+            arg_samples = [
                 sample(sub)
                 for sub in space.domain.args
             ]
-            kw_samps = {
+            kw_samples = {
                 key:sample(sub)
                 for key, sub in space.domain.kwargs.items()
             }
-            return Product(arg_samps, kw_samps)
+            return Product(arg_samples, kw_samples)
 
         if type(space) == CallSpace:
+            print('match')
             def dist():
-                prodcut = inner_dist()
-                return Call(space.operator, prodcut.args, prodcut.kwargs)
+                product = inner_dist()
+                return Call(space.operator, product.args, product.kwargs)
         else:
             dist = inner_dist
 
-    elif type(space) == Categorical:
-        dist = lambda : random.sample(space.domain, 1)[0]
+    elif type(space) is Categorical:
+        def dist():
+            return random.sample(space.domain, 1)[0]
 
     elif type(space) == Discrete:
         dom = space.domain

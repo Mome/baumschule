@@ -37,3 +37,5 @@ class ComputingEngine:
             result = domain_result
 
         return result
+
+compute = ComputingEngine(1).evaluate

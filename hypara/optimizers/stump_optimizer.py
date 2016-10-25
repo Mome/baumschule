@@ -10,24 +10,7 @@ class TreeFarm:
         self.meta_tree = None
         self.reward_tree = RewardTree(space)
         self.space = space
-
-    def grow(self):
-        """
-        Samples a stem from a search space.
-        """
-        stem_path = []
-        leafy_crown = []
-        sub_rtree = self.reward_tree
-
-        index = self.best_index()
-        for sub_rtree.expand(index):
-            stem_path.append(index)
-
-
-
-        stem.sample()
-
-
+        self.stump_path = ()
 
 
 def RewardTree:
@@ -82,3 +65,71 @@ def RewardTree:
         else:
             rew = [self.get_rewards(sub) for sub in trees]
         return rew
+
+
+
+def grow(space, tree_indices):
+    
+    stem = pull_up(space)
+    tree_indices = list(tuple(i) for i in tree_indices)
+    for t_index in tree_indices:
+        n_index, bare = find_bare(stem) # n_index stands for node index
+        stem[*n_index] = bare[t_index]
+
+    return stem
+
+
+
+        
+def find_bare(tree, index=()):
+     """
+     Iterrates over (index, subspace)-pairs of bare nodes!
+
+     """
+
+    if isinstance(tree, Space):
+        if type(tree) is JoinedSpace:
+            return tree, index
+
+        if type(tree) is AtomicSpace:
+            return
+
+        raise ValueError('%s space not allowed here!' % s)
+
+    if isinstance(tree, Product):
+
+        arg_gen = ((index + (i,), grow(sub)) for i, sub in enumerate(space.domain.args))
+        yield from filter(bool, arg_gen)
+
+        kwarg_gen = ((index + (k,), grow(sub)) for k,sub in space.domain.kwargs.items())
+        yield from filter(lambda item : item[1], kwarg_gen)
+
+
+def pull_up(space):
+    """
+    Converts Product Spaces to Products and Callspaces Calls
+    until a joined spaces forms a child.
+
+    """
+
+    if type(space) is JoinedSpace:
+        return space
+
+    if isinstance(space, AtomicSpace):
+        return space
+
+    elif type(sub) in [ProductSpace, CalledSpace]:
+        arg_tree = [grow(sub) for sub in space.domain.args]
+        kwarg_tree = {k:sub for k,sub in space.domain.kwargs.items()}
+
+        if type(sub) is ProductSpace:
+            subtree = Product(arg_tree, kwarg_tree)
+        else:
+            subtree = Product(arg_tree, kwarg_tree)
+
+        return subtree
+
+    else:
+        raise ValueError("Non-space inside space!: %s" % type(sub))
+
+
