@@ -1,0 +1,3 @@
+class RandomOptimizer(optimizer):
+    def optimize(self, space):
+        ...

@@ -284,8 +284,6 @@ class Operator(Callable):
 
 def to_space(domain=None, *args, **kwargs):
 
-    log.debug('to_space:' + str(domain))
-
     if domain is None:
         domain = JoinedSpace([])
 

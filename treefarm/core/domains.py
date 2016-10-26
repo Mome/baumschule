@@ -103,7 +103,7 @@ class Product:
         args_str = map(repr, self.args)
         kwargs_str = ('%s=%r' % item for item in self.kwargs.items())
         params = ', '.join([*args_str, *kwargs_str])
-        return 'Product(%s)' % params
+        return '%s(%s)' % (self.__class__.__name__, params)
 
 
 class Call(Product):

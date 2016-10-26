@@ -14,7 +14,7 @@ from .spaces import (
 import logging
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 def to_dot(space):
     def to_dot_recursive(space, graph):

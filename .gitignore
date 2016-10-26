@@ -3,6 +3,7 @@
 *.pyc
 *.svg
 *.aux
+*.pdf
 .ipynb_checkpoints
 
 __pycache__

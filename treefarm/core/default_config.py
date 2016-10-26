@@ -1,5 +1,11 @@
 
-c.basepath = expanduser('~/data/statistician')
+import sys, os
+sys.path.append(os.path.expanduser('~/code/statistician'))
+
+import hypara
+c = hypa.get_config()
+
+c.basepath = expanduser('~/data/hypa')
 
 
 c.Dataset.source_classes = {
