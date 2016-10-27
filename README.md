@@ -1,4 +1,7 @@
-# Statistician 
+# TreeFarm
+
+![BoomSchool Logo][logo.png]
+Logo powered by Tuxpaint.
 
 **ToDo**
 
