@@ -1,8 +1,10 @@
 \documentclass[english]{article}
 \usepackage[utf8]{inputenc}
-\usepackage{babel}
+%\usepackage{babel}
 \usepackage[backend=bibtex]{biblatex}
 \usepackage{hyperref}
+\usepackage{mathtools}
+
 
 \hypersetup{
     colorlinks,
@@ -12,8 +14,11 @@
     urlcolor=black
 }
 
-
 \bibliography{master.bib}
+
+% Add mathematical foo
+\newcommand{\EI}{\operatorname{EI}}
+\newcommand{\normal}{\mathcal{N}}
 
 \begin{document}  
 
@@ -32,6 +37,7 @@
  - Criteria for optimization
 
 \subsection{Bandit Problem}
+Mathematical formulation of stochastic black-box function optimization.
 
 \section{Hyperparameter Optimization}
 
@@ -78,22 +84,61 @@ recursive values    & ?                & ?
 \end{tabular}
 
 \subsection{Demands to a good HPO-Algorithm}
+A non-exaustive list of general criteria for a good hyperparameter optimization algorithm.
 
 \section{Gaussian Processes Regression}
 \subsection{Kernel Combination}
-
+Kernel combination properties. Maybe: Why do they work!
 
 \section{Bayesian Optimization}
+What distinguished HPO from other non-HPO.
+
+\subsection{Aquisition Functions}
+
+\subsubsection{Probability of Improvement}
+\subsubsection{Expected Information}
+
+Expected Information (EI) is the most widely used aquistion function.
+
+$$ \EI(y|x) \coloneqq \int_{-\infty}^{\infty} \max(0, y^*-y)p(y|x)dy $$
+
+For the one-dimensional case a simple closes form formula can be derivated:
+
+$$ \EI(y|x) = \int_{-\infty}^{y^*}(y^*-y)p(y|x)dy$$
+
+$$ = \int_{-\infty}^{y^*}(y^*-y)\normal(y; \mu, \sigma)dy =
+\int_{-\infty}^{y^*}(y^*-y)\normal(y-\mu; 0, \sigma)dy$$
+
+$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$ 
+
+$$ = (y^*-\mu)\int_{-\infty}^{y^*}\normal(t; 0, \sigma)dt - \int_{-\infty}^{y^*}t\normal(t; 0, \sigma)dt$$
+
+$$ = (y^*-\mu)\Phi(y^*/\sigma) - \phi(y^*/\sigma) $$
+
+Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distribution.
+
+\subsubsection{Entropy search}
+\subsubsection{Upper confidence bound}
+
 \subsection{SMBO}
+Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
 \subsection{SMAC}
+
+
 \subsection{The Tree-Parzen Algorithm}
+The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
+
 \subsection{Tree and Graph Kernels/Metrics}
 
 
-\section{Algorithm for Optimization in Grammar-based Search Spaces}
+\section{The Tree Farm Algorithm}
+Presenting my algorithm for Bayesian optimization of Grammar-Based search spaces.
 \subsection{Extention to DAG-structured search spaces}
+Identifying equivalent function trees with computer algebra systems.
 \subsection{Parallelization}
+Simple trick to extend algorithm to parrallel execution.
 \subsection{Integration with Manual Search}
+Manual guidance before and during the optimization process.
 \subsubsection{Prior Information}
 \subsubsection{Search Hints}
 \subsection{Objective Function Approximation}
@@ -106,6 +151,9 @@ Calls are
 
 
 \section{Experiments}
+
+
+
 \subsection{Gaussian Process Regression}
 \subsubsection{Kernel Combination Optimization}
 \subsubsection{Kernel Parameter and Kernel Combination Optimization}
@@ -120,7 +168,7 @@ Calls are
 \paragraph{Connection to Probabilistic Programming}
 \paragraph{Connection to Reinforcement Learning}
 \paragraph{Integration with Workflow-Managers}
-\paragraph{}
+
 
 \printbibliography
 
