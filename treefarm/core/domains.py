@@ -1,8 +1,7 @@
-
-
-class Product:
-    """Prepresents a product of a list and a dictionary."""
-    # TODO: add slices ?
+class ParameterList:
+    """
+    Prepresents a product of a list and a dictionary.
+    """
 
     def __init__(self, args, kwargs):
         self.args = list(args)
@@ -10,23 +9,25 @@ class Product:
 
     def keys(self):
         yield from range(len(self.args))
-        yield from self.kwargs.keys()
+        yield from sorted(self.kwargs.keys())
 
     def values(self):
         yield from self.args
-        yield from self.kwargs.values()
+        for k in sorted(self.kwargs.keys()):
+            yield self.__getitem__(k)
 
     def items(self):
         yield from enumerate(self.args)
-        yield from self.kwargs.items()
+        yield from sorted(self.kwargs.items())
 
     def append(self, value):
         self.args.append(value)
 
-    def extend(self, arg):
-        self.args.append(arg)
+    def extend(self, list_arg):
+        self.args.extend(list_arg)
 
-    def update(self, arg):
+    def update(self, dict_arg):
+        # TODO: make sure numbers are sorted in correctly
         self.kwargs.update(arg)
 
     def get(self, key, default=None):
@@ -48,40 +49,12 @@ class Product:
             raise KeyError('Step must be None!')
 
     def __getitem__(self, key):
-
         if type(key) == int:
             return self.args[key]
         elif type(key) == str:
             return  self.kwargs[key]
         else:
             raise ValueError('Invalid index/key type: %s' % type(key))
-
-        """if type(key) == slice:
-            key = tuple(key)
-
-        if type(key) == tuple:
-            list_part = []
-            dict_part = {}
-
-            for k in key:
-                if type(k) in (int, str):
-                    list_part.append(self[k])
-
-                elif type(k) == slice:
-                    _test_slice(k)
-                    dict_part[].append()
-                    ...
-
-
-                for k in key
-
-            dict_part = {
-                k : self.kwargs[k]
-                for k in key
-                if type(k) == str
-            }
-
-            out = Product(list_part, dict_part)"""
 
     def __setitem__(self, key, val):
         if type(key) == int:
@@ -104,15 +77,6 @@ class Product:
         kwargs_str = ('%s=%r' % item for item in self.kwargs.items())
         params = ', '.join([*args_str, *kwargs_str])
         return '%s(%s)' % (self.__class__.__name__, params)
-
-
-class Call(Product):
-    def __init__(self, operator, args, kwargs):
-        super().__init__(args, kwargs)
-        self.operator = operator
-
-    def __str__(self):
-        return self.operator.name + super().__str__()
 
 
 class Intervall:
@@ -179,7 +143,7 @@ class Intervall:
         return 'Intervall(%s, %s, %s)' % (self.sub, self.sup, self.type_)
 
 
-# ------ Predifined Domains ------------------------------------------------- #
+# ------ Predifined Domains ----------------------------------------- #
 
 N = Intervall(
     sub=float('-inf'),
