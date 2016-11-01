@@ -1,4 +1,4 @@
-from hypara.core.spaces import (
+"""from .core.spaces import (
     to_space,
     pprint,
     join,
@@ -8,18 +8,20 @@ from hypara.core.spaces import (
     mul, add, div, sub,
 )
 
-from hypara.core.display import (
+from .core.display import (
     to_dot,
 )
 
-from hypara.core.domains import (
+from .core.domains import (
     R,
     N,
 )
 
-from hypara.core.random_variables import (
+from .core.random_variables import (
 	sample)
 
-from hypara.core.computing_engine import compute
+from .core.computing_engine import compute
 
-from hypara.core.main import *
+from .core.main import *
+
+system = System()"""

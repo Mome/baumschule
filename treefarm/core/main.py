@@ -6,34 +6,36 @@ from itertools import chain
 import traitlets.config
 
 log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('DEBUG')
 
 
 class System:
 
     DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), ('default_config.py'))
-    USER_CONFIG_PATH = os.path.expanduser('~/.config/hypa/default.py')
+    USER_CONFIG_PATH = os.path.expanduser('~/.config/treefarm.py')
 
     INSTANCE = None
 
     def __new__(cls, *args, **kwargs):
         if System.INSTANCE:
             return System.INSTANCE
-        return super().__new__(*args, **kwargs)
-
+        return super().__new__(System, *args, **kwargs)
 
     def __init__(self, config_files=()):
         if System.INSTANCE:
             return
+        System.INSTANCE = self
 
-        self.config_files = (DEFAULT_CONFIG, USER_CONFIG) + config_files
-        self.config = Config()
-        self.load_pyconfig_files(self.config_files)
+        self.config_files = (System.DEFAULT_CONFIG_PATH, System.USER_CONFIG_PATH) + config_files
+        self.config = traitlets.config.Config()
+        self.load_config_files(self.config_files)
 
 
     def load_config_files(self, config_paths):
         """
         Load multiple config files, merging each of them in turn.
-        
+
         Parameters
         ==========
         config_paths : sequence of str
@@ -42,7 +44,7 @@ class System:
             The full path to the location of the config files.
             If path is None, config_files are interpreted as absolute paths.
         """
-        for cf in chain(map(iglob, config_paths)):
+        for cf in chain(*map(iglob, config_paths)):
             if not cf.endswith('.py'):
                 log.debug('Skip loading non python configfile %s.' % cf)
                 continue
@@ -55,6 +57,7 @@ class System:
             except:
                 raise
             else:
+                log.debug('Merge config: %s' % cf)
                 self.config.merge(next_config)
 
 
@@ -80,8 +83,5 @@ class System:
         with open(cls.USER_CONFIG_PATH, 'w') as cfg_file:
             cfg_file.writelines(lines)
 
-
 def get_config():
-    global system
-
-system = System()
+    return System().config

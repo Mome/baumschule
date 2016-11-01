@@ -43,9 +43,7 @@ best_y = min(Y)
 
 
 # %% Plot func
-def plot_stuff():
-    m.plot()
-    plot(X_eval, ei_array, 'r')
+def plot_stuff():Ergebnisse für algebra where lists and sets ararray, 'r')
     plot()
     axhline(best_y, c='y')
     axvline(best_x, c='g')

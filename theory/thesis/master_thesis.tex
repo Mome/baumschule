@@ -4,6 +4,8 @@
 \usepackage[backend=bibtex]{biblatex}
 \usepackage{hyperref}
 \usepackage{mathtools}
+\usepackage[printonlyused]{acronym}
+\usepackage{minted}
 
 
 \hypersetup{
@@ -20,7 +22,7 @@
 \newcommand{\EI}{\operatorname{EI}}
 \newcommand{\normal}{\mathcal{N}}
 
-\begin{document}  
+\begin{document}
 
 \title{Bayesian Hyperparameter-Optimization in Grammer-Based Search Spaces}
 \author{Moritz Meier}
@@ -28,7 +30,19 @@
 \tableofcontents
 \newpage
 
+\section*{List of Acronyms}
+\begin{acronym}
+\acro{AI}{Artificial Intelligence}
+\acro{ML}{Machine Learning}
+\acro{BOA}{Bayesian Optimization Algorithm}
+\acro{DAG}{Directed Acyclic Graph}
+\acro{SMBO}{Sequential Model-Based Optimization}
+\acro{SMAC}{Sequential Model-Based Algorithm Configuration}
+\end{acronym}
+
 \section{Introduction}
+ - mathematical programming
+
 \paragraph{Motivation}
 
 \section{Global Black-Box Optimization}
@@ -36,24 +50,26 @@
  - Global Optimization
  - Criteria for optimization
 
+\subsection{Active Learning}
+
+
 \subsection{Bandit Problem}
-Mathematical formulation of stochastic black-box function optimization.
+
+
 
 \section{Hyperparameter Optimization}
 
 \subsection{Machine Learning as Optimization}
+
+Most problems in \ac{AI} and \ac{ML} can be expressed) as
+optimization problems.
+
  - Types and Error Functions
  - Model Selection
 
 \begin{quote}
-Machine learning algorithms, however, have certain characteristics that distinguish them from other
-black-box optimization problems.  First, each function evaluation can require a variable amount of
-time:  training a small neural network with 10 hidden units will take less time than a bigger net-
-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing
-makes it possible to quantify economically the cost of requiring large-memory machines for learn-
-ing, changing the actual cost in dollars of an experiment with a different number of hidden units.
-Second, machine learning experiments are often run in parallel, on multiple cores or machines.  In
-both situations, the standard sequential approach of GP optimization can be suboptimal.
+Machine learning algorithms, however, have certain characteristics that distinguish them from other black-box optimization problems.  First, each function evaluation can require a variable amount of time:  training a small neural network with 10 hidden units will take less time than a bigger net-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing makes it possible to quantify economically the cost of requiring large-memory machines for learning, changing the actual cost in dollars of an experiment with a different number of hidden units.
+Second, machine learning experiments are often run in parallel, on multiple cores or machines. In both situations, the standard sequential approach of GP optimization can be suboptimal.
 \end{quote}
 Copied from: \cite{snoek_practical_2012}
 
@@ -62,10 +78,31 @@ Copied from: \cite{snoek_practical_2012}
  - Random Search
  - Grid Search
 \subsection{Search Space}
-\subsubsection{Structure}
+\subsubsection{Construction}
  - Categrorical
  - Discrete
  - Continunous
+
+\subsection{Combinators}
+Join and prod over parameter-lists form an idempotent semiring:
+
+$(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:
+$$(a \cup b) \cup c = a \cup (b \cup c)$$
+$$\emptyset \cup a = a \cup \emptyset = a$$
+$$a + b = b + a$$
+$$a \cup a = a$$
+
+$(A, \times)$ is a commutative monoid with identity element $[\ ]$:
+$$(a \times b) \times c = a \times (b \times c)$$
+$$[\ ] \cup a = a \cup [\ ] = a$$
+
+Product left and right distributes over join:
+$$a\times(b + c) = (a\times b) + (a\times c)$$
+$$(a + b)\times c = (a\times c) + (b\times c)$$
+
+Product by $\emptyset$ annihilates $A$:
+$$\emptyset \times a = a \times \emptyset = \emptyset$$
+
 \paragraph{Assumptions}
 \subsection{Search Space Construction}
 \subsubsection{Search Space Hierachy}
@@ -80,7 +117,7 @@ product / operators & multi-dim        & tree         \\
 recursion           & infinite tree    &              \\
 expression equality & DAG              &              \\
 value identity      & ?                & DAG          \\
-recursive values    & ?                & ? 
+recursive values    & ?                & ?
 \end{tabular}
 
 \subsection{Demands to a good HPO-Algorithm}
@@ -109,7 +146,7 @@ $$ \EI(y|x) = \int_{-\infty}^{y^*}(y^*-y)p(y|x)dy$$
 $$ = \int_{-\infty}^{y^*}(y^*-y)\normal(y; \mu, \sigma)dy =
 \int_{-\infty}^{y^*}(y^*-y)\normal(y-\mu; 0, \sigma)dy$$
 
-$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$ 
+$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$
 
 $$ = (y^*-\mu)\int_{-\infty}^{y^*}\normal(t; 0, \sigma)dt - \int_{-\infty}^{y^*}t\normal(t; 0, \sigma)dt$$
 
@@ -133,12 +170,16 @@ The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimiza
 
 \section{The Tree Farm Algorithm}
 Presenting my algorithm for Bayesian optimization of Grammar-Based search spaces.
+
 \subsection{Extention to DAG-structured search spaces}
 Identifying equivalent function trees with computer algebra systems.
+
 \subsection{Parallelization}
 Simple trick to extend algorithm to parrallel execution.
+
 \subsection{Integration with Manual Search}
 Manual guidance before and during the optimization process.
+
 \subsubsection{Prior Information}
 \subsubsection{Search Hints}
 \subsection{Objective Function Approximation}
@@ -146,7 +187,42 @@ Manual guidance before and during the optimization process.
 
 \section{Implementation}
 \subsection{Search Space Construction DSL}
-Calls are 
+The search space construction system has atomic spaces that can
+be combined to construct more complex spaces.
+
+\subsubsection{Atomic Spaces}
+Atomic spaces cannot (as the name suggest)
+
+\paragraph{Categorical}
+Categoriacal parameters have a finite unstructured domain of numerical or non-numerical values. This type is used for nominal scaled parameters like labels in a classification problem, basis-functions in linear regression or different activation functions in feedforward neural networks.
+
+\paragraph{Continuous}
+Continues parametes are bounded or un-bounded intervals over the real numbers. The simplest way to construct them is by slicing \mint{python}|treefarm.R| wich represents the real numbers.
+\begin{minted}{python}
+from treefarm import *
+
+p1 = R[0:]
+
+inter = Intervall(sub=0, sub=float('inf'))
+p2 = to_space(inter)
+
+
+\end{minted}
+
+
+\paragraph{Discrete}
+
+
+
+\subsubsection{Combinators}
+
+\subsubsection{Functions}
+
+\subsubsection{Operators}
+
+\subsection{Function Graph Simplification}
+
+
 \subsection{Algorithm Templates}
 
 
@@ -172,4 +248,4 @@ Calls are
 
 \printbibliography
 
-\end{document}  
+\end{document}
