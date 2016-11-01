@@ -25,6 +25,9 @@ class Parameter:
             return True
         return False
 
+    def __iter__(self):
+        yield from self.domain
+
     def __or__(self, arg):
         return join(self, arg)
 
@@ -48,6 +51,21 @@ class Apply(Parameter):
     def __init__(self, operation, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.operation = operation
+
+    def __lshift__(self, arg):
+        if type(arg) == Apply:
+            assert self.operation is arg.operation
+            self << arg.domain
+        elif type(arg) == ParameterList:
+            self.domain.update(arg.kwargs)
+            self.domain.extend(arg.args)
+        else:
+            self.domain.append(arg)
+
+
+    def __rshift__(self, arg):
+        assert type(arg) is Apply, 'Can only righshift into Applies!'
+        arg.domain.extend(self.domain)
 
 
 class Primitive(Parameter):
@@ -84,14 +102,14 @@ class Callable:
 class Operation(Callable):
     # don't count as Parameters, yet.
 
-    NOTATIONS = ['prefix', 'postfix', 'infix', 'name']
+    NOTATIONS = {'prefix', 'postfix', 'infix', 'name'}
 
     def __init__(self, func, name, *,
         properties=(),
         notation=None,
-        symbols=None):
+        symbol=None):
         """
-        symbols : Tripel or str the form of (left, sep, right)
+        symbol : Tripel or str the form of (left, sep, right)
         """
 
         if notation is None:
@@ -101,8 +119,8 @@ class Operation(Callable):
 
         self.func = func
         self.name = name
-        self.properties = properties
-        self.symbols = symbols
+        self.properties = frozenset(properties)
+        self.symbol = symbol
         self.notation = notation
 
     def __str__(self):
@@ -139,7 +157,7 @@ join = Combination(
         'commutative', # argument order irrelevant
         'idempotent',  # identical arguments have no effect
         'variadic'),   # operation can be called with arbitrary arity
-    symbols='∪',
+    symbol='∪',
     notation='infix'
     )
 
@@ -149,7 +167,7 @@ prod = Combination(
     properties=(
         'associative',
         'variadic'),
-    symbols='×',
+    symbol='×',
     notation='infix'
     )
 
@@ -159,36 +177,44 @@ prod = Combination(
 add = Operation(
     name="add",
     func=python_operator.add,
-    symbols='+',
+    properties=(
+        'associative',
+        'commutative',
+        'variadic'),
+    symbol='+',
     notation='infix')
 
 sub = Operation(
     name="sub",
     func=python_operator.sub,
-    symbols='-',
+    symbol='-',
     notation='infix')
 
 mul = Operation(
     name="mul",
     func=python_operator.mul,
-    symbols='*',
+    properties=(
+        'associative',
+        'commutative',
+        'variadic'),
+    symbol='*',
     notation='infix')
 
 pow = Operation(
     name="pow",
     func=python_operator.pow,
-    symbols='^',
+    symbol='^',
     notation='infix')
 
 truediv = Operation(name="div",
     func=python_operator.truediv,
-    symbols='/',
+    symbol='/',
     notation='infix')
 
 floordiv = Operation(
     name="floordiv",
     func=python_operator.floordiv,
-    symbols='//',
+    symbol='//',
     notation='infix')
 
 div = truediv

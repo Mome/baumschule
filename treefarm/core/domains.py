@@ -26,8 +26,11 @@ class ParameterList:
     def extend(self, list_arg):
         self.args.extend(list_arg)
 
-    def update(self, dict_arg):
+    def update(self, dict_arg, overwrite=True):
         # TODO: make sure numbers are sorted in correctly
+        if not overwrite:
+            assert not any(dict_arg.keys() for k in self.keys()), \
+                'Parameterlists with common keyword argument cannot be combined'
         self.kwargs.update(arg)
 
     def get(self, key, default=None):

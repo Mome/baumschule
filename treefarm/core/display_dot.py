@@ -55,7 +55,16 @@ def _paint_associative_node(param, graph, recursion_tracker):
     label_parts = []
     new_edges = []
     parent_node_id = 'N' + str(id(param))
-    graph.node(parent_node_id, 'join')
+
+    op = param.operation
+    if op.symbol:
+        name = op.symbol
+        shape = 'circle'
+    else:
+        name = op.name
+        shape = 'oval'
+
+    graph.node(parent_node_id, name, shape=shape)
 
     for element in param.domain:
 
@@ -99,9 +108,14 @@ def _paint_record(param, graph, recursion_tracker):
         #if type(key) is int: key = ""#'"#'⛀'#'🌕'#'▔' # ⫰
         label_parts.append('<%s> %s' % (cell_label, key))
 
+    op = param.operation
+    if op.symbol:
+        name = op.symbol
+    else:
+        name = op.name
+
     shape = 'record'
-    op_name = param.operation.name
-    label = '{{%s}|<out> %s}' % ('|'.join(label_parts), op_name)
+    label = '{{%s}|<out> %s}' % ('|'.join(label_parts), name)
     graph.node(parent_node_id, label, shape=shape)
     for head, tail, props in new_edges:
         graph.edge(head, tail, **props)
@@ -109,4 +123,4 @@ def _paint_record(param, graph, recursion_tracker):
 def _gets_record_shape(param):
     if not isinstance(param, Apply):
         return False
-    return 'associative' in param.operation.properties
+    return 'associative' not in param.operation.properties
