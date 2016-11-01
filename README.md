@@ -1,6 +1,7 @@
 # TreeFarm
 
-![BoomSchool Logo][logo.png]
+<img src="logo.png" height="350">
+
 Logo powered by Tuxpaint.
 
 **ToDo**
