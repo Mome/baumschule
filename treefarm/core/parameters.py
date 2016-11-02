@@ -53,19 +53,18 @@ class Apply(Parameter):
         self.operation = operation
 
     def __lshift__(self, arg):
-        if type(arg) == Apply:
-            assert self.operation is arg.operation
-            self << arg.domain
-        elif type(arg) == ParameterList:
-            self.domain.update(arg.kwargs)
-            self.domain.extend(arg.args)
-        else:
-            self.domain.append(arg)
-
+        self.domain << arg
 
     def __rshift__(self, arg):
-        assert type(arg) is Apply, 'Can only righshift into Applies!'
-        arg.domain.extend(self.domain)
+        arg << self.domain
+
+    def __ilshift__(self, arg):
+        self.domain << arg
+        return self
+
+    def __irshift__(self, arg):
+        raise TypeError('unsupported operand type(s) for =<<: %r and %r'
+            % (type(self), type(arg)))
 
 
 class Primitive(Parameter):
@@ -81,7 +80,12 @@ class Categorical(Primitive):
 
 class Discrete(Primitive):
     def __str__(self):
-        return '[' + ','.join(str(D) for D in self.domain) + ']'
+        if type(self.domain) == Intervall:
+            out = 'Discrete(%s, %s)' % (self.domain.sub, self.domain.sup)
+        else:
+            out = '[' + ','.join(str(D) for D in self.domain) + ']'
+        return out
+
     def __repr__(self):
         return str(self)
 
@@ -206,7 +210,8 @@ pow = Operation(
     symbol='^',
     notation='infix')
 
-truediv = Operation(name="div",
+truediv = Operation(
+    name="div",
     func=python_operator.truediv,
     symbol='/',
     notation='infix')

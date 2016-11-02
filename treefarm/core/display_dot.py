@@ -27,16 +27,12 @@ def _to_dot_recursive(param, graph, recursion_tracker):
         'Recursion:%s:%s' % (type(param), type(graph))
 
     if isinstance(param, Primitive):
-        print('0')
         _primitive_to_dot(param, graph)
     elif _gets_record_shape(param):
-        print('1')
         _paint_record(param, graph, recursion_tracker)
     elif not isinstance(param, Parameter):
-        print('2')
         _value_to_dot(param, graph)
     else:
-        print('3')
         _paint_associative_node(param, graph, recursion_tracker)
 
 def _primitive_to_dot(param, graph):

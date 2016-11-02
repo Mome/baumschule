@@ -31,7 +31,7 @@ class ParameterList:
         if not overwrite:
             assert not any(dict_arg.keys() for k in self.keys()), \
                 'Parameterlists with common keyword argument cannot be combined'
-        self.kwargs.update(arg)
+        self.kwargs.update(dict_arg)
 
     def get(self, key, default=None):
         if key in self.keys():
@@ -50,6 +50,23 @@ class ParameterList:
             raise KeyError('Stop cannot be None!')
         if key.step != None:
             raise KeyError('Step must be None!')
+
+    @classmethod
+    def from_dict(cls, dict_arg):
+        num_items = []
+        kwargs = {}
+        for k,v in dict_arg.items():
+            if type(k) == int:
+                num_items.append((k,v))
+            elif type(k) == str:
+                kwargs[k] = v
+            else:
+                raise KeyError('Key must be str or int.')
+        num_items.sort()
+        indices, args = zip(*num_items)
+        assert tuple(range(len(indices))) == indices, \
+            'integer keys must all integres from 0 to n'
+        return cls(args, kwargs)
 
     def __getitem__(self, key):
         if type(key) == int:
@@ -80,6 +97,13 @@ class ParameterList:
         kwargs_str = ('%s=%r' % item for item in self.kwargs.items())
         params = ', '.join([*args_str, *kwargs_str])
         return '%s(%s)' % (self.__class__.__name__, params)
+
+    def __lshift__(self, arg):
+        if type(arg) == ParameterList:
+            self.extend(arg.args)
+            self.update(arg.kwargs, overwrite=False)
+        else:
+            self.append(arg)
 
 
 class Intervall:
