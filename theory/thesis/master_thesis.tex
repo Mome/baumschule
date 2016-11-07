@@ -6,6 +6,7 @@
 \usepackage{mathtools}
 \usepackage[printonlyused]{acronym}
 \usepackage{minted}
+\usepackage{asmath}
 
 
 \hypersetup{
@@ -33,22 +34,32 @@
 \section*{List of Acronyms}
 \begin{acronym}
 \acro{AI}{Artificial Intelligence}
-\acro{ML}{Machine Learning}
 \acro{BOA}{Bayesian Optimization Algorithm}
 \acro{DAG}{Directed Acyclic Graph}
-\acro{SMBO}{Sequential Model-Based Optimization}
+\acro{GO}{Global Optimization}
+\acro{ML}{Machine Learning}
 \acro{SMAC}{Sequential Model-Based Algorithm Configuration}
+\acro{SMBO}{Sequential Model-Based Optimization}
 \end{acronym}
 
 \section{Introduction}
- - mathematical programming
-
-\paragraph{Motivation}
+Distrincions:
+Local Optimization
+Global Optimization
+Mathematical Programming
+Metaheuristics
+Programm Configuration
+Learning & Optimizaion
 
 \section{Global Black-Box Optimization}
- - Local Optimization
- - Global Optimization
+
+Optimization \ac{GO} ...
+
+\begin{definition}[Topology]
+
  - Criteria for optimization
+
+
 
 \subsection{Active Learning}
 
@@ -197,7 +208,8 @@ Atomic spaces cannot (as the name suggest)
 Categoriacal parameters have a finite unstructured domain of numerical or non-numerical values. This type is used for nominal scaled parameters like labels in a classification problem, basis-functions in linear regression or different activation functions in feedforward neural networks.
 
 \paragraph{Continuous}
-Continues parametes are bounded or un-bounded intervals over the real numbers. The simplest way to construct them is by slicing \mint{python}|treefarm.R| wich represents the real numbers.
+Continues parametes are bounded or un-bounded intervals over the real numbers. The simplest way to construct them is by slicing wich represents the real numbers.
+
 \begin{minted}{python}
 from treefarm import *
 
@@ -205,7 +217,6 @@ p1 = R[0:]
 
 inter = Intervall(sub=0, sub=float('inf'))
 p2 = to_space(inter)
-
 
 \end{minted}
 

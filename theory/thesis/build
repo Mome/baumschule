@@ -1,7 +1,0 @@
-#! /usr/bin/sh
-
-latexmk -cd -f -pdf master_thesis.tex
-latexmk -c
-rm *.xml *blx.bib *.bbl
-
-evince master_thesis.pdf &
