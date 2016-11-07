@@ -26,14 +26,21 @@ def _to_dot_recursive(param, graph, recursion_tracker):
     assert param not in recursion_tracker, \
         'Recursion:%s:%s' % (type(param), type(graph))
 
-    if isinstance(param, Primitive):
-        _primitive_to_dot(param, graph)
-    elif _gets_record_shape(param):
-        _paint_record(param, graph, recursion_tracker)
-    elif not isinstance(param, Parameter):
+    if not isinstance(param, Parameter):
         _value_to_dot(param, graph)
+    elif isinstance(param, Primitive):
+        _primitive_to_dot(param, graph)
+    elif isinstance(param.operation, Parameter):
+        #if 'associative' in param.operation.operation.properties:
+        # _paint_associative_record(param, graph, recursion_tracker)
+        #else:
+        _paint_record_composed(param, graph, recursion_tracker)
     else:
-        _paint_associative_node(param, graph, recursion_tracker)
+        if 'associative' in param.operation.properties:
+            _paint_associative_node(param, graph, recursion_tracker)
+        else:
+            _paint_record(param, graph, recursion_tracker)
+
 
 def _primitive_to_dot(param, graph):
     graph.node(
@@ -120,3 +127,63 @@ def _gets_record_shape(param):
     if not isinstance(param, Apply):
         return False
     return 'associative' not in param.operation.properties
+
+
+
+
+# ------ Funtions for composed operations ------ #
+
+
+def _paint_record_composed(param, graph, recursion_tracker):
+    label_parts = []
+    new_edges = []
+    parent_node_id = 'N' + str(id(param))
+
+    # paint domain
+    for key, element in param.domain.items():
+
+        # paint nodes of containing parameters
+        if element not in recursion_tracker:
+            _to_dot_recursive(element, graph, recursion_tracker)
+
+        if _gets_record_shape(element):
+            subnode_id = 'N' + str(id(element)) + ':out:s'
+        else:
+            subnode_id = 'N' + str(id(element))
+
+        cell_label = 'f' + str(id(key))
+
+        edge_props = {'arrowsize':'0.7'}
+
+        new_edges.append([
+            ':'.join([parent_node_id, cell_label, 'n']),
+            subnode_id,
+            edge_props,
+        ])
+
+        #if type(key) is int: key = ""#'"#'⛀'#'🌕'#'▔' # ⫰
+        label_parts.append('<%s> %s' % (cell_label, key))
+
+    # paint operator
+    op = param.operation
+    _to_dot_recursive(op, graph, recursion_tracker)
+    if _gets_record_shape(element):
+        subnode_id = 'N' + str(id(op)) + ':out:s'
+        shape = 'record'
+    else:
+        subnode_id = 'N' + str(id(op))
+        shape = 'Mrecord'
+
+    edge_props = {'arrowsize':'0.7'}
+
+    new_edges.append([
+        ':'.join([parent_node_id, 'op', 'w']),
+        subnode_id,
+        edge_props,
+    ])
+
+    label = '{{%s}|{<op> |<out> %s}}' % ('|'.join(label_parts), 'Apply')
+    graph.node(parent_node_id, label, shape=shape)
+
+    for head, tail, props in new_edges:
+        graph.edge(head, tail, **props)
