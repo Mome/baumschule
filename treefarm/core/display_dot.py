@@ -19,7 +19,48 @@ logging.basicConfig()
 def to_dot(param):
     graph = graphviz.Digraph('Parameter')
     graph.body.append('rankdir=BT')
+
+    styles = {
+        'graph': {
+            'fontsize': '16',
+            'fontcolor': 'white',
+            'bgcolor': '#333333',
+            'rankdir': 'BT',
+        },
+        'nodes': {
+            'fontname': 'Helvetica',
+            'fontcolor': 'white',
+            'color': 'white',
+            'style': 'filled',
+            'fillcolor': '#006699',
+        },
+        'edges': {
+            'style': 'dashed',
+            'color': 'white',
+            'arrowsize': '0.7',
+            'arrowhead': 'open',
+            'fontname': 'Courier',
+            'fontsize': '12',
+            'fontcolor': 'white',
+        }
+    }
+
+    graph.graph_attr.update(
+        ('graph' in styles and styles['graph']) or {}
+    )
+    graph.node_attr.update(
+        ('nodes' in styles and styles['nodes']) or {}
+    )
+    graph.edge_attr.update(
+        ('edges' in styles and styles['edges']) or {}
+    )
+
     _to_dot_recursive(param, graph, recursion_tracker=[])
+
+    graph.node('root', style='filled', shape='point',
+        color=styles['graph']['bgcolor'], fillcolor=styles['graph']['bgcolor'])
+    graph.edge('root', 'N' + str(id(param)))
+
     return graph
 
 def _to_dot_recursive(param, graph, recursion_tracker):
@@ -50,8 +91,8 @@ def _primitive_to_dot(param, graph):
 def _value_to_dot(param, graph):
     graph.node(
         name = 'N' + str(id(param)),
-        label = str(param),
-        shape='circle')
+        label = param.symbol if param.symbol else str(param),
+        shape = 'hexagon')
 
 
 def _paint_associative_node(param, graph, recursion_tracker):
@@ -79,7 +120,7 @@ def _paint_associative_node(param, graph, recursion_tracker):
         else:
             subnode_id = 'N' + str(id(element))
 
-        graph.edge(parent_node_id, subnode_id, arrowsize='0.7')
+        graph.edge(parent_node_id, subnode_id)
 
 
 def _paint_record(param, graph, recursion_tracker):
