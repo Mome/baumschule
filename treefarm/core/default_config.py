@@ -1,6 +1,3 @@
-import sys, os
-sys.path.append(os.path.expanduser('~/code/treefarm'))
-
 import treefarm
 s = treefarm.System()
 print('blubs', id(s))

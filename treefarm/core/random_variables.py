@@ -1,21 +1,7 @@
-import numpy as np
-import random
+from treefarm.core.display_dot import to_dot
+from treefarm.core.parameters import *
 
-from .spaces import (
-    JoinedSpace,
-    ProductSpace,
-    Categorical,
-    Discrete,
-    Continuous,
-    CallSpace,
-    Constant,
-    )
-
-from .domains import (
-    Intervall,
-    Product,
-    Call,
-)
+from parameters import Apply
 
 # --- sample from spaces -- #
 def sample(space):

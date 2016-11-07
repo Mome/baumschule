@@ -1,10 +1,17 @@
+import logging
 import operator as python_operator
 
 from .domains import Intervall, ParameterList
 
+log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('INFO')
+
+
 class Parameter:
     # not callable yet
     def __init__(self, domain, *, dist=None, name=None, symbol=None):
+        log.debug('domain: %s' % domain)
 
         if isinstance(domain, Parameter):
             raise ValueError('Domain cannot be a Space!')
@@ -49,6 +56,7 @@ class Parameter:
 
 class Apply(Parameter):
     def __init__(self, operation, *args, **kwargs):
+        log.debug('create apply: %s' % operation)
         super().__init__(*args, **kwargs)
         self.operation = operation
 
@@ -99,6 +107,7 @@ class Continuous(Primitive):
 
 class Callable:
     def __call__(self, *args, **kwargs):
+        log.debug('call: %s %s' % (args, kwargs))
         domain = ParameterList(args, kwargs)
         return Apply(self, domain)
 
@@ -146,12 +155,11 @@ class Combination(Operation):
 
 # --------------------- Combinations --------------------- #
 
-
-def join_func(*args):
-    pass
+def join_func(*args, **kwargs):
+    raise Exception('Join is not supposed to be executed!')
 
 def prod_func(*args, **kwargs):
-    pass
+    return ParameterList(args, kwargs)
 
 join = Combination(
     func=join_func,
@@ -162,8 +170,7 @@ join = Combination(
         'idempotent',  # identical arguments have no effect
         'variadic'),   # operation can be called with arbitrary arity
     symbol='∪',
-    notation='infix'
-    )
+    notation='infix')
 
 prod = Combination(
     func=prod_func,
@@ -172,8 +179,7 @@ prod = Combination(
         'associative',
         'variadic'),
     symbol='×',
-    notation='infix'
-    )
+    notation='infix')
 
 
 # ---------------------- Artihmetics --------------------- #
