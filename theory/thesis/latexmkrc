@@ -1,0 +1,4 @@
+sub createlnk{
+    system("ln -s tmp/master_thesis.pyg");
+}
+createlnk();
