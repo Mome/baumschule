@@ -4,7 +4,4 @@
 *.svg
 .ipynb_checkpoints
 theory/thesis/tmp
-tries
-
-
 __pycache__
