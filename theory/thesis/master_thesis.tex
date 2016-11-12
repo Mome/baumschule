@@ -6,7 +6,7 @@
 \usepackage{mathtools}
 \usepackage[printonlyused]{acronym}
 \usepackage{minted}
-\usepackage{asmath}
+\usepackage{amsthm}
 
 
 \hypersetup{
@@ -17,7 +17,7 @@
     urlcolor=black
 }
 
-\bibliography{master.bib}
+\bibliography{library.bib}
 
 % Add mathematical foo
 \newcommand{\EI}{\operatorname{EI}}
@@ -32,43 +32,52 @@
 \newpage
 
 \section*{List of Acronyms}
-\begin{acronym}
-\acro{AI}{Artificial Intelligence}
-\acro{BOA}{Bayesian Optimization Algorithm}
-\acro{DAG}{Directed Acyclic Graph}
-\acro{GO}{Global Optimization}
-\acro{ML}{Machine Learning}
-\acro{SMAC}{Sequential Model-Based Algorithm Configuration}
-\acro{SMBO}{Sequential Model-Based Optimization}
+  \begin{acronym}
+  \acro{AI}{artificial intelligence}
+  \acro{BO}{Bayesian Optimization}
+  \acro{BOA}{Bayesian optimization algorithm}
+  \acro{BGO}{Bayesian global optimization}
+  \acro{DAG}{directed acyclic graph}
+  \acro{EGO}{efficient global optimization}
+  \acro{GO}{global optimization}
+  \acro{HPO}{hyperparameter optimization}
+  \acro{IAF}{information acquisition function}
+  \acro{ML}{machine learning}
+  \acro{SMAC}{sequential model-based algorithm configuration}
+  \acro{SMBO}{sequential model-based optimization}
 \end{acronym}
 
 \section{Introduction}
-Distrincions:
-Local Optimization
-Global Optimization
 Mathematical Programming
 Metaheuristics
 Programm Configuration
-Learning & Optimizaion
+Learning \& Optimizaion.
+
 
 \section{Global Black-Box Optimization}
 
-Optimization \ac{GO} ...
+\subsection{Distinctions}
 
-\begin{definition}[Topology]
+\subsubsection*{gradient based vs. derivative free}
+also
 
- - Criteria for optimization
+\subsubsection*{local vs. global}
 
+\subsubsection*{model-based vs. instance-based}
+More sophisticated \ac{GO} algorithms can be devided into
+
+The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
 
 
 \subsection{Active Learning}
 
 
 \subsection{Bandit Problem}
-
+ continuum-armed bandit problem
 
 
 \section{Hyperparameter Optimization}
+
 
 \subsection{Machine Learning as Optimization}
 
@@ -80,19 +89,12 @@ optimization problems.
 
 \begin{quote}
 Machine learning algorithms, however, have certain characteristics that distinguish them from other black-box optimization problems.  First, each function evaluation can require a variable amount of time:  training a small neural network with 10 hidden units will take less time than a bigger net-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing makes it possible to quantify economically the cost of requiring large-memory machines for learning, changing the actual cost in dollars of an experiment with a different number of hidden units.
-Second, machine learning experiments are often run in parallel, on multiple cores or machines. In both situations, the standard sequential approach of GP optimization can be suboptimal.
 \end{quote}
-Copied from: \cite{snoek_practical_2012}
-
-\subsection{Algorithm Types}
- - Manual Search
- - Random Search
- - Grid Search
-\subsection{Search Space}
-\subsubsection{Construction}
+Second, machine learning experiment EGO algorithm
  - Categrorical
  - Discrete
  - Continunous
+
 
 \subsection{Combinators}
 Join and prod over parameter-lists form an idempotent semiring:
@@ -118,7 +120,6 @@ $$\emptyset \times a = a \times \emptyset = \emptyset$$
 \subsection{Search Space Construction}
 \subsubsection{Search Space Hierachy}
 
-
 \begin{tabular}{ l | c | c }
 Language Feature & Search Space & Parameter Structure \\
 \hline
@@ -131,22 +132,28 @@ value identity      & ?                & DAG          \\
 recursive values    & ?                & ?
 \end{tabular}
 
+
+
 \subsection{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm.
 
 \section{Gaussian Processes Regression}
-\subsection{Kernel Combination}
+
+\subsection{Kernels}
+\subsubsection{Squared-Exponential Kernel}
+The squared-exponential kernel (also called radial basis function kernel (RBF)) has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards one.
+\subsubsection{Kernel Combination}
 Kernel combination properties. Maybe: Why do they work!
 
 \section{Bayesian Optimization}
-What distinguished HPO from other non-HPO.
+What distinguished \ac{HPO} from other non-\ac{HPO}.
 
 \subsection{Aquisition Functions}
 
 \subsubsection{Probability of Improvement}
 \subsubsection{Expected Information}
 
-Expected Information (EI) is the most widely used aquistion function.
+Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
 
 $$ \EI(y|x) \coloneqq \int_{-\infty}^{\infty} \max(0, y^*-y)p(y|x)dy $$
 
@@ -192,7 +199,22 @@ Simple trick to extend algorithm to parrallel execution.
 Manual guidance before and during the optimization process.
 
 \subsubsection{Prior Information}
+In machine learning preknowledge about the learning task can be consindered as choice and distribution over the hypothesis space. This is determined rather indirect by the choice of the \ac{ML}-algorithm and its hyperparameters (or distribution over hyperparameters) or in Bayesian method directly expressed via prior probabilities. Since gaussian processes regession is used here, the choice of the kernel
+Prior infotmation can for example be an actual probabilistic prior over the search space. For random sampling this probability can just be used as the sampling probability. For model-based methods, which have no direct sampling, this probability can be interpreted as \textit{probability of improvement} or (more plausible) as \textit{probability of optimum}.
+
 \subsubsection{Search Hints}
+A concept I labeled \textit{search hints} is a way to express external knowledge about the search space. I contranst to regular prior knowledge search hits can also be injected into search process on the fly. Intuitively a search hint just denotes good region to search. And once again it is not obvious how to translate this human instructions into the search process.
+The easier part is to construct a probability distribution only from hints. If a hint is interpreted as a sample from the space of the probability of optimum then distribution estimation methods like Parzen-Window can be used. If one takes a squard exponential kernel, a hint translates to good region. To indicate better regions one would need to give multiple of samples from the same region, which is unfavourable. To solve this one could give weighted hints. Once again there are different ways to do this.
+First one could assign the probability of optimium directly to a region. This however is hard to conceptualize for users and requires not to violate the normalization property (sum of hints must not excede one).
+A second way is to allow values between zero and one, fit a curve, and normlize aferwards to get a probability of optimum. Which is much better, because a value of zero keeps the interpretation of zero probability and one get the interpretation of maximum probability. If one allows arbitrary big values for hints the down scaling of former hints could become easier. If one allows also negative values, and includes adding the absolute value of the smalles negative value to all hints, upscaling of former hints would become possible. In both extensions however one looses the interpretation of one and zero.
+The third method interpretes hints as a modification of an already existing model.
+In an active learning setting point hints can be handeled without an model modification, by simply forcing this hints into the processing queue.
+
+intuitive way to do this is ascribing an increase in probability to positive hints and and decrease in probability to negative hints.
+
+\paragraph{Credebility and Authority}
+The \textit{credebility factor} or \textit{authority factor} is a way to ...
+
 \subsection{Objective Function Approximation}
 
 
@@ -258,5 +280,6 @@ p2 = to_space(inter)
 
 
 \printbibliography
+
 
 \end{document}
