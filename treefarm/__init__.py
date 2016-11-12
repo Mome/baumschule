@@ -1,27 +1,15 @@
-"""from .core.spaces import (
-    to_space,
-    pprint,
-    join,
-    prod,
-    var,
-    Operator,
+from .core.parameters import (
+    Categorical, Discrete, Continuous,
+    join, prod, intersect,
     mul, add, div, sub,
 )
 
-from .core.display import (
-    to_dot,
-)
+from .core.simplify import simplify
 
-from .core.domains import (
-    R,
-    N,
-)
+from .core.display_dot import to_dot
+from .core.display_str import pprint , pformat
+from .core.domains import R, N, N0, Z, Intervall, ParameterList
 
-from .core.random_variables import (
-	sample)
-
-from .core.computing_engine import compute
-
-from .core.main import *
-
-system = System()"""
+cont = Continuous
+disc = Discrete
+catg = Categorical

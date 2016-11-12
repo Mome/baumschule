@@ -8,7 +8,14 @@ logging.basicConfig()
 log.setLevel('INFO')
 
 
-class Parameter:
+class Callable:
+    def __call__(self, *args, **kwargs):
+        log.debug('call: %s %s' % (args, kwargs))
+        domain = ParameterList(args, kwargs)
+        return Apply(self, domain)
+
+
+class Parameter(Callable):
     # not callable yet
     def __init__(self, domain, *, dist=None, name=None, symbol=None):
         log.debug('domain: %s' % domain)
@@ -40,6 +47,9 @@ class Parameter:
 
     def __and__(self, args):
         return prod(self, arg)
+
+    def __xor__(self, arg):
+        return power(self, arg)
 
     def __add__(self, arg):
         return add(self, arg)
@@ -81,7 +91,11 @@ class Primitive(Parameter):
 
 class Categorical(Primitive):
     def __str__(self):
-        return '{' + ','.join(str(D) for D in self.domain) + '}'
+        if self.symbol:
+            return self.symbol
+        else:
+            return '{' + ','.join(str(D) for D in self.domain) + '}'
+
     def __len__(self):
         return len(self.domain)
 
@@ -103,13 +117,6 @@ class Continuous(Primitive):
         return 'Continuous(%s, %s)' % (self.domain.sub, self.domain.sup)
     def __repr__(self):
         return str(self)
-
-
-class Callable:
-    def __call__(self, *args, **kwargs):
-        log.debug('call: %s %s' % (args, kwargs))
-        domain = ParameterList(args, kwargs)
-        return Apply(self, domain)
 
 
 class Operation(Callable):
@@ -158,8 +165,14 @@ class Combination(Operation):
 def join_func(*args, **kwargs):
     raise Exception('Join is not supposed to be executed!')
 
+def intersect_func(*args, **kwargs):
+    raise Exception('Intersect is not supposed to be executed!')
+
 def prod_func(*args, **kwargs):
     return ParameterList(args, kwargs)
+
+def power_func(arg1, arg2):
+    raise NotADirectoryError()
 
 join = Combination(
     func=join_func,
@@ -172,6 +185,17 @@ join = Combination(
     symbol='∪',
     notation='infix')
 
+intersect = Combination(
+    func=intersect_func,
+    name='intersect',
+    properties=(
+        'associative',
+        'commutative',
+        'idempotent',
+        'variadic'),
+    symbol='∩',
+    notation='infix')
+
 prod = Combination(
     func=prod_func,
     name='prod',
@@ -179,6 +203,13 @@ prod = Combination(
         'associative',
         'variadic'),
     symbol='×',
+    notation='infix')
+
+power = Combination(
+    func=power_func,
+    name='power',
+    properties={},
+    symbol='^',
     notation='infix')
 
 
@@ -207,7 +238,7 @@ mul = Operation(
         'associative',
         'commutative',
         'variadic'),
-    symbol='*',
+    symbol='⋅',
     notation='infix')
 
 pow = Operation(
@@ -219,7 +250,7 @@ pow = Operation(
 truediv = Operation(
     name="div",
     func=python_operator.truediv,
-    symbol='/',
+    symbol='÷',
     notation='infix')
 
 floordiv = Operation(

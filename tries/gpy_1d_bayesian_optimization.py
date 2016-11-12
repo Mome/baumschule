@@ -43,7 +43,7 @@ best_y = min(Y)
 
 
 # %% Plot func
-def plot_stuff():Ergebnisse für algebra where lists and sets ararray, 'r')
+def plot_stuff():
     plot()
     axhline(best_y, c='y')
     axvline(best_x, c='g')
@@ -79,3 +79,6 @@ plot_stuff()
 #mes = input('Finished iteration: %s best_x=' % i)
 #if mes == 'exit':
 #    continue
+#
+
+# 
