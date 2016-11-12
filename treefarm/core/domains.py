@@ -1,5 +1,7 @@
 from math import inf
 
+from .utils import divisible
+
 class ParameterList:
     """
     Prepresents a product of a list and a dictionary.
@@ -111,14 +113,53 @@ class ParameterList:
 class Intervall:
     """Used to represent a discrete or continous range of values."""
 
-    def __init__(self, start, stop, step, left_open=False, right_open=True):
+    def __init__(self, start, stop, step, left_closed=True, right_closed=False):
         assert start < stop
         assert step >= 0
         self.start = start
         self.stop = stop
         self.step = step
-        self.left_open = left_open
-        self.right_open = right_open
+        self.left_closed = left_closed
+        self.right_closed = right_closed
+
+    @property
+    def bounded(self):
+        return self.start > -inf and self.stop < inf
+
+    @property
+    def closed(self):
+        return self.left_closed or self.right_closed
+
+    def __contains__(self, num):
+        start, stop, step = self.start, self.stop, self.step
+        if not (start <= num <= stop):
+            return False
+        if num == start :
+            return self.left_closed
+        if num == stop :
+            return self.right_closed
+        if step == 0:
+            return True
+        return divisible(num - start, step)
+
+    def __getitem__(self, key):
+        # TODO: make step actually more meaningfull
+        if not type(key) is slice:
+            raise KeyError(key)
+
+        start = self.start if key.start is None else key.start
+        stop = self.stop if key.stop is None else key.stop
+        step = self.step if key.step is None else key.step
+        left_closed = False if start == -inf else self.step or self.left_closed
+        right_closed = False if stop == inf else self.step or self.right_closed
+
+        # check types
+        for s in (start, stop, step):
+            if type(s) not in {int, float}:
+                raise KeyError('Start and Stop must be Numbers!')
+
+        return Intervall(
+            start, stop, step, left_closed, right_closed)
 
     def __iter__(self):
         if self.step == 0:
@@ -127,56 +168,23 @@ class Intervall:
             raise Warning('Iteration of infinite %s will take forever.' % self)
             raise NotImplementedError()
 
-        if not self.left_open:
+        if self.left_closed:
             yield self.start
 
         values = iter(range(self.start, self.stop, self.step))
         next(values) # skip start value
-        yield from values
+        for val in values:
+            yield val
 
-        if self.stop in self:
-            yield self.stop
+        # how to avoid floating point arithmetics erros here
+        if self.left_closed and val + step == stop:
+            return stop
 
-    def __contains__(self, num):
-        start, stop, step = self.start, self.stop, self.step
-        if start > num > stop:
-            return False
-        if num == start :
-            return not self.left_open
-        if num == stop :
-            return not self.right_open
-        if step == 0:
-            return True
-        return not ((num - start) % step)
-
-    def __getitem__(self, key):
-
-        if type(key) is slice:
-
-            start, stop, step = key.start, key.stop, key.step
-
-            if start is None:
-                start = self.start
-            if stop is None:
-                stop = self.stop
-            if step is None:
-                # TODO: fit default bounding settings
-                step = 'bounded'
-
-            if not (isinstance(start, (int, float))
-                or isinstance(step,  (int, float))):
-                raise KeyError('Start and Stop must be Integers!')
-
-            new = Intervall(
-                start = start,
-                stop = stop,
-                type_ = self.type_,
-                bounding = step,
-            )
-        else:
-            raise KeyError(key)
-
-        return new
+    def __len__(self):
+        if step == 0 or not self.bounded:
+            return inf
+        bounds = self.left_closed + self.right_closed
+        return self.stop - self.start - bounds
 
     def __str__(self):
         # return 'Intervall(%s, %s, %s)' % (self.start, self.stop, self.type_)
@@ -184,26 +192,12 @@ class Intervall:
 
         return '{name}{left}{start}:{stop}{step}{right}'.format(
             name = 'Cont' if step == 0 else 'Disc',
-            left = '(' if self.left_open else '[',
+            left = '[' if self.left_closed else '(',
             start = '-∞' if start == -inf else start,
             stop = '∞' if stop == inf else stop,
             step = '' if step in {0,1} else ':%s' % step,
-            right = ')' if self.right_open else ']',
+            right = ']' if self.right_closed else ')',
         )
-
-    @property
-    def bounded(self):
-        return self.start == -inf or self.stop == inf
-
-    @property
-    def closed(self):
-        return not (self.left_open or self.right_open)
-
-    def __len__(self):
-        if step==0 or not self.bounded:
-            return inf
-        bounds = 2 - self.left_open - self.right_open
-        return self.stop - self.start - bounds
 
 
 # --------------- Predifined Domains ---------------------------------------- #
@@ -212,29 +206,29 @@ N = Intervall(
     start = 1,
     stop = inf,
     step = 1,
-    left_open = False,
-    right_open = False)
+    left_closed = True,
+    right_closed = False)
 
 N0 = Intervall(
     start = 0,
     stop = inf,
     step = 1,
-    left_open = False,
-    right_open = False)
+    left_closed = True,
+    right_closed = False)
 
 Z = Intervall(
     start = -inf,
     stop = inf,
     step = 1,
-    left_open = True,
-    right_open = True,)
+    left_closed = False,
+    right_closed = False,)
 
 R = Intervall(
     start = -inf,
     stop = inf,
-    step = 1,
-    left_open = True,
-    right_open = True,)
+    step = 0,
+    left_closed = False,
+    right_closed = False,)
 
 
 # -------------------------- Errors ----------------------------------------- #
