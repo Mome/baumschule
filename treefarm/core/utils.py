@@ -8,3 +8,12 @@ def execfile(fname, glob=None, loc=None, compiler=None):
     with open(fname, 'rb') as f:
         compiler = compiler or compile
         exec(compiler(f.read(), fname, 'exec'), glob, loc)
+
+
+def divisible(num, denum):
+    # TODO: do without loop
+    while denum % 1:
+        num *= 10
+        denum *= 10
+    print(num, denum)
+    return not (num % denum)
