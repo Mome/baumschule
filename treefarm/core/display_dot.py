@@ -7,6 +7,7 @@ from .parameters import (
     Operation,
     Combination,
     Primitive,
+    Categorical,
     Apply)
 
 from .domains import Intervall, ParameterList
@@ -16,32 +17,73 @@ log = logging.getLogger(__name__)
 logging.basicConfig()
 
 
-def to_dot(param):
+schemes = {
+    'light' : {
+        'combination' : '#ffc65d',
+        'primitive' : '#f16745',
+        'apply' : 'lightblue',
+        'operation' : 'lightgreen',
+        'background' : 'white',
+        'other' : 'purple',
+        'border' : 'white',
+        'font' : '#404040',
+        'edge' : '#404040',
+    },
+    'dark' : {
+        'combination' : '#ffc65d',
+        'primitive' : '#f16745',
+        'apply' : '#4cc3d9',
+        'operation' : '#7bc8a4',
+        'background' : '#404040',
+        'other' : '#93648d',
+        'font' : 'white',
+        'border' : '#404040',
+        'edge' : 'white',
+    },
+    'dark2' : {
+        'combination' : '#EE9911',
+        'primitive' : '#ae1414',
+        'apply' : '#006699',
+        'operation' : '#009966',
+        'background' : '#333333',
+        'font' : 'white',
+        'other' : '#93648d',
+        'border' : 'white',
+        'edge' : 'white',
+    },
+}
+
+
+def to_dot(param, color_scheme='light'):
+
+    global colors
+    colors = schemes[color_scheme]
+
     graph = graphviz.Digraph('Parameter')
     graph.body.append('rankdir=BT')
 
     styles = {
         'graph': {
             'fontsize': '16',
-            'fontcolor': 'white',
-            'bgcolor': '#333333',
+            'fontcolor': colors['font'],
+            'bgcolor': colors['background'],
             'rankdir': 'BT',
         },
         'nodes': {
             'fontname': 'Helvetica',
-            'fontcolor': 'white',
-            'color': 'white',
+            'fontcolor': colors['font'],
+            'color': colors['border'],
             'style': 'filled',
-            'fillcolor': '#006699',
+            'fillcolor': colors['apply'],
         },
         'edges': {
             'style': 'dashed',
-            'color': 'white',
-            'arrowsize': '0.7',
+            'color': colors['edge'],
+            'arrowsize': '0.6',
             'arrowhead': 'open',
             'fontname': 'Courier',
             'fontsize': '12',
-            'fontcolor': 'white',
+            'fontcolor': colors['font'],
         }
     }
 
@@ -67,6 +109,8 @@ def _to_dot_recursive(param, graph, recursion_tracker):
     assert param not in recursion_tracker, \
         'Recursion:%s:%s' % (type(param), type(graph))
 
+    recursion_tracker.append(param)
+
     if not isinstance(param, Parameter):
         _value_to_dot(param, graph)
     elif isinstance(param, Primitive):
@@ -84,15 +128,48 @@ def _to_dot_recursive(param, graph, recursion_tracker):
 
 
 def _primitive_to_dot(param, graph):
+    if param.symbol:
+        label = param.symbol
+        if type(param) is Categorical:
+            shape = 'circle'
+        else:
+            shape = 'square'
+    else:
+        label = str(param.domain)
+        if type(param) is Categorical:
+            shape = 'oval'
+        else:
+            shape = 'box'
+
     graph.node(
         name = 'N' + str(id(param)),
-        label = str(param))
+        label = label,
+        fillcolor=colors['primitive'],
+        shape=shape)
+
 
 def _value_to_dot(param, graph):
+    if isinstance(param, Operation):
+        color = colors['operation']
+        if 'associative' in param.properties:
+            if param.symbol:
+                shape = 'circle'
+            else:
+                shape = 'oval'
+        else:
+            if param.symbol:
+                shape = 'square'
+            else:
+                shape = 'box'
+    else:
+        color = colors['primitive']
+        shape = 'none'
+
     graph.node(
         name = 'N' + str(id(param)),
         label = param.symbol if param.symbol else str(param),
-        shape = 'hexagon')
+        fillcolor = color,
+        shape = shape)
 
 
 def _paint_associative_node(param, graph, recursion_tracker):
@@ -108,7 +185,12 @@ def _paint_associative_node(param, graph, recursion_tracker):
         name = op.name
         shape = 'oval'
 
-    graph.node(parent_node_id, name, shape=shape)
+    if isinstance(op, Combination):
+        color = colors['combination']
+    else:
+        color = colors['apply']
+
+    graph.node(parent_node_id, name, shape=shape, fillcolor=color)
 
     for element in param.domain:
 
@@ -141,7 +223,7 @@ def _paint_record(param, graph, recursion_tracker):
 
         cell_label = 'f' + str(id(key))
 
-        edge_props = {'arrowsize':'0.7'}
+        edge_props = {}
 
         new_edges.append([
             ':'.join([parent_node_id, cell_label, 'n']),
@@ -166,6 +248,8 @@ def _paint_record(param, graph, recursion_tracker):
 
 def _gets_record_shape(param):
     if not isinstance(param, Apply):
+        return False
+    if not isinstance(param.operation, Operation):
         return False
     return 'associative' not in param.operation.properties
 
@@ -194,7 +278,7 @@ def _paint_record_composed(param, graph, recursion_tracker):
 
         cell_label = 'f' + str(id(key))
 
-        edge_props = {'arrowsize':'0.7'}
+        edge_props = {}
 
         new_edges.append([
             ':'.join([parent_node_id, cell_label, 'n']),
@@ -215,7 +299,7 @@ def _paint_record_composed(param, graph, recursion_tracker):
         subnode_id = 'N' + str(id(op))
         shape = 'Mrecord'
 
-    edge_props = {'arrowsize':'0.7'}
+    edge_props = {}
 
     new_edges.append([
         ':'.join([parent_node_id, 'op', 'w']),
