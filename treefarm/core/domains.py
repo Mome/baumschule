@@ -1,3 +1,5 @@
+from math import inf
+
 class ParameterList:
     """
     Prepresents a product of a list and a dictionary.
@@ -107,35 +109,45 @@ class ParameterList:
 
 
 class Intervall:
+    """Used to represent a discrete or continous range of values."""
 
-    bounding_values = {
-        'bounded',
-        'unbounded',
-        'left_bounded',
-        'right_bounded',
-    }
+    def __init__(self, start, stop, step, left_open=False, right_open=True):
+        assert start < stop
+        assert step >= 0
+        self.start = start
+        self.stop = stop
+        self.step = step
+        self.left_open = left_open
+        self.right_open = right_open
 
-    def __init__(self, sub, sup, type_, bounding='bounded'):
-        assert bounding in self.bounding_values
-        assert type_ in ['discrete', 'continuous']
-        assert sub < sup
-        self.sub = sub
-        self.sup = sup
-        self.type_ = type_
-        self.bounding = bounding
+    def __iter__(self):
+        if self.step == 0:
+            raise NotIterableError('Continuous intervall cannot be iterated.')
+        if not self.bounded:
+            raise Warning('Iteration of infinite %s will take forever.' % self)
+            raise NotImplementedError()
+
+        if not self.left_open:
+            yield self.start
+
+        values = iter(range(self.start, self.stop, self.step))
+        next(values) # skip start value
+        yield from values
+
+        if self.stop in self:
+            yield self.stop
 
     def __contains__(self, num):
-        if self.type_ == 'discrete':
-            if abs(num)!=float('inf') and round(num) != num:
-                return False
-        if self.bounding == 'bounded':
-            return self.sub <= num <= self.sup
-        if self.bounding == 'unbounded':
-            return self.sub < num < self.sup
-        if self.bounding == 'left_bounded':
-            return self.sub <= num < self.sup
-        if self.bounding == 'right_bounded':
-            return self.sub < num <= self.sup
+        start, stop, step = self.start, self.stop, self.step
+        if start > num > stop:
+            return False
+        if num == start :
+            return not self.left_open
+        if num == stop :
+            return not self.right_open
+        if step == 0:
+            return True
+        return not ((num - start) % step)
 
     def __getitem__(self, key):
 
@@ -144,9 +156,9 @@ class Intervall:
             start, stop, step = key.start, key.stop, key.step
 
             if start is None:
-                start = self.sub
+                start = self.start
             if stop is None:
-                stop = self.sup
+                stop = self.stop
             if step is None:
                 # TODO: fit default bounding settings
                 step = 'bounded'
@@ -156,8 +168,8 @@ class Intervall:
                 raise KeyError('Start and Stop must be Integers!')
 
             new = Intervall(
-                sub = start,
-                sup = stop,
+                start = start,
+                stop = stop,
                 type_ = self.type_,
                 bounding = step,
             )
@@ -167,19 +179,65 @@ class Intervall:
         return new
 
     def __str__(self):
-        return 'Intervall(%s, %s, %s)' % (self.sub, self.sup, self.type_)
+        # return 'Intervall(%s, %s, %s)' % (self.start, self.stop, self.type_)
+        stop, start, step = self.stop, self.start, self.step
+
+        return '{name}{left}{start}:{stop}{step}{right}'.format(
+            name = 'Cont' if step == 0 else 'Disc',
+            left = '(' if self.left_open else '[',
+            start = '-∞' if start == -inf else start,
+            stop = '∞' if stop == inf else stop,
+            step = '' if step in {0,1} else ':%s' % step,
+            right = ')' if self.right_open else ']',
+        )
+
+    @property
+    def bounded(self):
+        return self.start == -inf or self.stop == inf
+
+    @property
+    def closed(self):
+        return not (self.left_open or self.right_open)
+
+    def __len__(self):
+        if step==0 or not self.bounded:
+            return inf
+        bounds = 2 - self.left_open - self.right_open
+        return self.stop - self.start - bounds
 
 
-# ------ Predifined Domains ----------------------------------------- #
+# --------------- Predifined Domains ---------------------------------------- #
 
 N = Intervall(
-    sub=float('-inf'),
-    sup=float('inf'),
-    type_='discrete',
-    bounding='unbounded',)
+    start = 1,
+    stop = inf,
+    step = 1,
+    left_open = False,
+    right_open = False)
+
+N0 = Intervall(
+    start = 0,
+    stop = inf,
+    step = 1,
+    left_open = False,
+    right_open = False)
+
+Z = Intervall(
+    start = -inf,
+    stop = inf,
+    step = 1,
+    left_open = True,
+    right_open = True,)
 
 R = Intervall(
-    sub=float('-inf'),
-    sup=float('inf'),
-    type_='continuous',
-    bounding='unbounded',)
+    start = -inf,
+    stop = inf,
+    step = 1,
+    left_open = True,
+    right_open = True,)
+
+
+# -------------------------- Errors ----------------------------------------- #
+
+class NotIterableError(Exception):
+    pass
