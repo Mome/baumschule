@@ -1,4 +1,5 @@
 from itertools import chain, product
+from functools import partial
 
 from .parameters import (
     Parameter, Apply, Primitive,
@@ -6,7 +7,7 @@ from .parameters import (
 
 from .domains import ParameterList
 
-def iterate_instances(param, iter_primitives=True):
+def iter_instances(param, iter_primitives=True):
     """
     Iterates executable instances of a parameter.
 
@@ -22,8 +23,10 @@ def iterate_instances(param, iter_primitives=True):
             yield param
 
     else:
+        iteri = partial(iter_instances, iter_primitives=iter_primitives)
         if param.operation == join:
-            yield from chain(*map(iterate_instances, param.domain))
+
+            yield from chain(*map(iteri, param.domain))
 
         else:
             if not isinstance(param.operation, Parameter):
@@ -31,20 +34,21 @@ def iterate_instances(param, iter_primitives=True):
             else:
                 operations = param.operation
 
-            op_iter = iterate_instances(operations)
-            pml_iterator = _ii_pml(param.domain)
+            op_iter = iteri(operations)
+            pml_iterator = _ii_pml(param.domain, iter_primitives)
             for op, pml in product(op_iter, pml_iterator):
                 yield Apply(op, pml)
 
 
 
-def _ii_pml(pml):
+def _ii_pml(pml, iter_primitives):
     """
     Iterates over instances of a parameter list.
 
     """
     keys = tuple(pml.keys())
-    inst_iterators = map(iterate_instances, pml.values())
+    iteri = partial(iter_instances, iter_primitives=iter_primitives)
+    inst_iterators = map(iteri, pml.values())
     for instance in product(*inst_iterators):
         d = dict(zip(keys, instance))
         yield ParameterList.from_dict(d)

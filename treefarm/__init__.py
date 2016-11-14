@@ -10,7 +10,7 @@ from .core.display_str import pprint , pformat
 from .core.domains import R, N, N0, Z, Interval, ParameterList
 from .core.random_variables import sample
 from .core.computing_engine import compute
-from .core.iterators import iterate_instances
+from .core.iterators import iter_instances
 
 
 cont = Continuous
