@@ -47,14 +47,9 @@ class TestIntervall(unittest.TestCase):
         for i in [-123.65, 122.79]:
             self.assertNotIn(i, self.C)
 
-    def test_getitem(self):
-        ...
-
     def test_iter(self):
-        ...
-
-    def test_str(self):
-        ...
+        for i,j in enumerate(N[:10], 1):
+            self.assertEqual(i,j)
 
 
 if __name__ == '__main__':
