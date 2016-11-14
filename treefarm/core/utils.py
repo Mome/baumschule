@@ -15,5 +15,4 @@ def divisible(num, denum):
     while denum % 1:
         num *= 10
         denum *= 10
-    print(num, denum)
     return not (num % denum)

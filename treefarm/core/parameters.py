@@ -1,7 +1,7 @@
 import logging
 import operator as python_operator
 
-from .domains import Intervall, ParameterList
+from .domains import Interval, ParameterList
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -38,9 +38,6 @@ class Parameter(Callable):
         else:
             return True
         return False
-
-    def __iter__(self):
-        yield from self.domain
 
     def __or__(self, arg):
         return join(self, arg)
@@ -84,39 +81,28 @@ class Apply(Parameter):
         raise TypeError('unsupported operand type(s) for =<<: %r and %r'
             % (type(self), type(arg)))
 
-
 class Primitive(Parameter):
-    pass
-
-
-class Categorical(Primitive):
-    def __str__(self):
-        if self.symbol:
-            return self.symbol
-        else:
-            return '{' + ','.join(str(D) for D in self.domain) + '}'
-
     def __len__(self):
         return len(self.domain)
 
 
+class Categorical(Primitive):
+    def __str__(self):
+        return '{' + ','.join(str(D) for D in self.domain) + '}'
+
+
 class Discrete(Primitive):
     def __str__(self):
-        if type(self.domain) == Intervall:
-            out = 'Discrete(%s, %s)' % (self.domain.sub, self.domain.sup)
+        if type(self.domain) == Interval:
+            return str(self.domain)
         else:
-            out = '[' + ','.join(str(D) for D in self.domain) + ']'
+            return 'Disc[' + ','.join(str(D) for D in self.domain) + ']'
         return out
-
-    def __repr__(self):
-        return str(self)
 
 
 class Continuous(Primitive):
     def __str__(self):
-        return 'Continuous(%s, %s)' % (self.domain.sub, self.domain.sup)
-    def __repr__(self):
-        return str(self)
+        return str(self.domain)
 
 
 class Operation(Callable):

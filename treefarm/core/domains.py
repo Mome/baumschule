@@ -5,6 +5,8 @@ from .utils import divisible
 class ParameterList:
     """
     Prepresents a product of a list and a dictionary.
+    keys(), values() and items() all return from both list and dict part
+    keeps order
     """
 
     def __init__(self, args, kwargs):
@@ -110,7 +112,7 @@ class ParameterList:
             self.append(arg)
 
 
-class Intervall:
+class Interval:
     """Used to represent a discrete or continous range of values."""
 
     def __init__(self, start, stop, step, left_closed=True, right_closed=False):
@@ -136,8 +138,8 @@ class Intervall:
             return False
         if num == start :
             return self.left_closed
-        if num == stop :
-            return self.right_closed
+        if num == stop and not self.right_closed:
+            return False
         if step == 0:
             return True
         return divisible(num - start, step)
@@ -158,12 +160,12 @@ class Intervall:
             if type(s) not in {int, float}:
                 raise KeyError('Start and Stop must be Numbers!')
 
-        return Intervall(
+        return Interval(
             start, stop, step, left_closed, right_closed)
 
     def __iter__(self):
         if self.step == 0:
-            raise NotIterableError('Continuous intervall cannot be iterated.')
+            raise NotIterableError('Continuous Interval cannot be iterated.')
         if not self.bounded:
             raise Warning('Iteration of infinite %s will take forever.' % self)
             raise NotImplementedError()
@@ -177,8 +179,8 @@ class Intervall:
             yield val
 
         # how to avoid floating point arithmetics erros here
-        if self.left_closed and val + step == stop:
-            return stop
+        if self.left_closed and val + self.step == self.stop:
+            return self.stop
 
     def __len__(self):
         if step == 0 or not self.bounded:
@@ -187,7 +189,7 @@ class Intervall:
         return self.stop - self.start - bounds
 
     def __str__(self):
-        # return 'Intervall(%s, %s, %s)' % (self.start, self.stop, self.type_)
+        # return 'Interval(%s, %s, %s)' % (self.start, self.stop, self.type_)
         stop, start, step = self.stop, self.start, self.step
 
         return '{name}{left}{start}:{stop}{step}{right}'.format(
@@ -202,28 +204,28 @@ class Intervall:
 
 # --------------- Predifined Domains ---------------------------------------- #
 
-N = Intervall(
+N = Interval(
     start = 1,
     stop = inf,
     step = 1,
     left_closed = True,
     right_closed = False)
 
-N0 = Intervall(
+N0 = Interval(
     start = 0,
     stop = inf,
     step = 1,
     left_closed = True,
     right_closed = False)
 
-Z = Intervall(
+Z = Interval(
     start = -inf,
     stop = inf,
     step = 1,
     left_closed = False,
     right_closed = False,)
 
-R = Intervall(
+R = Interval(
     start = -inf,
     stop = inf,
     step = 0,

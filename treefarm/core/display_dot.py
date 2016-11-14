@@ -10,7 +10,7 @@ from .parameters import (
     Categorical,
     Apply)
 
-from .domains import Intervall, ParameterList
+from .domains import Interval, ParameterList
 
 
 log = logging.getLogger(__name__)
@@ -109,7 +109,7 @@ def _to_dot_recursive(param, graph, recursion_tracker):
     assert param not in recursion_tracker, \
         'Recursion:%s:%s' % (type(param), type(graph))
 
-    recursion_tracker.append(param)
+    recursion_tracker.append(id(param))
 
     if not isinstance(param, Parameter):
         _value_to_dot(param, graph)
@@ -161,13 +161,19 @@ def _value_to_dot(param, graph):
                 shape = 'square'
             else:
                 shape = 'box'
+        label = param.symbol if param.symbol else str(param)
     else:
         color = colors['primitive']
-        shape = 'none'
+        label = str(param)
+        if len(label) <= 1:
+            shape = 'square'
+        else:
+            shape = 'box'
+
 
     graph.node(
         name = 'N' + str(id(param)),
-        label = param.symbol if param.symbol else str(param),
+        label = label,
         fillcolor = color,
         shape = shape)
 
@@ -194,7 +200,7 @@ def _paint_associative_node(param, graph, recursion_tracker):
 
     for element in param.domain:
 
-        if element not in recursion_tracker:
+        if id(element) not in recursion_tracker:
             _to_dot_recursive(element, graph, recursion_tracker)
 
         if _gets_record_shape(element):
@@ -213,7 +219,7 @@ def _paint_record(param, graph, recursion_tracker):
     for key, element in param.domain.items():
 
         # paint nodes of containing parameters
-        if element not in recursion_tracker:
+        if id(element) not in recursion_tracker:
             _to_dot_recursive(element, graph, recursion_tracker)
 
         if _gets_record_shape(element):
