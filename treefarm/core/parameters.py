@@ -39,6 +39,10 @@ class Parameter(Callable):
             return True
         return False
 
+    def __str__(self):
+        name = self.__class__.__name__
+        return '%s(%s)' % (name, '...')
+
     def __or__(self, arg):
         return join(self, arg)
 
@@ -81,6 +85,7 @@ class Apply(Parameter):
         raise TypeError('unsupported operand type(s) for =<<: %r and %r'
             % (type(self), type(arg)))
 
+
 class Primitive(Parameter):
     def __len__(self):
         return len(self.domain)
@@ -111,7 +116,7 @@ class Operation(Callable):
     NOTATIONS = {'prefix', 'postfix', 'infix', 'name'}
 
     def __init__(self, func, name, *,
-        properties=(),
+        properties=None,
         notation=None,
         symbol=None):
         """
@@ -120,6 +125,8 @@ class Operation(Callable):
 
         if notation is None:
             notation = 'prefix'
+        if properties is None:
+            properties = ()
 
         assert notation in self.NOTATIONS
 
@@ -144,6 +151,14 @@ class Combination(Operation):
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+
+def op(func, name=None, **kwargs):
+    if name is None:
+        name = foo.__name__
+        if name == '<lambda>':
+            log.warn('You should give a proper name to the function.')
+    return Operation(func, name, **kwargs)
 
 
 # --------------------- Combinations --------------------- #

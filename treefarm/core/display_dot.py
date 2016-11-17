@@ -19,37 +19,37 @@ logging.basicConfig()
 
 schemes = {
     'light' : {
-        'combination' : '#ffc65d',
-        'primitive' : '#f16745',
         'apply' : 'lightblue',
-        'operation' : 'lightgreen',
         'background' : 'white',
-        'other' : 'purple',
         'border' : 'white',
-        'font' : '#404040',
+        'combination' : '#ffc65d',
         'edge' : '#404040',
+        'font' : '#404040',
+        'operation' : 'lightgreen',
+        'primitive' : '#f16745',
+        'value' : '#93648d',
     },
     'dark' : {
-        'combination' : '#ffc65d',
-        'primitive' : '#f16745',
         'apply' : '#4cc3d9',
-        'operation' : '#7bc8a4',
         'background' : '#404040',
-        'other' : '#93648d',
-        'font' : 'white',
         'border' : '#404040',
+        'combination' : '#ffc65d',
         'edge' : 'white',
+        'font' : 'white',
+        'operation' : '#7bc8a4',
+        'primitive' : '#f16745',
+        'value' : '#93648d',
     },
     'dark2' : {
-        'combination' : '#EE9911',
-        'primitive' : '#ae1414',
         'apply' : '#006699',
-        'operation' : '#009966',
         'background' : '#333333',
-        'font' : 'white',
-        'other' : '#93648d',
         'border' : 'white',
+        'combination' : '#EE9911',
         'edge' : 'white',
+        'font' : 'white',
+        'operation' : '#009966',
+        'primitive' : '#ae1414',
+        'value' : '#93648d',
     },
 }
 
@@ -163,7 +163,7 @@ def _value_to_dot(param, graph):
                 shape = 'box'
         label = param.symbol if param.symbol else str(param)
     else:
-        color = colors['primitive']
+        color = colors['value']
         label = str(param)
         if len(label) <= 1:
             shape = 'square'

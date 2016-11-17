@@ -59,9 +59,13 @@ class ParameterList:
 
     @classmethod
     def from_dict(cls, dict_arg):
+        return cls.from_items(dict_arg.items())
+
+    @classmethod
+    def from_items(cls, items):
         num_items = []
         kwargs = {}
-        for k,v in dict_arg.items():
+        for k,v in items:
             if type(k) == int:
                 num_items.append((k,v))
             elif type(k) == str:
@@ -93,16 +97,16 @@ class ParameterList:
     def __str__(self):
         args_str = map(str, self.args)
         kwargs_str = ('%s=%s' % item for item in self.kwargs.items())
-        return '[' + ', '.join([*args_str, *kwargs_str]) + ']'
+        return ', '.join([*args_str, *kwargs_str])
 
     def __len__(self):
         return len(self.args) + len(self.kwargs)
 
-    def __repr__(self):
+    """def __repr__(self):
         args_str = map(repr, self.args)
         kwargs_str = ('%s=%r' % item for item in self.kwargs.items())
         params = ', '.join([*args_str, *kwargs_str])
-        return '%s(%s)' % (self.__class__.__name__, params)
+        return '%s(%s)' % (self.__class__.__name__, params)"""
 
     def __lshift__(self, arg):
         if type(arg) == ParameterList:

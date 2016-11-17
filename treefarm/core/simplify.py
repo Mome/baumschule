@@ -15,8 +15,12 @@ def simplify(param):
         recursion_tracker[id(param)] = None
 
         op = param.operation
-        dom = ParameterList.from_dict(
-            {k:_simplify(v) for k,v in param.domain.items()})
+        dom = ParameterList.from_items(
+            zip(
+                param.domain.keys(),
+                map(_simplify, param.domain.values())
+            )
+        )
 
         if isinstance(op, Operation):
             if {'variadic', 'associative'}.issubset(op.properties):

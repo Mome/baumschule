@@ -1,8 +1,8 @@
+pdb
+
 # %%
-from treefarm.core.display_dot import to_dot
-from treefarm.core.parameters import *
-from treefarm.core.domains import *
-from treefarm.core.simplify import simplify
+from treefarm import *
+
 
 # %%
 k = Categorical({'a','b'})
@@ -43,4 +43,13 @@ to_dot(G)
 
 # %%
 G0 = simplify(G)
-to_dot(G0, 'light')
+to_dot(G0, 'dark')
+
+
+# %%
+a = sample(G0)
+to_dot(a)
+
+# %%
+b = simplify(a)
+pprint(b)
