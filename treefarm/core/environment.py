@@ -1,23 +1,84 @@
-import os
+from os import makedirs
+from os.path import join, dirname, expanduser, exists, normpath
 import logging
 from glob import iglob
+from itertools import chain
 from keyword import iskeyword
-from utils import execfile
 
-from .domains import ParameterList
-from .parameters import Operation, op
+from .utils import execfile
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
 log.setLevel('DEBUG')
 
+DEFAULT_CONFIG_FOLDER = join(dirname(__file__), '..', 'configuration/*')
+USER_CONFIG_FOLDER = expanduser('~/.config/treefarm.conf.py')
+USER_CONFIG_FILE = expanduser('~/.config/treefarm/*')
 
-def create_config_file(path, overwrite=False):
+
+# ---------- classes ---------- #
+
+class Environment(dict):
+
+    VARNAME = 'env'
+
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._name = name
+
+    def __getattr__(self, arg):
+        return self[arg]
+
+    def __setattr__(self, key, value):
+        self._check_key(key)
+        if key.startswith('_'):
+            super().__setattr__(key, value)
+        else:
+            self[key] = value
+
+    @classmethod
+    def _check_key(cls, key):
+        assert type(key) is str
+        #assert not key.startswith('_')
+        assert key.isidentifier()
+        assert not iskeyword(key)
+        assert key not in dir(cls)
+
+    def add_subgroup(self, name):
+        self._check_key(name)
+        if not name in self:
+            self[name] = Configuration()
+
+    def add_ops(self, *ops):
+        for op in ops:
+            assert 'name' in vars(op)
+            self[op.name] = op
+
+    def load_path(self, *paths):
+        f = lambda p : iglob(normpath(expanduser(p)))
+        for filename in chain(*map(f, paths)):
+            glob = {
+                self.VARNAME : self,
+                '__file__' : filename,
+            }
+            execfile(filename,  glob)
+
+
+class Configuration(Environment):
+
+    VARNAME = 'c'
+
+    def __init__(self):
+        super().__init__('configuration')
+
+
+# ---------- initializers ---------- #
+
+def init_config_file(path=USER_CONFIG_FILE, overwrite=False):
     """Copies the content of default config to user config."""
 
-    if not overwrite:
-        if os.path.exists(path):
-            return
+    if exists(path) and not overwrite:
+        raise FileExistsError()
 
     # load default configfile
     with open(path) as cfg_file:
@@ -29,67 +90,35 @@ def create_config_file(path, overwrite=False):
             lines[i] = '# ' + line
 
     log.info('Create new Configuration file in:', path)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    os.makedirs(dirname(path), exist_ok=True)
     with open(path, 'w') as cfg_file:
         cfg_file.writelines(lines)
 
 
-class Environment(ParameterList):
-    """
-    Basically a ParameterList with configuration.
-    """
-    def __init__(self):
-        self.config = Configuration()
-
-    def load(fname):
-        logging.info('load:' + fname)
-        execfile(fname, glob={'env':env})
-
-    def add(self, arg):
-        if type(arg) == Operation:
-            self[arg.name] = arg
-        else:
-            raise NotImplemented()
+def init_config():
+    global config
+    config = Configuration()
+    config.load_path(DEFAULT_CONFIG_FOLDER)
+    if exists(USER_CONFIG_FILE):
+        config.load_path(USER_CONFIG_FILE)
+    if exists(USER_CONFIG_FOLDER):
+        config.load_path(USER_CONFIG_FOLDER)
 
 
-class Configuration(dict):
-
-    def __getattr__(self, arg):
-        return self[arg]
-
-    def __setattr__(self, key, value):
-        self[arg] = value
-
-    @classmethod
-    def _check_key(cls, key):
-        assert type(key) is str
-        assert key.isidentifier()
-        assert not iskeyword(key)
-
-    def add_group(self, name):
-        _check_key(name)
-        self[name] = Configuration()
-
-def get_env():
-    'topenv' in globals():
-        return env
+def init_env():
     global env
-    set_env()
-    return env
+    env = Environment('default')
+    paths = config.environment.paths
+    if type(paths) is str:
+        env.load_path(paths)
+    else:
+        env.load_path(*paths)
+
+
+# ---------- getters ---------- #
 
 def get_config():
-    return get_env().config
+    return config
 
-def add_operator(arg):
-    get_env().add(arg)
-
-DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(__file__), ('default_config.py'))
-USER_CONFIG_PATH = os.path.expanduser('~/.config/treefarm.py')
-
-def set_env(path=None):
-    global env
-    env = Environment()
-    env.load(DEFAULT_CONFIG_PATH)
-    if path is None:
-        path = USER_CONFIG_PATH
-    env.load(path)
+def get_env():
+    return env

@@ -1,6 +1,4 @@
-pdb
 
-# %%
 from treefarm import *
 
 
@@ -10,7 +8,7 @@ n = Discrete(N[0:], symbol='N')
 r = Continuous(R[0:9], symbol='R')
 G = r + n | k
 f = join(add, mul)
-call = Apply(f, ParameterList(G, {}))
+call = Apply(f, ParameterList([G], {}))
 to_dot(call, 'light')
 
 
@@ -43,7 +41,7 @@ to_dot(G)
 
 # %%
 G0 = simplify(G)
-to_dot(G0, 'dark')
+to_dot(G0, 'dark2')
 
 
 # %%

@@ -3,7 +3,12 @@ import os
 import json
 from datetime import datetime
 
-Record = namedtuple('Record', ['name' 'time', 'perf'])
+Record = namedtuple('Record', [
+    'name',
+    'start_ts',
+    'select_ts',
+    'comp_ts',
+    'perf'])
 
 class Protocol:
     def __init__(self, name):
@@ -17,11 +22,15 @@ class Protocol:
         with open(fullpath) as f:
             json.dump(self.records)
 
-    def write(self, name, perf):
-        tmp = Record(naem, str(datetime.now()), perf)
+    def record(self, name, start_ts, selection_ts, computation_ts, performance):
+        rec = Record(name, start_ts, selection_ts, computation_ts, performance)
+        self.add(rec)
+        return rec
+
+    def add(self, rec):
         if name not in self.records:
-            self.records = []
-        self.records[name].append(tmp)
+            self.records[name] = []
+        self.records[name].append(rec)
 
     def get_best(self):
         return max(

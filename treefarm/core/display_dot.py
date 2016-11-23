@@ -10,8 +10,10 @@ from .parameters import (
     Categorical,
     Apply)
 
+from .environment import get_config
 from .domains import Interval, ParameterList
 
+c = get_config().display_dot
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -313,7 +315,7 @@ def _paint_record_composed(param, graph, recursion_tracker):
         edge_props,
     ])
 
-    label = '{{%s}|{<op> |<out> %s}}' % ('|'.join(label_parts), 'Apply')
+    label = '{{%s}|{<op> |<out> %s}}' % ('|'.join(label_parts), c.apply_symbol)
     graph.node(parent_node_id, label, shape=shape)
 
     for head, tail, props in new_edges:

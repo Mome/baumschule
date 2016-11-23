@@ -39,11 +39,6 @@ def serialize(param, lispstyle=False):
 
 """
 def deserialize(string, param):
-    """
-    Deserializes an instance given a parameter.
-
-    """
-
     ...
 
 

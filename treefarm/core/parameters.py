@@ -2,10 +2,11 @@ import logging
 import operator as python_operator
 
 from .domains import Interval, ParameterList
+from .environment import get_env
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('INFO')
+log.setLevel('DEBUG')
 
 
 class Callable:
@@ -47,22 +48,28 @@ class Parameter(Callable):
         return join(self, arg)
 
     def __and__(self, args):
-        return prod(self, arg)
+        return intersect(self, arg)
 
     def __xor__(self, arg):
         return power(self, arg)
 
+    def __floordiv__(self, arg):
+        raise NotImplementedError()
+
     def __add__(self, arg):
-        return add(self, arg)
+        return get_env().add(self, arg)
 
     def __sub__(self, arg):
-        return sub(self, arg)
+        return get_env().sub(self, arg)
 
     def __mul__(self, arg):
-        return mul(self, arg)
+        return get_env().mul(self, arg)
 
     def __truediv__(self, arg):
-        return div(self, arg)
+        return get_env().div(self, arg)
+
+    def __pow__(self, arg):
+        return get_env().pow(self, arg)
 
 
 class Apply(Parameter):
@@ -90,11 +97,9 @@ class Primitive(Parameter):
     def __len__(self):
         return len(self.domain)
 
-
 class Categorical(Primitive):
     def __str__(self):
         return '{' + ','.join(str(D) for D in self.domain) + '}'
-
 
 class Discrete(Primitive):
     def __str__(self):
@@ -103,7 +108,6 @@ class Discrete(Primitive):
         else:
             return 'Disc[' + ','.join(str(D) for D in self.domain) + ']'
         return out
-
 
 class Continuous(Primitive):
     def __str__(self):
@@ -161,6 +165,7 @@ def op(func, name=None, **kwargs):
     return Operation(func, name, **kwargs)
 
 
+
 # --------------------- Combinations --------------------- #
 
 def join_func(*args, **kwargs):
@@ -174,6 +179,7 @@ def prod_func(*args, **kwargs):
 
 def power_func(arg1, arg2):
     raise NotADirectoryError()
+
 
 join = Combination(
     func=join_func,
@@ -212,52 +218,3 @@ power = Combination(
     properties={},
     symbol='^',
     notation='infix')
-
-
-# ---------------------- Artihmetics --------------------- #
-
-add = Operation(
-    name="add",
-    func=python_operator.add,
-    properties=(
-        'associative',
-        'commutative',
-        'variadic'),
-    symbol='+',
-    notation='infix')
-
-sub = Operation(
-    name="sub",
-    func=python_operator.sub,
-    symbol='-',
-    notation='infix')
-
-mul = Operation(
-    name="mul",
-    func=python_operator.mul,
-    properties=(
-        'associative',
-        'commutative',
-        'variadic'),
-    symbol='⋅',
-    notation='infix')
-
-pow = Operation(
-    name="pow",
-    func=python_operator.pow,
-    symbol='^',
-    notation='infix')
-
-truediv = Operation(
-    name="div",
-    func=python_operator.truediv,
-    symbol='÷',
-    notation='infix')
-
-floordiv = Operation(
-    name="floordiv",
-    func=python_operator.floordiv,
-    symbol='//',
-    notation='infix')
-
-div = truediv
