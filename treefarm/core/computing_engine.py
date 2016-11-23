@@ -2,12 +2,16 @@ from .domains import ParameterList
 from .parameters import Apply
 
 class ComputingEngine:
-    def __init__(self, cores):
-        self.cores = cores
+    def evaluate(self, computation_graph):
+        raise NotImplementedError()
+
+
+class SimpleEngine(ComputingEngine):
 
     def evaluate(self, func_tree):
         # assume simple operators for now
 
+        # only function application can be evaluated
         if not type(func_tree) is Apply:
             return func_tree
 
@@ -24,4 +28,5 @@ class ComputingEngine:
 
         return result
 
-compute = ComputingEngine(1).evaluate
+
+compute = SimpleEngine().evaluate
