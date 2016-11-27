@@ -1,5 +1,6 @@
 
 import random
+import logging
 
 import numpy as np
 
@@ -8,10 +9,15 @@ from .parameters import (
 )
 
 from .domains import ParameterList, Interval
+from .serialize import serialize
 
+log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('INFO')
 
 # --- sample from params -- #
 def sample(param):
+    log.debug('sample:%s' % param)
     if vars(param).get('dist', False):
         dist = param.dist
     dist = get_default_dist(param)

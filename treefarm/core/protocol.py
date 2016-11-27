@@ -2,13 +2,16 @@ from collections import namedtuple
 import os
 import json
 from datetime import datetime
+from itertools import chain
 
-Record = namedtuple('Record', [
-    'name',
-    'start_ts',
-    'select_ts',
-    'comp_ts',
-    'perf'])
+Record = namedtuple('Record',
+    [
+        'name',
+        'start_ts',
+        'select_ts',
+        'comp_ts',
+        'perf',
+    ])
 
 class Protocol:
     def __init__(self, name):
@@ -28,11 +31,12 @@ class Protocol:
         return rec
 
     def add(self, rec):
-        if name not in self.records:
-            self.records[name] = []
-        self.records[name].append(rec)
+        if rec.name not in self.records:
+            self.records[rec.name] = [rec]
+        else:
+            self.records[rec.name].append(rec)
 
     def get_best(self):
-        return max(
-            self.records.items(),
-            key = lambda item : item.perf)
+        return min(
+            chain(*self.records.values()),
+            key = lambda rec : rec.perf)

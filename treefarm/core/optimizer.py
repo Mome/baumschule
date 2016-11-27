@@ -12,25 +12,14 @@ from math import inf
 import time
 import logging
 
+from .parameters import op
 from .serialize import serialize
 from .protocol import Protocol
 from .computing_engine import SimpleEngine
-from ..optimizers.random import RandomOptimizer
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('INFO')
-
-
-# TODO put this into config
-def get_default_optimizer():
-    """Factory method to create an optimizer."""
-
-    optimizer = RandomOptimizer(
-        protocol = Protocol('default'),
-        engine = SimpleEngine(),
-    )
-    return optimizer
+log.setLevel('DEBUG')
 
 
 def optimize_func(
@@ -63,12 +52,13 @@ def optimize(
 
     if return_object is None:
         # check for iteractive cell
-        return_object = os.isatty(sys.stdout.fileno())
+        return_object = sys.stdout.isatty()
 
     if return_object:
         return optim_obj
     else:
         optim_obj.start()
+
 
 class Optimization(threading.Thread):
     def __init__(self, search_space, optimizer, max_iterations, timeout):
@@ -77,7 +67,7 @@ class Optimization(threading.Thread):
         self.search_space = search_space
         self.max_iterations = max_iterations
         self.timeout = timeout
-        self._stop = threading.event()
+        self._stop = threading.Event()
         self.iteration = 0
         self.start_time = None
 
@@ -95,20 +85,29 @@ class Optimization(threading.Thread):
 
     def run(self):
         self.start_time = time.time()
+        reason = 'external'
 
         while True:
-            if timeout >= start_time - time.time():
+            if self.timeout <= time.time() - self.start_time:
+                reason = 'timeout'
                 self.stop()
-            elif iteration >= self.max_iterations:
+            elif self.iteration >= self.max_iterations:
+                reason = 'max_iteration'
                 self.stop()
-            if stopped():
+            if self.stopped():
                 break
 
             self.iteration += 1
-            next(self)
+            self.optimizer.compute_next(self.search_space)
+
+        log.info('optimization finished:%s' % reason)
 
 
 class Optimizer:
+    """No use at this point."""
+    pass
+
+class SequentialOptimizer(Optimizer):
     def __init__(self, protocol, engine):
         self.protocol = protocol
         self.engine = engine
@@ -124,8 +123,20 @@ class Optimizer:
         res = self.engine.evaluate(instance)
         comp_ts = time.time()
         rec = self.protocol.record(
-            instance_str, strart_ts, select_ts, comp_ts, res)
+            instance_str, start_ts, select_ts, comp_ts, res)
         return rec
 
     def pick_next(self, search_space):
         raise NotImplementedError()
+
+
+# TODO put this into config
+from ..optimizers.random import RandomSearcher
+def get_default_optimizer():
+    """Factory method to create an optimizer."""
+
+    optimizer = RandomSearcher(
+        protocol = Protocol('default'),
+        engine = SimpleEngine(),
+    )
+    return optimizer

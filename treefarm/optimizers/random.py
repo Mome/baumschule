@@ -1,7 +1,11 @@
 
-from ..core.random_variables import sample
-from ..core.optimizer import Optimizer
+from time import sleep
 
-class Solver(Optimizer):
-    def __next__(self):
-        return sample(self.search_space)
+from ..core.random_variables import sample
+from ..core.optimizer import SequentialOptimizer
+
+
+class RandomSearcher(SequentialOptimizer):
+    def pick_next(self, search_space):
+        sleep(0.1)
+        return sample(search_space)

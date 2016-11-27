@@ -56,7 +56,7 @@ class Environment(dict):
 
     def load_path(self, *paths):
         f = lambda p : iglob(normpath(expanduser(p)))
-        for filename in chain(*map(f, paths)):
+        for filename in sorted(chain(*map(f, paths))):
             glob = {
                 self.VARNAME : self,
                 '__file__' : filename,

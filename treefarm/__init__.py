@@ -20,6 +20,7 @@ from .core.computing_engine import compute
 from .core.iterators import iter_instances
 from .core.serialize import serialize
 from .core.display_dot import to_dot
+from .core.optimizer import optimize, optimize_func
 
 from .operations import *
 

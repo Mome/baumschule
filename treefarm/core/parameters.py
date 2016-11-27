@@ -6,7 +6,7 @@ from .environment import get_env
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 
 class Callable:
@@ -115,7 +115,6 @@ class Continuous(Primitive):
 
 
 class Operation(Callable):
-    # don't count as Parameters, yet.
 
     NOTATIONS = {'prefix', 'postfix', 'infix', 'name'}
 
@@ -159,7 +158,7 @@ class Combination(Operation):
 
 def op(func, name=None, **kwargs):
     if name is None:
-        name = foo.__name__
+        name = func.__name__
         if name == '<lambda>':
             log.warn('You should give a proper name to the function.')
     return Operation(func, name, **kwargs)

@@ -11,7 +11,7 @@ def serialize(param, lispstyle=False):
     """
 
     if type(param) == Apply:
-        assert type(param.operation) == Operation
+        assert isinstance(param.operation, Operation)
         arg_vals = map(serialize, param.domain.args)
         if param.domain.kwargs:
             kwarg_keys, kwarg_vals = zip(*param.domain.kwargs.items())

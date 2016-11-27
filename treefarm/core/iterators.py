@@ -52,3 +52,14 @@ def _ii_pml(pml, iter_primitives):
     for instance in product(*inst_iterators):
         d = dict(zip(keys, instance))
         yield ParameterList.from_dict(d)
+
+
+# notions of containment
+# - subset
+# - substructure
+# - element
+# - direct substructure
+# - direct subset
+#
+#
+#

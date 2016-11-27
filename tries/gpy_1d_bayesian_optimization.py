@@ -7,6 +7,7 @@ x = linspace(-20,20,101)
 #plot(x, objfunc(x))
 #show()
 
+
 # %% Define some functions
 def get_extendet_grid(X, n, ratio):
     # get a +10% grid around already evaluated points
@@ -17,6 +18,7 @@ def get_extendet_grid(X, n, ratio):
     xmax += ext
     grid = vectorize(linspace)(xmin, xmax, n)
     return grid
+
 
 def ei1d(mean_Y, var_Y, best_y):
     """
@@ -79,6 +81,3 @@ plot_stuff()
 #mes = input('Finished iteration: %s best_x=' % i)
 #if mes == 'exit':
 #    continue
-#
-
-# 
