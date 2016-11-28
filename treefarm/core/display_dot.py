@@ -13,47 +13,11 @@ from .parameters import (
 from .environment import get_config
 from .domains import Interval, ParameterList
 
-c = get_config().display_dot
-
 log = logging.getLogger(__name__)
 logging.basicConfig()
 
-
-schemes = {
-    'light' : {
-        'apply' : 'lightblue',
-        'background' : 'white',
-        'border' : 'white',
-        'combination' : '#ffc65d',
-        'edge' : '#404040',
-        'font' : '#404040',
-        'operation' : 'lightgreen',
-        'primitive' : '#f16745',
-        'value' : '#93648d',
-    },
-    'dark' : {
-        'apply' : '#4cc3d9',
-        'background' : '#404040',
-        'border' : '#404040',
-        'combination' : '#ffc65d',
-        'edge' : 'white',
-        'font' : 'white',
-        'operation' : '#7bc8a4',
-        'primitive' : '#f16745',
-        'value' : '#93648d',
-    },
-    'dark2' : {
-        'apply' : '#006699',
-        'background' : '#333333',
-        'border' : 'white',
-        'combination' : '#EE9911',
-        'edge' : 'white',
-        'font' : 'white',
-        'operation' : '#009966',
-        'primitive' : '#ae1414',
-        'value' : '#93648d',
-    },
-}
+c = get_config().display_dot
+schemes = c.colors
 
 
 def to_dot(param, color_scheme='light'):
@@ -106,6 +70,7 @@ def to_dot(param, color_scheme='light'):
     graph.edge('root', 'N' + str(id(param)))
 
     return graph
+
 
 def _to_dot_recursive(param, graph, recursion_tracker):
     assert param not in recursion_tracker, \
