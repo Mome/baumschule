@@ -44,11 +44,6 @@ class Environment(dict):
         assert not iskeyword(key)
         assert key not in dir(cls)
 
-    def add_subgroup(self, name):
-        self._check_key(name)
-        if not name in self:
-            self[name] = Configuration()
-
     def add_ops(self, *ops):
         for op in ops:
             assert 'name' in vars(op)
@@ -68,8 +63,20 @@ class Configuration(Environment):
 
     VARNAME = 'c'
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super().__init__('configuration')
+
+    def add_subgroup(self, name):
+        self._check_key(name)
+        if not name in self:
+            self[name] = Configuration()
+
+    @classmethod
+    def from_dict(cls, d):
+        """Create a Configuration object recursively from a dict."""
+        f = lambda val : cls.from_dict(val) if isinstance(val, dict) else val
+        return {key:f(val) for key, val in d.items()}
+
 
 
 # ---------- initializers ---------- #
