@@ -136,17 +136,30 @@ class Interval:
     def closed(self):
         return self.left_closed or self.right_closed
 
-    def __contains__(self, num):
+    def __contains__(self, arg):
         start, stop, step = self.start, self.stop, self.step
-        if not (start <= num <= stop):
-            return False
-        if num == start :
-            return self.left_closed
-        if num == stop and not self.right_closed:
-            return False
-        if step == 0:
-            return True
-        return divisible(num - start, step)
+
+        if isinstance(arg, (int, float)):
+            if not (start <= num <= stop):
+                return False
+            if arg == start :
+                return self.left_closed
+            if arg == stop and not self.right_closed:
+                return False
+            if step == 0:
+                return True
+            return divisible(num - start, step)
+
+        if isinstance(arg, Intervall):
+            if not (arg.start in self and arg.stop in self):
+                return False
+            if step == 0:
+                return True
+            if arg.step < step:
+                return False
+            raise NotImplementedError()
+
+        return False
 
     def __getitem__(self, key):
         # TODO: make step actually more meaningfull
