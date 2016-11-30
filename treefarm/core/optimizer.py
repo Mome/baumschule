@@ -46,25 +46,31 @@ def optimize(
     return_object = None):
 
     if optimizer is None:
-        optimizer = get_default_optimizer()
+        optimizer = get_default_optimizer(search_space)
 
-    optim_obj = Optimization(search_space, optimizer, max_iterations, timeout)
+    elif type(optimizer) == type:
+        optimizer = optimizer(
+            search_space = search_space,
+            protocol = Protocol('default'),
+            engine = SimpleEngine())
+
+    opt_obj = Optimization(optimizer, max_iterations, timeout)
 
     if return_object is None:
         # check for iteractive cell
         return_object = sys.stdout.isatty()
 
     if return_object:
-        return optim_obj
+        return opt_obj
     else:
-        optim_obj.start()
+        opt_obj.start()
+
 
 
 class Optimization(threading.Thread):
-    def __init__(self, search_space, optimizer, max_iterations, timeout):
+    def __init__(self, optimizer, max_iterations, timeout):
         super().__init__()
         self.optimizer = optimizer
-        self.search_space = search_space
         self.max_iterations = max_iterations
         self.timeout = timeout
         self._stop = threading.Event()
@@ -81,7 +87,7 @@ class Optimization(threading.Thread):
         yield next(self.optimizer)
 
     def __next__(self):
-        return self.optimizer.pick_next(self.search_space)
+        return self.optimizer.pick_next()
 
     def run(self):
         self.start_time = time.time()
@@ -98,44 +104,47 @@ class Optimization(threading.Thread):
                 break
 
             self.iteration += 1
-            self.optimizer.compute_next(self.search_space)
+            self.optimizer.compute_next()
 
-        log.info('optimization finished:%s' % reason)
+        log.info('optimization finished: %s' % reason)
 
 
 class Optimizer:
-    """No use at this point."""
-    pass
-
-class SequentialOptimizer(Optimizer):
-    def __init__(self, protocol, engine):
+    def __init__(self, search_space, protocol, engine):
+        self.search_space
         self.protocol = protocol
         self.engine = engine
+        self.samples = []
 
-    def compute_next(self, search_space):
+
+class SequentialOptimizer(Optimizer):
+
+    def compute_next(self):
         """Chooses an instance, computes the result and protocols"""
         # maybe use timestructs or datetime here
         start_ts = time.time()
-        instance = self.pick_next(search_space)
+        instance = self.pick_next()
         select_ts = time.time()
         instance_str = serialize(instance)
         log.info('Compute: %s' % instance_str)
         res = self.engine.evaluate(instance)
         comp_ts = time.time()
-        rec = self.protocol.record(
+        self.samples.append((instance, res))
+        record = self.protocol.record(
             instance_str, start_ts, select_ts, comp_ts, res)
-        return rec
+        return record
 
-    def pick_next(self, search_space):
+    def pick_next(self):
         raise NotImplementedError()
 
 
 # TODO put this into config
 from ..optimizers.random import RandomSearcher
-def get_default_optimizer():
+def get_default_optimizer(search_space):
     """Factory method to create an optimizer."""
 
     optimizer = RandomSearcher(
+        search_space = search_sapce,
         protocol = Protocol('default'),
         engine = SimpleEngine(),
     )

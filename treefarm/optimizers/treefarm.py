@@ -1,93 +1,57 @@
 
 from itertools import chain
 
+import numpy as np
 
 from ..core.parameters import Apply, Primitive, join, Operation, Combination
 from ..core.domains import ParameterList
+from ..core.sspace_utils import expand, fc_shape
+
+default_av = 1. # aqisition value for unseen expansions
 
 class TreeFarm:
 
     def __init__(self, search_space):
+        self.search_space = search_space
+        self.fc_shape = fc_shape(search_space, False)
+        self.expansions = np.empty(self.fc_shape, dtype=object)
+        self.av = default_av
+
+    def update_av(self):
+        self.av = max(
+            ex.av if ex else default_av
+            for ex in self.expansions.flat)
+
+    def iteration(self):
         ...
 
 
-def expand(search_space, index_vector, include_primitives=False):
-    # TODO shall accept slices?
-    # TODO how to index numerical primitives?
-    # TODO no index with strings yet
-
-    fcs = fc_shape(search_space, include_primitives)
-    assert len(index_vector) == len(fcs)
-
-    index_iter = iter(index_vector)
-
-    def _expand(search_space):
-        if type(search_space) == Apply:
-            dom = search_space.domain
-            op = search_space.operation
-            if isinstance(op, Combination):
-                if op == join:
-                    # TODO get a problem here, if indexed by key!!
-                    return dom[next(index_iter)]
-                else:
-                    raise NotImplementedError(
-                        'Join only as combination allowed.')
-            else:
-                if isinstance(op, Apply):
-                    op = _expand(op)
-
-                chosen_values = map(_expand, dom.values())
-                params = dict(zip(dom.keys(), chosen_values))
-                dom = ParameterList([], params)
-                return Apply(op, dom)
-
-        elif isinstance(search_space, Primitive):
-            if include_primitives:
-                raise NotImplementedError(
-                    'Indexing primitives not allowed yet.')
-            else:
-                return search_space
-        else:
-            raise NotImplementedError('Not a parameter.')
-
-    return _expand(search_space)
 
 
 
 
-def fc_shape(search_space, include_primitives=True):
-    """
-    Returns the flat choice shape of a search space.
+def subspace_of(space1, space2):
+    # wow this is hard
 
-    """
-    _fc_shape = lambda ss : fc_shape(ss, include_primitives)
+    if isinstance(space1, Apply):
+        if space1.operation ==
+        type1 = 'apply'
+    if isinstance(space1, Primitive):
+        ...
 
-    shape = []
-    if type(search_space) == Apply:
-        dom = search_space.domain
-        op = search_space.operation
-        if isinstance(op, Combination):
-            if op == join:
-                print('append op join')
-                shape.append(len(dom))
-            else:
-                raise NotImplementedError('Only join as combination allowed.')
-        else:
-            if isinstance(op, Apply):
-                subshapes = _fc_shape(op)
-                print('extend dom Apply')
-                shape.extend(subshapes)
 
-            subshapes = map(_fc_shape, dom)
-            print('extend dom Apply')
-            shape.extend(chain(*subshapes))
 
-    elif isinstance(search_space, Primitive):
-        if include_primitives:
-            print('append include primitives')
-            shape.append(len(search_space))
+    if isinstance(space1, Apply) and isinstance(space2, Apply):
+        ...
 
-    else:
-        raise NotImplementedError('Not a parameter.')
+    elif isinstance(space1, Apply):
+        ...
 
-    return tuple(shape)
+    elif isinstance(space1, Apply):
+        ...
+
+    else
+
+
+def primitive_in_primitive(self, prim1, prim2):
+    ...
