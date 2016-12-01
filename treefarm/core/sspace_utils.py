@@ -1,5 +1,7 @@
+from collections.abc import Sequence, Mapping
 
-from .parameters import Apply, Combination, Primitive
+from .parameters import (
+    Apply, Combination, Primitive, Parameter, Categorical, prod, join)
 
 
 def expand(sspace, index_vector, include_primitives=False):
@@ -76,3 +78,37 @@ def fc_shape(sspace, include_primitives=True):
         raise NotImplementedError('Not a parameter.')
 
     return tuple(shape)
+
+
+def to_space(arg):
+    arg = spacify(arg)
+    if type(arg) == dict:
+        return prod(**arg)
+    if type(arg) == set:
+        if converts_to_primitive(arg):
+            return Categorical(arg)
+        else:
+            return join(*arg)
+    else:
+        return arg
+
+
+def spacify(arg):
+    """Converts elements of a Sequence or Mappings to spaces."""
+
+    if isinstance(arg, Mapping):
+        gen = ((k,to_space(v)) for k,v in arg.items())
+    elif isinstance(arg, Sequence):
+        gen = (to_space(val) for val in arg)
+    else:
+        return arg
+
+    return type(arg)(gen)
+
+
+def converts_to_primitive(arg):
+    """Test if the elements of a Sequence are Values."""
+    for element in arg:
+        if isinstance(arg, (Parameter, Mapping, Sequence)):
+            return False
+    return True
