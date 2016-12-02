@@ -28,7 +28,7 @@ def serialize(param, lispstyle=False):
 
         return pattern.format(
             name = param.operation.name,
-            sep1 = sep,
+            sep1 = sep if lispstyle else '',
             args = sep.join(arg_vals),
             sep2 = sep if arg_vals and kwarg_items else '',
             kwargs = sep.join(kwarg_items),

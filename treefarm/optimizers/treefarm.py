@@ -24,34 +24,3 @@ class TreeFarm:
 
     def iteration(self):
         ...
-
-
-
-
-
-
-def subspace_of(space1, space2):
-    # wow this is hard
-
-    if isinstance(space1, Apply):
-        if space1.operation ==
-        type1 = 'apply'
-    if isinstance(space1, Primitive):
-        ...
-
-
-
-    if isinstance(space1, Apply) and isinstance(space2, Apply):
-        ...
-
-    elif isinstance(space1, Apply):
-        ...
-
-    elif isinstance(space1, Apply):
-        ...
-
-    else
-
-
-def primitive_in_primitive(self, prim1, prim2):
-    ...

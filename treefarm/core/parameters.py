@@ -114,6 +114,7 @@ class Continuous(Primitive):
         return str(self.domain)
 
 
+
 class Operation(Callable):
 
     NOTATIONS = {'prefix', 'postfix', 'infix', 'name'}
@@ -164,7 +165,6 @@ def op(func, name=None, **kwargs):
     return Operation(func, name, **kwargs)
 
 
-
 # --------------------- Combinations --------------------- #
 
 def join_func(*args, **kwargs):
@@ -178,6 +178,11 @@ def prod_func(*args, **kwargs):
 
 def power_func(arg1, arg2):
     raise NotADirectoryError()
+
+
+quote = Operation(
+    func=None,
+    name='quote')
 
 
 join = Combination(

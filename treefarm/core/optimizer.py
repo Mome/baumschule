@@ -16,18 +16,20 @@ from .parameters import op
 from .serialize import serialize
 from .protocol import Protocol
 from .computing_engine import SimpleEngine
+from .environment import get_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
 log.setLevel('DEBUG')
+conf = get_config()
 
 
 def optimize_func(
     func,
     param,
-    max_iterations = inf,
+    max_iter = inf,
     timeout = inf,
-    optimizer = None,
+    optimizer = 'default',
     return_object = None):
 
     assert callable(func)
@@ -35,47 +37,44 @@ def optimize_func(
     operation = op(func) # convert function to operation
     search_space = operation(param) # integrate into search space
     return optimize( # optimize search space
-        search_space, max_iterations, timeout, optimizer, return_object)
+        search_space, max_iter, timeout, optimizer, return_object)
 
 
 def optimize(
     search_space,
-    max_iterations = inf,
+    max_iter = inf,
     timeout = inf,
-    optimizer = None,
-    return_object = None):
+    optimizer = 'default',
+    return_object = False):
 
-    if optimizer is None:
-        optimizer = get_default_optimizer(search_space)
+    if type(optimizer) is str:
+        optimizer = conf.optimizers[optimizer]
+    if type(optimizer) is type:
+        optimizer = optimizer(search_space)
 
-    elif type(optimizer) == type:
-        optimizer = optimizer(
-            search_space = search_space,
-            protocol = Protocol('default'),
-            engine = SimpleEngine())
+    opt_obj = Optimization(optimizer, max_iter, timeout)
 
-    opt_obj = Optimization(optimizer, max_iterations, timeout)
-
-    if return_object is None:
+    """if return_object is None:
         # check for iteractive cell
-        return_object = sys.stdout.isatty()
+        return_object = sys.stdout.isatty()"""
 
     if return_object:
         return opt_obj
     else:
-        opt_obj.start()
-
+        assert max_iter < inf or timeout < inf, 'set max_iter or timeout'
+        opt_obj.run()
 
 
 class Optimization(threading.Thread):
-    def __init__(self, optimizer, max_iterations, timeout):
+    def __init__(self, optimizer, max_iter, timeout):
         super().__init__()
         self.optimizer = optimizer
-        self.max_iterations = max_iterations
+        self.max_iter = max_iter
         self.timeout = timeout
         self._stop = threading.Event()
         self.iteration = 0
         self.start_time = None
+        self.observers = []
 
     def stop(self):
         self._stop.set()
@@ -89,6 +88,12 @@ class Optimization(threading.Thread):
     def __next__(self):
         return self.optimizer.pick_next()
 
+    def write(self, *args, **kwargs):
+        for ob in self.optimizer.observers:
+            ob.write(*args, **kwargs)
+        for ob in self.observers:
+            ob.write(*args, **kwargs)
+
     def run(self):
         self.start_time = time.time()
         reason = 'external'
@@ -97,24 +102,29 @@ class Optimization(threading.Thread):
             if self.timeout <= time.time() - self.start_time:
                 reason = 'timeout'
                 self.stop()
-            elif self.iteration >= self.max_iterations:
+
+            elif self.iteration >= self.max_iter:
                 reason = 'max_iteration'
                 self.stop()
             if self.stopped():
                 break
 
             self.iteration += 1
-            self.optimizer.compute_next()
+            record = self.optimizer.compute_next()
+            self.write(record)
 
-        log.info('optimization finished: %s' % reason)
+        log.debug('optimization finished: %s' % reason)
 
 
 class Optimizer:
-    def __init__(self, search_space, protocol, engine):
-        self.search_space
-        self.protocol = protocol
+    def __init__(self, search_space, engine=None):
+        if engine is None:
+            engine = SimpleEngine()
+        self.search_space = search_space
         self.engine = engine
-        self.samples = []
+        self.protocol = []
+        self.observers = []
+        self.best = inf
 
 
 class SequentialOptimizer(Optimizer):
@@ -123,15 +133,24 @@ class SequentialOptimizer(Optimizer):
         """Chooses an instance, computes the result and protocols"""
         # maybe use timestructs or datetime here
         start_ts = time.time()
-        instance = self.pick_next()
+        point = self.pick_next()
         select_ts = time.time()
-        instance_str = serialize(instance)
-        log.info('Compute: %s' % instance_str)
-        res = self.engine.evaluate(instance)
+        sample_str = serialize(point)
+        log.debug('Compute: %s' % sample_str)
+        result = self.engine.evaluate(point)
         comp_ts = time.time()
-        self.samples.append((instance, res))
-        record = self.protocol.record(
-            instance_str, start_ts, select_ts, comp_ts, res)
+        self.protocol.append((point, result))
+
+        if result < self.best: 
+            self.best = result
+
+        record = {
+            'sample_str' : sample_str,
+            'start_ts' : start_ts,
+            'select_ts' : select_ts,
+            'comp_ts' : comp_ts,
+            'result' : result,
+        }
         return record
 
     def pick_next(self):
@@ -139,13 +158,6 @@ class SequentialOptimizer(Optimizer):
 
 
 # TODO put this into config
-from ..optimizers.random import RandomSearcher
-def get_default_optimizer(search_space):
-    """Factory method to create an optimizer."""
-
-    optimizer = RandomSearcher(
-        search_space = search_sapce,
-        protocol = Protocol('default'),
-        engine = SimpleEngine(),
-    )
-    return optimizer
+from ..optimizers.simple import RandomOptimizer
+def get_default_optimizer():
+    return RandomOptimizer()

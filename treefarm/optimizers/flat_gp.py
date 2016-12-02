@@ -1,17 +1,22 @@
 
 from itertools import count, chain
 from math import inf
+import logging
 
 import numpy as np
-from scipy.stats import stats
+import scipy.stats as stats
 import GPy
 
 from ..core.parameters import (
-    Primitive, Categorical, Continuous, Discrete, Parameter)
-from ..core.optimizer import SequentialOptimizer
-from . import RandomOptimizer
-from .sspace_utils import fc_shape, expand
+    Primitive, Categorical, Continuous, Discrete, Parameter, quote)
+from ..core.optimizer import SequentialOptimizer, optimize_func
+from .simple import RandomOptimizer
+from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
+
+log = logging.getLogger(__name__)
+logging.basicConfig()
+log.setLevel('DEBUG')
 
 
 class FlatGPOptimizer(SequentialOptimizer):
@@ -22,7 +27,10 @@ class FlatGPOptimizer(SequentialOptimizer):
     Transforms categorical spaces into a one-hot coding.
     """
 
-    def __init__(self, search_space, protocol, engine,
+    def __init__(
+        self,
+        search_space,
+        engine = None,
         aquifunc = None,
         kernel_cls = None,
         aquiopt_cls = None,
@@ -37,17 +45,14 @@ class FlatGPOptimizer(SequentialOptimizer):
                 aquisition function (default EI)
             kernel_cls :
                 kernel class (default RBF)
-            aqui_optimizer :
-                aquisition function optimizer (default RandomOptimizer)
+            aquiopt_cls:
+                aquisition function optimizer class (default RandomOptimizer)
         """
 
-        # assure integrity of search_space and call superconstructor
-        search_space = list(search_space)
-        assert all(isinstance(ss, Primitive) for ss in search_space)
-        super().__init__(search_space, protocol, engine)
+        super().__init__(search_space, engine)
 
         # infere argumments
-        if aqui_func == None:
+        if aquifunc == None:
             aquifunc = expected_improvement
         if kernel_cls == None:
             kernel_cls = GPy.kern.RBF
@@ -57,27 +62,27 @@ class FlatGPOptimizer(SequentialOptimizer):
         # calc dimensions of the Gaussian process
         dim_number = sum(
             len(ss) if type(ss) is Categorical else 1
-            for ss in search_space)
+            for ss in get_crown(search_space))
 
-        # kerenel and transformation function
+        # kernel and transformation function
         self.transform = self.construct_transform_func(search_space)
         self.kernel = kernel_cls(dim_number)
 
         # store to instance
         self.dim_number = dim_number
+        self.aquifunc = aquifunc
         self.aquiopt_cls = aquiopt_cls
-        self.aquiopt_factory = aquiopt_factory
-        self.best = inf
-
 
     def fit_model(self):
-        X, Y = zip(self.samples)
-        X = array([transform(x) for x in self.X])
-        print(X.shape)
+        X, Y = zip(*self.protocol)
+        X = np.array([self.transform(x) for x in X])
+        Y = np.array(Y).reshape(-1, 1)
+        log.debug('X.shape %s' % (X.shape,))
+        print('X', X)
+        print('Y', Y)
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.optimize()
         return m
-
 
     def pick_next(self):
 
@@ -85,26 +90,32 @@ class FlatGPOptimizer(SequentialOptimizer):
             return sample(self.search_space)
 
         m = self.fit_model()
+        #m.plot()
 
-        def objfunc(point):
+        def merrit_func(point):
+            print('point1', point)
             point = self.transform(point)
+            point = np.array(point).reshape([1,-1])
+            print('point2', point)
             nonlocal m
             x_mean, x_var = m.predict(point)
-            return self.aquifunc(point)
+            x_mean = x_mean[0][0]
+            x_var = x_var[0][0]
+            return self.aquifunc(x_mean, x_var, self.best)
 
         opt_obj = optimize_func(
-            func = objfunc,
-            param = self.search_space,
+            func = merrit_func,
+            param = quote(self.search_space),
             optimizer = self.aquiopt_cls,
             max_iter = 100,
             return_object = True,
         )
         opt_obj.run()
-        points, perf = opt_obj.optimizer.samples
-        best = points[np.argmax(perf)]
+        points, errors = zip(*opt_obj.optimizer.protocol)
+        best = points[np.argmin(errors)]
+        best = get_subspace(best, (0,0))
 
         return best
-
 
     @staticmethod
     def construct_transform_func(search_space):
@@ -117,8 +128,10 @@ class FlatGPOptimizer(SequentialOptimizer):
             the translations become: {'A':(0,0,1), 'B':(0,1,0), 'C':(1,0,0)}
             transform([1,3,'A',9]) -> [1,3,0,0,1,9]
         """
+        crown, crown_indices = get_crown(search_space, include_primitives=True)
+
         translations = {}
-        for i,ss in enumerate(search_space):
+        for i,ss in enumerate(crown):
             if type(ss) != Categorical:
                 continue
             one_hot = lambda j : tuple(int(j==x) for x in range(len(ss)))
@@ -126,14 +139,15 @@ class FlatGPOptimizer(SequentialOptimizer):
             items = zip(ss.domain, code)
             translations[i] = dict(items)
 
-        def transfrom(vector):
+        def transform(tree):
+            vector = [get_subspace(tree, i) for i in crown_indices]
+            print('vector', vector)
             it = chain.from_iterable(
                 translations[i][val] if i in translations else [val]
                 for i,val in enumerate(vector))
-            return np.array(it).reshape(-1, 1)
+            return np.array(tuple(it))
 
-        return transfrom
-
+        return transform
 
 
 def expected_improvement(mean_Y, var_Y, best_y):
@@ -147,23 +161,7 @@ def expected_improvement(mean_Y, var_Y, best_y):
     best_y : saclar
     """
 
-    ratio = best_y / sqrt(var_Y)
+    ratio = best_y / np.sqrt(var_Y)
     lhs = (best_y - mean_Y)*stats.norm.cdf(ratio)
     rhs = stats.norm.pdf(ratio)
     return lhs - rhs
-
-
-def get_crown(search_space):
-    crown = []
-
-    def _find_choice_points(subspace):
-        if (isinstance(search_space, Apply)
-            and search_space.operation != join):
-                _find_choice_points(search_space.operation)
-                for subs in search_space.domain:
-                    _find_choice_points(subs)
-        else:
-            crown.append(subspace)
-
-    _find_choice_points(search_space)
-    return crown

@@ -16,7 +16,7 @@ class RandomOptimizer(SequentialOptimizer):
 
 
 class ExhaustiveOptimizer(SequentialOptimizer):
-	"""
+    """
     Iterates over all instances of an iterable search space.
 
     """
@@ -25,5 +25,5 @@ class ExhaustiveOptimizer(SequentialOptimizer):
         super().__init__(search_space, protocol, engine)
         self.iterator = iter(search_space)
 
-	def pick_next(self):
+    def pick_next(self):
         return next(self.iterator)

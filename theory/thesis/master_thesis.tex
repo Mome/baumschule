@@ -186,8 +186,10 @@ A non-exaustive list of general criteria for a good hyperparameter optimization 
 \section{Gaussian Processes Regression}
 
 \subsection{Kernels}
+
 \subsubsection{Squared-Exponential Kernel}
 The squared-exponential kernel (also called radial basis function kernel (RBF)) has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards one.
+
 \subsubsection{Kernel Combination}
 Kernel combination properties. Maybe: Why do they work!
 
@@ -221,12 +223,26 @@ Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distrib
 \subsubsection{Entropy search}
 \subsubsection{Upper confidence bound}
 
+\subsection{Aquisition optimization}
+The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
+
+\subsubsection{Recommendation Strategy}
+The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}. 
+
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
-\subsection{SMAC}
 
 
-\subsection{The Tree-Parzen Algorithm}
+
+
+
+\subsection{Conditional Parameters}
+
+
+\subsubsection{SMAC}
+
+
+\subsubsection{The Tree-Parzen Algorithm}
 The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
 
 \subsection{Tree and Graph Kernels/Metrics}

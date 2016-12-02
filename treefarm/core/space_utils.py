@@ -4,20 +4,20 @@ from .parameters import (
     Apply, Combination, Primitive, Parameter, Categorical, prod, join)
 
 
-def expand(sspace, index_vector, include_primitives=False):
+def expand(search_space, index_vector, include_primitives=False):
     # TODO shall accept slices?
     # TODO how to index numerical primitives?
     # TODO no index with strings yet
 
-    fcs = fc_shape(sspace, include_primitives)
+    fcs = fc_shape(search_space, include_primitives)
     assert len(index_vector) == len(fcs)
 
     index_iter = iter(index_vector)
 
-    def _expand(sspace):
-        if type(sspace) == Apply:
-            dom = sspace.domain
-            op = sspace.operation
+    def _expand(search_space):
+        if type(search_space) == Apply:
+            dom = search_space.domain
+            op = search_space.operation
             if isinstance(op, Combination):
                 if op == join:
                     # TODO get a problem here, if indexed by key!!
@@ -34,19 +34,22 @@ def expand(sspace, index_vector, include_primitives=False):
                 dom = ParameterList.from_items(params)
                 return Apply(op, dom)
 
-        elif isinstance(sspace, Primitive):
+        elif isinstance(search_space, Primitive):
             if include_primitives:
-                raise NotImplementedError(
-                    'Indexing primitives not allowed yet.')
+                val = next(index_iter)
+                if val in search_space.domain:
+                    return val
+                else:
+                    raise KeyError('%s not in primitive.')
             else:
-                return sspace
+                return search_space
         else:
             raise NotImplementedError('Not a parameter.')
 
-    return _expand(sspace)
+    return _expand(search_space)
 
 
-def fc_shape(sspace, include_primitives=True):
+def fc_shape(search_space, include_primitives=True):
     """
     Returns the flat choice shape of a search space.
 
@@ -54,9 +57,9 @@ def fc_shape(sspace, include_primitives=True):
     _fc_shape = lambda ss : fc_shape(ss, include_primitives)
 
     shape = []
-    if type(sspace) == Apply:
-        dom = sspace.domain
-        op = sspace.operation
+    if type(search_space) == Apply:
+        dom = search_space.domain
+        op = search_space.operation
         if isinstance(op, Combination):
             if op == join:
                 shape.append(len(dom))
@@ -70,14 +73,47 @@ def fc_shape(sspace, include_primitives=True):
             subshapes = map(_fc_shape, dom)
             shape.extend(chain(*subshapes))
 
-    elif isinstance(sspace, Primitive):
+    elif isinstance(search_space, Primitive):
         if include_primitives:
-            shape.append(len(sspace))
+            shape.append(len(search_space))
 
     else:
         raise NotImplementedError('Not a parameter.')
 
     return tuple(shape)
+
+
+def get_crown(search_space, include_primitives=True):
+    crown = []
+    indices = []
+
+    def _find_choice_points(subspace, index):
+        is_cp = False
+        if isinstance(subspace, Apply):
+            if subspace.operation == join:
+                is_cp = True
+            else:
+                _find_choice_points(subspace.operation, (*index, -1))
+                for i, subs in enumerate(subspace.domain):
+                    _find_choice_points(subs, (*index, i))
+        elif isinstance(subspace, Primitive) and include_primitives:
+            is_cp = True
+
+        if is_cp:
+            crown.append(subspace)
+            indices.append(index)
+
+    _find_choice_points(search_space, ())
+    return crown, indices
+
+
+def get_subspace(subspace, index):
+    for i in index:
+        if i == -1:
+            subspace = subspace.operator
+        else:
+            subspace = subspace.domain[i]
+    return subspace
 
 
 def to_space(arg):

@@ -13,14 +13,16 @@ from .core.parameters import (
     join, intersect, power, prod,
 )
 
+
 from .core.simplify import simplify
 from .core.display_str import pprint , pformat
 from .core.random_variables import sample
 from .core.computing_engine import compute
 from .core.iterators import iter_instances
 from .core.serialize import serialize
-from .core.display_dot import to_dot
+from .core.display_dot import todot
 from .core.optimizer import optimize, optimize_func
+from .core.space_utils import to_space as convert
 
 from .operations import *
 

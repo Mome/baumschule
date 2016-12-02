@@ -20,7 +20,7 @@ c = get_config().display_dot
 schemes = c.colors
 
 
-def to_dot(param, color_scheme='light'):
+def todot(param, color_scheme='light'):
 
     global colors
     colors = schemes[color_scheme]

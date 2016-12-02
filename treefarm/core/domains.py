@@ -32,12 +32,27 @@ class ParameterList:
     def extend(self, list_arg):
         self.args.extend(list_arg)
 
-    def update(self, dict_arg, overwrite=True):
-        # TODO: make sure numbers are sorted in correctly
+    def update(self, arg, overwrite=True):
+
         if not overwrite:
-            assert not any(dict_arg.keys() for k in self.keys()), \
+            if isinstance(arg, ParameterList):
+                args = arg.args
+                kwargs = arg.kwargs
+            elif isinstance(arg, Sequence):
+                args = arg
+                kwargs = {}
+            elif isinstance(arg, Mapping):
+                args = []
+                kwargs = arg
+
+            assert not any(kwargs.keys() for k in self.keys()), \
                 'Parameterlists with common keyword argument cannot be combined'
-        self.kwargs.update(dict_arg)
+
+            self.extend(args)
+            self.kwargs.update(kwargs)
+
+        else:
+            raise NotImplementedError()
 
     def get(self, key, default=None):
         if key in self.keys():

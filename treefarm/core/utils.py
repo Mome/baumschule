@@ -16,3 +16,13 @@ def divisible(num, denum):
         num *= 10
         denum *= 10
     return not (num % denum)
+
+def get_minium_states(protocol):
+    _, perfs = zip(*protocol)
+    a = [perfs[0]]
+    for p in perfs[0:]:
+         if p < a[-1]:
+             a.append(p)
+         else:
+             a.append(a[-1])
+    return a

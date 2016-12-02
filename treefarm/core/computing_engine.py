@@ -1,5 +1,5 @@
 from .domains import ParameterList
-from .parameters import Apply
+from .parameters import Apply, quote, prod
 
 class ComputingEngine:
     def evaluate(self, computation_graph):
@@ -15,16 +15,36 @@ class SimpleEngine(ComputingEngine):
         if not type(func_tree) is Apply:
             return func_tree
 
-        list_result = [
+        if func_tree.operation == quote:
+            return func_tree.domain
+
+        plist = ParameterList([], {})
+        for key, val in func_tree.domain.items():
+            val = self.evaluate(val)
+            if type(key) == int:
+                if type(val) is ParameterList:
+                    plist.update(val, overwrite=False)
+                else:
+                    plist.append(val)
+            elif type(key) == str:
+                assert key not in plist.keys()
+                plist[key] = val
+            else:
+                raise KeyError(
+                'Only str and int allowed as keys! type: %s' % type(key))
+
+        """list_result = [
             self.evaluate(sub)
             for sub in func_tree.domain.args]
         dict_result = {
             key:self.evaluate(val)
-            for key, val in func_tree.domain.kwargs.items()}
+            for key, val in func_tree.domain.kwargs.items()}"""
+
+        #print(func_tree.operation, plist.args, plist.kwargs)
 
         result = func_tree.operation.func(
-            *list_result,
-            **dict_result)
+            *plist.args,
+            **plist.kwargs)
 
         return result
 
