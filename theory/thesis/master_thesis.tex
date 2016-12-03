@@ -89,6 +89,8 @@ a.k.a. - model-free or direct
 
 \subsubsection*{single vs multiobjective}
 
+\subsubsection*{scalability}
+
 \subsubsection*{approximations}
  - early stopping
  - data subset
@@ -227,7 +229,7 @@ Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distrib
 The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
 
 \subsubsection{Recommendation Strategy}
-The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}. 
+The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
 
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.

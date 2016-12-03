@@ -148,3 +148,16 @@ def converts_to_primitive(arg):
         if isinstance(arg, (Parameter, Mapping, Sequence)):
             return False
     return True
+
+
+
+class SearchSpaceTransformer:
+
+    def __init__(self, search_space):
+        ...
+
+    def transform():
+        ...
+
+    def tranform_back():
+        ...

@@ -20,7 +20,7 @@ from .environment import get_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 conf = get_config()
 
 
@@ -63,6 +63,10 @@ def optimize(
     else:
         assert max_iter < inf or timeout < inf, 'set max_iter or timeout'
         opt_obj.run()
+        prot = opt_obj.optimizer.protocol
+        perfs = list(zip(*prot))[1]
+        index = perfs.index(min(perfs))
+        return prot[index]
 
 
 class Optimization(threading.Thread):
@@ -83,10 +87,29 @@ class Optimization(threading.Thread):
         return self._stop.isSet()
 
     def __iter__(self):
-        yield next(self.optimizer)
+        self.start_time = time.time()
+        reason = 'external'
+
+        while True:
+            if self.iteration >= self.max_iter:
+                reason = 'max_iteration'
+                self.stop()
+            elif self.timeout <= time.time() - self.start_time:
+                reason = 'timeout'
+                self.stop()
+
+            if self.stopped():
+                break
+
+            yield next(self)
+
+        log.debug('optimization finished: %s' % reason)
 
     def __next__(self):
-        return self.optimizer.pick_next()
+        self.iteration += 1
+        record = self.optimizer.compute_next()
+        self.write(record)
+        return record
 
     def write(self, *args, **kwargs):
         for ob in self.optimizer.observers:
@@ -95,25 +118,8 @@ class Optimization(threading.Thread):
             ob.write(*args, **kwargs)
 
     def run(self):
-        self.start_time = time.time()
-        reason = 'external'
-
-        while True:
-            if self.timeout <= time.time() - self.start_time:
-                reason = 'timeout'
-                self.stop()
-
-            elif self.iteration >= self.max_iter:
-                reason = 'max_iteration'
-                self.stop()
-            if self.stopped():
-                break
-
-            self.iteration += 1
-            record = self.optimizer.compute_next()
-            self.write(record)
-
-        log.debug('optimization finished: %s' % reason)
+        for _ in iter(self):
+            pass
 
 
 class Optimizer:
@@ -141,7 +147,7 @@ class SequentialOptimizer(Optimizer):
         comp_ts = time.time()
         self.protocol.append((point, result))
 
-        if result < self.best: 
+        if result < self.best:
             self.best = result
 
         record = {
