@@ -197,7 +197,7 @@ class Interval:
 
     def __iter__(self):
         if self.step == 0:
-            raise NotIterableError('Continuous Interval cannot be iterated.')
+            raise NotIterableError('Continuous interval cannot be iterated.')
         if not self.bounded:
             raise Warning('Iteration of infinite %s will take forever.' % self)
             raise NotImplementedError()
@@ -214,8 +214,9 @@ class Interval:
         if self.left_closed and val + self.step == self.stop:
             return self.stop
 
-    def __len__(self):
-        if step == 0 or not self.bounded:
+    def len(self):
+        # TODO check for one element intervals
+        if self.step == 0 or not self.bounded:
             return inf
         bounds = self.left_closed + self.right_closed
         return self.stop - self.start - bounds
