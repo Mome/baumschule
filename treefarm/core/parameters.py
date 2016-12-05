@@ -94,8 +94,9 @@ class Apply(Parameter):
 
 
 class Primitive(Parameter):
-    def __len__(self):
-        return len(self.domain)
+    pass
+    """def __len__(self):
+        return len(self.domain)"""
 
 class Categorical(Primitive):
     def __str__(self):

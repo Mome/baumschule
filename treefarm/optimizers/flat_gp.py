@@ -10,7 +10,8 @@ import GPy
 
 from ..core.parameters import (
     Primitive, Categorical, Continuous, Discrete, Parameter, quote)
-from ..core.optimizer import SequentialOptimizer, optimize_func
+from ..core.optimizer import (
+    SequentialOptimizer, FlatOptimizer, optimize_func)
 from .simple import RandomOptimizer
 from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
@@ -20,7 +21,7 @@ logging.basicConfig()
 log.setLevel('DEBUG')
 
 
-class FlatGPOptimizer(SequentialOptimizer):
+class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
     """
     Flat Gaussian Process Optimizer for deterministic response surface.
 
@@ -50,7 +51,7 @@ class FlatGPOptimizer(SequentialOptimizer):
                 aquisition function optimizer class (default RandomOptimizer)
         """
 
-        super().__init__(search_space, engine)
+        super().__init__(search_space=search_space, engine=engine)
 
         # infere argumments
         if aquifunc == None:
@@ -60,18 +61,9 @@ class FlatGPOptimizer(SequentialOptimizer):
         if aquiopt_cls == None:
             aquiopt_cls = RandomOptimizer
 
-        # get crown & calc dimensions of the Gaussian process
-        crown, crown_indices = get_crown(search_space, include_primitives=True)
-        dim_number = sum(
-            len(ss) if type(ss) is Categorical else 1
-            for ss in crown)
-        self.dim_number = dim_number
-        self.crown = crown
-        self.crown_indices = crown_indices
-
-        # create kernel and transformation function
-        self.transform = self.construct_transform_func()
-        self.kernel = reduce(lambda x,y : x + y, (K(dim_number) for K in kernel_cls))
+        # create kernel
+        self.kernel = reduce(
+            lambda x,y : x + y, (K(self.dim_number) for K in kernel_cls))
 
         # store to instance
         self.aquifunc = aquifunc
@@ -83,11 +75,11 @@ class FlatGPOptimizer(SequentialOptimizer):
         X = np.array([self.transform(x) for x in X])
         Y = np.array(Y).reshape(-1, 1)
         log.debug('X.shape %s' % (X.shape,))
-        #import ipdb; ipdb.set_trace()
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.Gaussian_noise.constrain_fixed(0.0)
         m.optimize()
         return m
+
 
     def pick_next(self):
 
@@ -119,35 +111,6 @@ class FlatGPOptimizer(SequentialOptimizer):
 
         return best
 
-    def construct_transform_func(self):
-        """
-        Returns a function that maps points from the search space into
-        a numerical vector space (i.e. applies one hot coding to categories)
-
-        Example:
-            If the third entry in a search space is {'A','B','C'},
-            the translations become: {'A':(0,0,1), 'B':(0,1,0), 'C':(1,0,0)}
-            transform([1,3,'A',9]) -> [1,3,0,0,1,9]
-        """
-
-        translations = {}
-        for i, ss in enumerate(self.crown):
-            if type(ss) != Categorical:
-                continue
-            one_hot = lambda j : tuple(int(j==x) for x in range(len(ss)))
-            code = map(one_hot, count())
-            items = zip(ss.domain, code)
-            translations[i] = dict(items)
-
-        def transform(tree):
-            vector = [get_subspace(tree, i) for i in self.crown_indices]
-            it = chain.from_iterable(
-                translations[i][val] if i in translations else [val]
-                for i,val in enumerate(vector))
-            return np.array(tuple(it))
-
-        return transform
-
 
 def expected_improvement0(mean_Y, var_Y, best_y):
     """
@@ -164,6 +127,7 @@ def expected_improvement0(mean_Y, var_Y, best_y):
     lhs = (best_y - mean_Y)*stats.norm.cdf(ratio)
     rhs = stats.norm.pdf(ratio)
     return lhs - rhs
+
 
 def expected_improvement(mean_Y , var_Y, best_y):
     s = np.sqrt(var_Y)

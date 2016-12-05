@@ -1,4 +1,6 @@
 from collections.abc import Sequence, Mapping
+from itertools import chain
+
 
 from .parameters import (
     Apply, Combination, Primitive, Parameter, Categorical, prod, join)
@@ -148,16 +150,3 @@ def converts_to_primitive(arg):
         if isinstance(arg, (Parameter, Mapping, Sequence)):
             return False
     return True
-
-
-
-class SearchSpaceTransformer:
-
-    def __init__(self, search_space):
-        ...
-
-    def transform():
-        ...
-
-    def tranform_back():
-        ...
