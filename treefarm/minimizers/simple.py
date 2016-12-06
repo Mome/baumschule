@@ -2,10 +2,10 @@
 from time import sleep
 
 from ..core.random_variables import sample
-from ..core.optimizer import SequentialOptimizer
+from ..core.minimizer import SequentialMinimizer
 
 
-class RandomOptimizer(SequentialOptimizer):
+class RandomMinimizer(SequentialMinimizer):
     """
     Samples from search space distribution.
 
@@ -15,7 +15,7 @@ class RandomOptimizer(SequentialOptimizer):
         return sample(self.search_space)
 
 
-class ExhaustiveOptimizer(SequentialOptimizer):
+class ExhaustiveMinimizer(SequentialMinimizer):
     """
     Iterates over all instances of an iterable search space.
 

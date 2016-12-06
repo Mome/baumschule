@@ -1,2 +1,4 @@
-from .flat_gp import FlatGPOptimizer
-from .simple import RandomOptimizer, ExhaustiveOptimizer
+
+from .flatgp import FlatGPMinimizer
+from .treegp import TreeGPMinimizer
+from .simple import RandomMinimizer, ExhaustiveMinimizer

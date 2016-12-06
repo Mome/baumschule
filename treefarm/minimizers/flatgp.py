@@ -10,9 +10,9 @@ import GPy
 
 from ..core.parameters import (
     Primitive, Categorical, Continuous, Discrete, Parameter, quote)
-from ..core.optimizer import (
-    SequentialOptimizer, FlatOptimizer, optimize_func)
-from .simple import RandomOptimizer
+from ..core.minimizer import (
+    SequentialMinimizer, FlatMinimizer, minimize_func)
+from .simple import RandomMinimizer
 from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
 
@@ -21,9 +21,9 @@ logging.basicConfig()
 log.setLevel('DEBUG')
 
 
-class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
+class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
     """
-    Flat Gaussian Process Optimizer for deterministic response surface.
+    Flat Gaussian Process Minimizer for deterministic response surface.
 
     Fits a Gaussian process to a list of primitive spaces.
     Transforms categorical spaces into a one-hot coding.
@@ -48,7 +48,7 @@ class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
             kernel_cls :
                 kernel class (default RBF)
             aquiopt_cls:
-                aquisition function optimizer class (default RandomOptimizer)
+                aquisition function minimizer class (default RandomMinimizer)
         """
 
         super().__init__(search_space=search_space, engine=engine)
@@ -59,7 +59,7 @@ class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
         if kernel_cls == None:
             kernel_cls = [GPy.kern.RBF, GPy.kern.Bias]
         if aquiopt_cls == None:
-            aquiopt_cls = RandomOptimizer
+            aquiopt_cls = RandomMinimizer
 
         # create kernel
         self.kernel = reduce(
@@ -68,10 +68,13 @@ class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
         # store to instance
         self.aquifunc = aquifunc
         self.aquiopt_cls = aquiopt_cls
+        self.auto_update = True
+        self.best_aquival = None # best aquisition value
+        self.best_aqui_instance = None # instance with best aquisition value
 
 
     def fit_model(self):
-        X, Y = zip(*self.protocol)
+        X, Y = zip(*self.observers['protocol'])
         X = np.array([self.transform(x) for x in X])
         Y = np.array(Y).reshape(-1, 1)
         log.debug('X.shape %s' % (X.shape,))
@@ -80,14 +83,11 @@ class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
         m.optimize()
         return m
 
-
-    def pick_next(self):
-
-        if len(self.protocol) < 2:
-            return sample(self.search_space)
-
+    def update(self, best_perf=None):
         self.model = self.fit_model()
-        #m.plot()
+
+        if best_perf == None:
+            best_perf = self.best_perf
 
         def merrit_func(point):
             point = self.transform(point)
@@ -95,21 +95,35 @@ class FlatGPOptimizer(FlatOptimizer, SequentialOptimizer):
             x_mean, x_var = self.model.predict(point)
             x_mean = x_mean[0][0]
             x_var = x_var[0][0]
-            return self.aquifunc(x_mean, x_var, self.best)
+            return self.aquifunc(x_mean, x_var, best_perf)
 
-        opt_obj = optimize_func(
+        # make this an attribute and add clean function
+        opt_obj = minimize_func(
             func = merrit_func,
             param = quote(self.search_space),
-            optimizer = self.aquiopt_cls,
+            minimizer = self.aquiopt_cls,
             max_iter = 100,
             return_object = True,
         )
         opt_obj.run()
-        points, errors = zip(*opt_obj.optimizer.protocol)
-        best = points[np.argmax(errors)]
-        best = get_subspace(best, (0,0))
 
-        return best
+        instances, aquivals = zip(*opt_obj.minimizer.observers['protocol'])
+        index = np.argmax(aquivals)
+        self.best_aquival = aquivals[index]
+        bai = instances[index]
+        bai = get_subspace(bai, (0, 0)) # remove merrit+quote
+        self.best_aqui_instance = bai
+
+
+    def pick_next(self):
+
+        if len(self.observers['protocol']) < 2:
+            return sample(self.search_space)
+
+        if self.auto_update:
+            self.update()
+
+        return self.best_aqui_instance
 
 
 def expected_improvement0(mean_Y, var_Y, best_y):
