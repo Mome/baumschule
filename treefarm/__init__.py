@@ -21,7 +21,7 @@ from .core.computing_engine import compute
 from .core.iterators import iter_instances
 from .core.serialize import serialize
 from .core.display_dot import todot
-from .core.optimizer import optimize, optimize_func
+from .core.minimizer import minimize, minimize_func
 from .core.space_utils import to_space as convert
 
 from .operations import *

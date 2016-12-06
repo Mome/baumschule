@@ -17,7 +17,7 @@ import numpy as np
 
 from .parameters import op
 from .serialize import serialize
-from .protocol import Protocol
+from .protocol import SimpleProtocol
 from .computing_engine import SimpleEngine
 from .environment import get_config
 from .space_utils import get_crown, get_subspace, expand
@@ -25,39 +25,39 @@ from .parameters import Categorical
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 conf = get_config()
 
 
-def optimize_func(
+def minimize_func(
     func,
     param,
     max_iter = inf,
     timeout = inf,
-    optimizer = 'default',
+    minimizer = 'default',
     return_object = None):
 
     assert callable(func)
 
     operation = op(func) # convert function to operation
     search_space = operation(param) # integrate into search space
-    return optimize( # optimize search space
-        search_space, max_iter, timeout, optimizer, return_object)
+    return minimize( # minimize search space
+        search_space, max_iter, timeout, minimizer, return_object)
 
 
-def optimize(
+def minimize(
     search_space,
     max_iter = inf,
     timeout = inf,
-    optimizer = 'default',
+    minimizer = 'default',
     return_object = False):
 
-    if type(optimizer) is str:
-        optimizer = conf.optimizers[optimizer]
-    if type(optimizer) is type:
-        optimizer = optimizer(search_space)
+    if type(minimizer) is str:
+        minimizer = conf.minimizers[minimizer]
+    if type(minimizer) is type:
+            minimizer = minimizer(search_space)
 
-    opt_obj = Optimization(optimizer, max_iter, timeout)
+    opt_obj = Minimization(minimizer, max_iter, timeout)
 
     """if return_object is None:
         # check for iteractive cell
@@ -68,16 +68,16 @@ def optimize(
     else:
         assert max_iter < inf or timeout < inf, 'set max_iter or timeout'
         opt_obj.run()
-        prot = opt_obj.optimizer.protocol
+        prot = opt_obj.minimizer.observers['protocol']
         perfs = list(zip(*prot))[1]
         index = perfs.index(min(perfs))
         return prot[index]
 
 
-class Optimization(threading.Thread):
-    def __init__(self, optimizer, max_iter, timeout):
+class Minimization(threading.Thread):
+    def __init__(self, minimizer, max_iter, timeout):
         super().__init__()
-        self.optimizer = optimizer
+        self.minimizer = minimizer
         self.max_iter = max_iter
         self.timeout = timeout
         self._stop = threading.Event()
@@ -108,17 +108,15 @@ class Optimization(threading.Thread):
 
             yield next(self)
 
-        log.debug('optimization finished: %s' % reason)
+        log.debug('minimization finished: %s' % reason)
 
     def __next__(self):
         self.iteration += 1
-        record = self.optimizer.compute_next()
+        record = self.minimizer.compute_next()
         self.write(record)
         return record
 
     def write(self, *args, **kwargs):
-        for ob in self.optimizer.observers:
-            ob.write(*args, **kwargs)
         for ob in self.observers:
             ob.write(*args, **kwargs)
 
@@ -127,49 +125,54 @@ class Optimization(threading.Thread):
             pass
 
 
-class Optimizer:
+class Minimizer:
     def __init__(self, search_space, engine=None):
         if engine is None:
             engine = SimpleEngine()
         self.search_space = search_space
         self.engine = engine
-        self.protocol = []
-        self.observers = []
-        self.best = inf
+        self.observers = {'protocol' : SimpleProtocol()}
+        self.best_instance = None
+        self.best_perf = inf
 
 
-class SequentialOptimizer(Optimizer):
+class SequentialMinimizer(Minimizer):
 
     def compute_next(self):
         """Chooses an instance, computes the result and protocols"""
         # maybe use timestructs or datetime here
         start_ts = time.time()
-        point = self.pick_next()
-        select_ts = time.time()
-        sample_str = serialize(point)
-        log.debug('Compute: %s' % sample_str)
-        result = self.engine.evaluate(point)
-        comp_ts = time.time()
-        self.protocol.append((point, result))
+        instance = self.pick_next()
+        select_time = time.time() - start_ts
+        instance_str = serialize(instance)
+        log.debug('Compute: %s' % instance_str)
+        perf = self.engine.evaluate(instance)
+        comp_time = time.time() - start_ts - select_time
 
-        if result < self.best:
-            self.best = result
-
-        record = {
-            'sample_str' : sample_str,
+        result = {
+            'instance' : instance,
+            'instance_str' : instance_str,
             'start_ts' : start_ts,
-            'select_ts' : select_ts,
-            'comp_ts' : comp_ts,
-            'result' : result,
+            'select_time' : select_time,
+            'comp_time' : comp_time,
+            'perf' : perf,
         }
-        return record
+
+        for ob in self.observers.values():
+            ob.write(**result)
+
+        if result['perf'] < self.best_perf :
+            self.best_perf = result['perf']
+            self.best_instance = result['instance']
+
+        return result
 
     def pick_next(self):
         raise NotImplementedError()
 
 
-class FlatOptimizer(Optimizer):
-    # TODO make one-hot coding optional
+class FlatMinimizer(Minimizer):
+    # TODO make one-hot coding minional
 
     def __init__(self, search_space, categ_to_onehot=False, **kwargs):
         super().__init__(search_space=search_space, **kwargs)
@@ -190,7 +193,7 @@ class FlatOptimizer(Optimizer):
 
     def construct_transforms(self):
         """
-        Returns a function that maps points from the search space into
+        Returns a function that maps instances from the search space into
         a numerical vector space (i.e. applies one hot coding to categories)
 
         Example:
@@ -224,6 +227,6 @@ class FlatOptimizer(Optimizer):
 
 
 # TODO put this into config
-from ..optimizers.simple import RandomOptimizer
-def get_default_optimizer():
-    return RandomOptimizer()
+from ..minimizers.simple import RandomMinimizer
+def get_default_minimizer():
+    return RandomMinimizer()
