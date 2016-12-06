@@ -155,7 +155,7 @@ class Interval:
         start, stop, step = self.start, self.stop, self.step
 
         if isinstance(arg, (int, float)):
-            if not (start <= num <= stop):
+            if not (start <= arg <= stop):
                 return False
             if arg == start :
                 return self.left_closed
@@ -163,7 +163,7 @@ class Interval:
                 return False
             if step == 0:
                 return True
-            return divisible(num - start, step)
+            return divisible(arg - start, step)
 
         if isinstance(arg, Intervall):
             if not (arg.start in self and arg.stop in self):

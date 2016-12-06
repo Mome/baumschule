@@ -1,5 +1,5 @@
 from .domains import ParameterList
-from .parameters import Apply, quote, prod
+from .spaces import Apply, quote, prod
 
 class ComputingEngine:
     def evaluate(self, computation_graph):

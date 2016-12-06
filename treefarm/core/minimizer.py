@@ -15,13 +15,12 @@ from itertools import chain
 
 import numpy as np
 
-from .parameters import op
+from .spaces import op, Categorical
 from .serialize import serialize
 from .protocol import SimpleProtocol
 from .computing_engine import SimpleEngine
 from .environment import get_config
 from .space_utils import get_crown, get_subspace, expand
-from .parameters import Categorical
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -134,6 +133,10 @@ class Minimizer:
         self.observers = {'protocol' : SimpleProtocol()}
         self.best_instance = None
         self.best_perf = inf
+
+    @property
+    def protocol(self):
+        return self.observers['protocol']
 
 
 class SequentialMinimizer(Minimizer):

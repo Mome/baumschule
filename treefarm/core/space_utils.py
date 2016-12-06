@@ -1,9 +1,11 @@
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence, Mapping, Set
 from itertools import chain
 
 
-from .parameters import (
-    Apply, Combination, Primitive, Parameter, Categorical, prod, join)
+from .domains import Interval
+from .spaces import (
+    Apply, Combination, Primitive, Parameter, prod, join,
+    Categorical, Discrete, Continuous)
 
 
 def expand(search_space, index_vector, include_primitives=False):
@@ -119,7 +121,11 @@ def get_subspace(subspace, index):
 
 
 def to_space(arg):
+    """Convert nested structures to treefarm spaces."""
+
+    print('arg1', arg)
     arg = spacify(arg)
+    print('arg2', arg)
     if type(arg) == dict:
         return prod(**arg)
     if type(arg) == set:
@@ -127,6 +133,11 @@ def to_space(arg):
             return Categorical(arg)
         else:
             return join(*arg)
+    if type(arg) == Interval:
+        if arg.step == 0:
+            return Continuous(arg)
+        else:
+            return Discrete(arg)
     else:
         return arg
 
@@ -134,19 +145,17 @@ def to_space(arg):
 def spacify(arg):
     """Converts elements of a Sequence or Mappings to spaces."""
 
-    if isinstance(arg, Mapping):
-        gen = ((k,to_space(v)) for k,v in arg.items())
-    elif isinstance(arg, Sequence):
-        gen = (to_space(val) for val in arg)
+    if isinstance(arg, dict):
+        return {k:to_space(v) for k,v in arg.items()}
+    elif isinstance(arg, (list, set)):
+        return type(arg)(to_space(val) for val in arg)
     else:
         return arg
-
-    return type(arg)(gen)
 
 
 def converts_to_primitive(arg):
     """Test if the elements of a Sequence are Values."""
     for element in arg:
-        if isinstance(arg, (Parameter, Mapping, Sequence)):
+        if isinstance(element, (Parameter, Interval, dict, list, set)):
             return False
     return True

@@ -1,7 +1,7 @@
 from itertools import chain, product
 from functools import partial
 
-from .parameters import (
+from .spaces import (
     Parameter, Apply, Primitive,
     join)
 

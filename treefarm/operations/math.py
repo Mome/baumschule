@@ -1,6 +1,6 @@
 import operator as pyop
 
-from ..core.parameters import Operation
+from ..core.spaces import Operation
 
 # ---------------------- Artihmetics --------------------- #
 

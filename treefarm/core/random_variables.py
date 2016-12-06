@@ -4,7 +4,7 @@ import logging
 
 import numpy as np
 
-from .parameters import (
+from .spaces import (
     Apply, Categorical, Discrete, Continuous, join
 )
 

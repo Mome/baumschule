@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 from .flatgp import FlatGPMinimizer
-from ..core.parameters import Apply, Primitive, join, Operation, Combination
+from ..core.spaces import Apply, Primitive, join, Operation, Combination
 from ..core.domains import ParameterList
 from ..core.space_utils import expand, fc_shape
 from ..core.minimizer import SequentialMinimizer

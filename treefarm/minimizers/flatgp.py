@@ -8,7 +8,7 @@ import numpy as np
 import scipy.stats as stats
 import GPy
 
-from ..core.parameters import (
+from ..core.spaces import (
     Primitive, Categorical, Continuous, Discrete, Parameter, quote)
 from ..core.minimizer import (
     SequentialMinimizer, FlatMinimizer, minimize_func)

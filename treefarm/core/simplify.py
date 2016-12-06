@@ -1,4 +1,4 @@
-from .parameters import Apply, Operation, Parameter
+from .spaces import Apply, Operation, Parameter
 from .domains import ParameterList
 
 

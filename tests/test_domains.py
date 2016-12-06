@@ -2,18 +2,18 @@
 import unittest
 from math import inf
 
-from treefarm.core.domains import ParameterList, Intervall, R, N, Z
+from treefarm.core.domains import ParameterList, Interval, R, N, Z
 
 class TestParameterList(unittest.TestCase):
     def setUp(self):
         pass
 
 
-class TestIntervall(unittest.TestCase):
+class TestInterval(unittest.TestCase):
     def setUp(self):
-        self.A = Intervall(-12.6, 18.5, 0.1, False, True)
-        self.B = Intervall(-12.6, 18.5, 0.1, True, False)
-        self.C = Intervall(-123.65, 122.79, 11.11, False, True)
+        self.A = Interval(-12.6, 18.5, 0.1, False, True)
+        self.B = Interval(-12.6, 18.5, 0.1, True, False)
+        self.C = Interval(-123.65, 122.79, 11.11, False, True)
 
     def test_other(self):
         self.assertTrue(N.closed)

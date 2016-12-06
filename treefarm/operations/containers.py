@@ -1,5 +1,5 @@
 from ..core.environment import Environment
-from ..core.parameters import Operation
+from ..core.spaces import Operation
 
 # ------------------ container operations ---------------------- #
 
