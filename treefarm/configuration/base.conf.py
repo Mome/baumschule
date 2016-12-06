@@ -10,10 +10,11 @@ c.protocol_path = join(c.base_path, 'protocol')
 c.env_path = join(c.base_path, 'environment')
 
 
-from treefarm.optimizers import *
-c.optimizers = {
-    'flatgp' : FlatGPOptimizer,
-    'random' : RandomOptimizer,
-    'exhaustive' : ExhaustiveOptimizer,
-    'default' : RandomOptimizer,
+from treefarm.minimizers import *
+c.minimizers = {
+    'flatgp' : FlatGPMinimizer,
+    'random' : RandomMinimizer,
+    'exhaustive' : ExhaustiveMinimizer,
+    'treegp' : TreeGPMinimizer,
+    'default' : RandomMinimizer,
 }
