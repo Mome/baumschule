@@ -5,6 +5,7 @@ import logging
 import textwrap
 
 from .spaces import Apply, Parameter, Operation
+from .space_utils import is_recursive
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -18,10 +19,15 @@ def serialize(param, lispstyle=False):
     Not recursion save.
     """
 
+    assert not is_recursive(param),\
+        'serialization of recursive structures not supported yet'
+
     sep = ', '
 
     if type(param) == Apply:
-        assert isinstance(param.operation, Operation)
+
+        op_name = serialize(param.operation)
+
         arg_vals = map(serialize, param.domain.args)
         if param.domain.kwargs:
             kwarg_keys, kwarg_vals = zip(*param.domain.kwargs.items())
@@ -37,7 +43,7 @@ def serialize(param, lispstyle=False):
             pattern = '{name}({sep1}{args}{sep2}{kwargs})'
 
         return pattern.format(
-            name = param.operation.name,
+            name = op_name,
             sep1 = sep if lispstyle else '',
             args = sep.join(arg_vals),
             sep2 = sep if arg_vals and kwarg_items else '',

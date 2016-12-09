@@ -5,7 +5,8 @@ import logging
 import numpy as np
 
 from .spaces import (
-    Apply, Categorical, Discrete, Continuous, join
+    Apply, Categorical, Discrete, Continuous, join, Parameter, quote, power,
+    Combination
 )
 
 from .domains import ParameterList, Interval
@@ -18,8 +19,13 @@ log.setLevel('INFO')
 # --- sample from params -- #
 def sample(param):
     log.debug('sample:%s' % param)
+
+    if not isinstance(param, Parameter):
+        return param
+
     if vars(param).get('dist', False):
         dist = param.dist
+
     dist = get_default_dist(param)
     return dist()
 
@@ -97,25 +103,30 @@ def default_continous(param):
     return dist
 
 
-def default_apply(param):
+def default_apply(param, through_combination=True):
 
     if param.operation == join:
         def dist():
             start = random.sample(set(param.domain), 1)[0]
             return sample(start)
 
+        """elif param.operation == quote:
+            assert len(param.domain) == 1
+            def dist():
+                return param.domain[0]"""
+
+        """elif type(param.operation) == Combination and through_combination:
+            def dist():
+                args = [sample(x) for x in param.domain.args]
+                kwargs = {k:sample(v) for k,v in param.domain.kwargs.items()}
+                new_param = power.func(*args, **kwargs)
+                return sample(new_param)"""
+
     else:
         def inner_dist():
-            args = [
-                sample(start)
-                for start in param.domain.args
-            ]
-            kwargs = {
-                key:sample(start)
-                for key, start in param.domain.kwargs.items()
-            }
+            args = [sample(start) for start in param.domain.args]
+            kwargs = {k:sample(v) for k, v in param.domain.kwargs.items()}
             return ParameterList(args, kwargs)
-
 
         def dist():
             plist = inner_dist()

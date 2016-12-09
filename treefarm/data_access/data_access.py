@@ -6,7 +6,7 @@ from glob import iglob
 import logging
 
 from . import utils
-from .statistician import get_config
+from ..core.environment import get_config
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -39,7 +39,7 @@ class PurePath:
 
         else:
             args = list(args)
-            
+
             if source is None:
                 first_arg = args[0]
                 if cls.source_sep in first_arg:
@@ -84,7 +84,7 @@ class PurePath:
     @property
     def parts(self):
         return self._parts
-   
+
     @property
     def source(self):
         return self._source
@@ -112,14 +112,13 @@ class PurePath:
         return "{}({!r})".format(self.__class__.__name__, str(self))
 
 
-
 class Path(PurePath):
 
     source_classes = {}
 
     def __new__(cls, *args, **kwargs):
         log.debug('Path.new(cls=%s, args=%s, kwargs=%s)' % (cls.__name__, args, kwargs))
-        
+
         if cls is Path:
 
             source, parts = PurePath._parse_args(
@@ -163,7 +162,7 @@ class Group(Path):
 class File(Path):
     def __init__(self, source, parts):
         log.debug('File.init(source=%s, parts=%s)' % (source, parts))
-    
+
     def load(self):
         raise NotImplementedError()
 
@@ -265,7 +264,7 @@ class LocalFile(LocalPath, File):
         LocalPath.__init__(self, source, parts)
 
         self.reader = self.read_functions.get(self.filetype, None)
-   
+
 
     def read(self):
         if self.reader == None:
@@ -293,7 +292,6 @@ class LocalFile(LocalPath, File):
         return write(self.real_path, obj)
 
 
- 
 class LocalDirectory(LocalPath, Group):
 
     def __init__(self, *args, source=None):
@@ -327,7 +325,7 @@ LocalPath.group_classes['inode/directory'] = LocalDirectory
 
 def configure_classes(c=None):
     if c is None:
-        c = get_config().Dataset
+        c = get_config().datasets
 
     if 'source_classes' in c:
         Path.source_classes.update(c.source_classes)

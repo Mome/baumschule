@@ -3,6 +3,5 @@
 *.pyc
 *.svg
 .ipynb_checkpoints
-theory/thesis/tmp
-tries/*
+examples/*
 __pycache__

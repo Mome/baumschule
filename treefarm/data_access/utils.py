@@ -109,6 +109,4 @@ def get_filetype(path):
         if type_:
             mime_type = type_
 
-        print('try to guess type', type_, encoding)
-
     return mime_type

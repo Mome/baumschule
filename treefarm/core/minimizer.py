@@ -17,7 +17,7 @@ import numpy as np
 
 from .spaces import op, Categorical
 from .serialize import serialize
-from .protocol import SimpleProtocol
+from .protocol import SimpleProtocol, StandardProtocol
 from .computing_engine import SimpleEngine
 from .environment import get_config
 from .space_utils import get_crown, get_subspace, expand
@@ -67,11 +67,7 @@ def minimize(
     else:
         assert max_iter < inf or timeout < inf, 'set max_iter or timeout'
         opt_obj.run()
-        prot = opt_obj.minimizer.observers['protocol']
-        perfs = list(zip(*prot))[1]
-        index = perfs.index(min(perfs))
-        return prot[index]
-
+        prot = opt_obj.minimizeDEBUG
 
 class Minimization(threading.Thread):
     def __init__(self, minimizer, max_iter, timeout):
@@ -82,7 +78,7 @@ class Minimization(threading.Thread):
         self._stop = threading.Event()
         self.iteration = 0
         self.start_time = None
-        self.observers = []
+        self.observers = {'standard' : StandardProtocol()}
 
     def stop(self):
         self._stop.set()
@@ -112,16 +108,17 @@ class Minimization(threading.Thread):
     def __next__(self):
         self.iteration += 1
         record = self.minimizer.compute_next()
-        self.write(record)
+        self.write(**record)
         return record
 
     def write(self, *args, **kwargs):
-        for ob in self.observers:
+        for ob in self.observers.values():
             ob.write(*args, **kwargs)
 
     def run(self):
-        for _ in iter(self):
-            pass
+        for result in iter(self):
+            log.info(' Iteration %s, %s, perf %s'\
+                % (self.iteration, result['instance_str'], result['perf']))
 
 
 class Minimizer:

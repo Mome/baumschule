@@ -121,11 +121,12 @@ def get_subspace(subspace, index):
 
 
 def to_space(arg):
-    """Convert nested structures to treefarm spaces."""
+    """
+    Convert nested structures to treefarm spaces.
 
-    print('arg1', arg)
+    """
+
     arg = spacify(arg)
-    print('arg2', arg)
     if type(arg) == dict:
         return prod(**arg)
     if type(arg) == set:
@@ -159,3 +160,22 @@ def converts_to_primitive(arg):
         if isinstance(element, (Parameter, Interval, dict, list, set)):
             return False
     return True
+
+def is_recursive(space, parents=()):
+
+    if space in parents:
+        return True
+
+    if type(space) != Apply:
+        return False
+
+    parents += (space,)
+
+    if is_recursive(space.operation, parents):
+        return True
+        
+    for sub in space.domain.values():
+        if is_recursive(sub, parents):
+            return True
+
+    return False

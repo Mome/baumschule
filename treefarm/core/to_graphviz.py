@@ -1,4 +1,5 @@
 import logging
+import random
 
 import graphviz
 
@@ -9,7 +10,6 @@ from .spaces import (
     Primitive,
     Categorical,
     Apply)
-
 from .environment import get_config
 from .domains import Interval, ParameterList
 
@@ -116,6 +116,9 @@ def _primitive_to_dot(param, graph):
 
 
 def _value_to_dot(param, graph):
+
+    name = str(id(param))
+
     if isinstance(param, Operation):
         color = colors['operation']
         if 'associative' in param.properties:
@@ -136,10 +139,12 @@ def _value_to_dot(param, graph):
             shape = 'square'
         else:
             shape = 'box'
-
+        """if not c.single_value:
+            # add random number to ensure new node for each value
+            name += str(random.randint(0, id(param)))"""
 
     graph.node(
-        name = 'N' + str(id(param)),
+        name = 'N' + name,
         label = label,
         fillcolor = color,
         shape = shape)

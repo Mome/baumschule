@@ -71,6 +71,9 @@ class Parameter(Callable):
     def __pow__(self, arg):
         return get_env().pow(self, arg)
 
+    def __matmul__(self, *args, **kwargs):
+        return apply(self, *args, **kwargs)
+
 
 class Apply(Parameter):
     def __init__(self, operation, *args, **kwargs):
@@ -123,7 +126,8 @@ class Operation(Callable):
     def __init__(self, func, name, *,
         properties=None,
         notation=None,
-        symbol=None):
+        symbol=None,
+        dist=None):
         """
         symbol : Tripel or str the form of (left, sep, right)
         """
@@ -140,6 +144,7 @@ class Operation(Callable):
         self.properties = frozenset(properties)
         self.symbol = symbol
         self.notation = notation
+        self.dist = dist
 
     def __str__(self):
         return self.name
@@ -147,6 +152,13 @@ class Operation(Callable):
     def __repr__(self):
         return 'Operator(' + self.name + ')'
 
+    def __matmul__(self, arg):
+        return self(arg)
+
+    """def __call__(self, arg):
+        apply_obj = super().__call__(arg)
+        apply_obj.dist = self.dist
+        return apply_obj"""
 
 class Combination(Operation):
     """
@@ -166,6 +178,12 @@ def op(func, name=None, **kwargs):
     return Operation(func, name, **kwargs)
 
 
+"""def power(arg1, arg2):
+    assert type(arg2) == int
+    arg = prod(*([arg1]*arg2))
+    return ParameterList(arg, {})"""
+
+
 # --------------------- Combinations --------------------- #
 
 def join_func(*args, **kwargs):
@@ -175,15 +193,22 @@ def intersect_func(*args, **kwargs):
     raise Exception('Intersect is not supposed to be executed!')
 
 def prod_func(*args, **kwargs):
-    return ParameterList(args, kwargs)
+    new_args = []
+    for a in args:
+        if type(a) == ParameterList:
+            new_args.extend(a)
+        else:
+            new_args.append(a)
+    return ParameterList(new_args, kwargs)
 
 def power_func(arg1, arg2):
-    raise NotADirectoryError()
+    assert type(arg2) == int
+    print('inner power', arg1, arg2)
+    return prod(*([arg1]*arg2))
 
 
-quote = Operation(
-    func=None,
-    name='quote')
+def apply_func(operation, *args, **kwargs):
+    return Apply(operation, *args, **kwargs)
 
 
 join = Combination(
@@ -208,7 +233,7 @@ intersect = Combination(
     symbol='∩',
     notation='infix')
 
-prod = Combination(
+prod = Operation(
     func=prod_func,
     name='prod',
     properties=(
@@ -223,3 +248,14 @@ power = Combination(
     properties={},
     symbol='^',
     notation='infix')
+
+# ----- other operations -----
+
+quote = Operation(
+    func=None,
+    name='quote')
+
+apply = Operation(
+    func = apply_func,
+    name = 'apply'
+)

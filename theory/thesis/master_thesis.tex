@@ -1,5 +1,6 @@
 \documentclass[english]{article}
-\usepackage{dot2texi}
+\usepackage{amsfonts}
+%\usepackage{dot2texi}
 \usepackage[utf8]{inputenc}
 %\usepackage{babel}
 \usepackage[backend=bibtex]{biblatex}
@@ -8,7 +9,12 @@
 \usepackage[printonlyused]{acronym}
 \usepackage{minted}
 \usepackage{amsthm}
+%\usepackage{amsmath}
 \usepackage{tikz}
+\usepackage{graphicx}
+\usepackage[linesnumbered]{algorithm2e}
+\usepackage{amssymb}
+
 
 \usetikzlibrary{shapes,arrows}
 
@@ -51,6 +57,19 @@
 \end{acronym}
 
 \section{Introduction}
+
+Modern society heavly relies on automated information processing
+
+The increading amount of digital data that arises in modern modern society poses a difficult challange for established information technology. Developers are forced to adapt  ...
+
+During its history the field of software engeneering was subject to a continual change. New affordances to computer systems forced developers to consistanty adopt concepts from academic fields into their own skill sets. The raising complexity in software projects gave birth high level programming languages that are easier to grasp for the human mind, which makes code generation and maintainance tractable for complex applications.
+In recent years, the increading amount of digital data, poses a untractable challange for conventional desing approaches. As a consequence techniques from  areas like machine learning are inceasingly applied.
+
+Due to the large amount of digital information collected in modern society the need for automated data processing and analysis tools rises in many areas of the industry. The
+
+This work proposes a formalism to state optimization problems by describing the structure of a wide range of search spaces together with an algorithm adopted from the field of hyperparamter-optimization as an approach to high level machine learning.
+
+
 
 The mathematical branch of Optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
 
@@ -110,7 +129,7 @@ The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO
 
 
 \section{Hyperparameter Optimization}
-In Bayesain statistics the term \textit{hyperparameter} referes to the a parameter of the prior distribution. In \textit{hierarchical models} the priors distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{machine learning} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin.
+In Bayesain statistics the term \textit{hyperparameter} referes to the a parameter of the prior distribution. In \textit{hierarchical models} the priors distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin.
 \acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{tuning} or \textit{search}. Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterions.
 The ususal \ac{HPO} procedure ...
 Key characteristics of a \ac{HPO} problems are:
@@ -140,52 +159,103 @@ Second, machine learning experiment EGO algorithm
  - Continunous
 
 
-\subsection{Combinators}
-Join and prod over parameter-lists form an idempotent semiring:
-
-$(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:
-$$(a \cup b) \cup c = a \cup (b \cup c)$$
-$$\emptyset \cup a = a \cup \emptyset = a$$
-$$a + b = b + a$$
-$$a \cup a = a$$
-
-$(A, \times)$ is a commutative monoid with identity element $[\ ]$:
-$$(a \times b) \times c = a \times (b \times c)$$
-$$[\ ] \cup a = a \cup [\ ] = a$$
-
-Product left and right distributes over join:
-$$a\times(b + c) = (a\times b) + (a\times c)$$
-$$(a + b)\times c = (a\times c) + (b\times c)$$
-
-Product by $\emptyset$ annihilates $A$:
-$$\emptyset \times a = a \times \emptyset = \emptyset$$
-
 \paragraph{Assumptions}
-\subsection{Search Space Construction}
+...
 
-Most \ac{HPO} algorithms are
+\subsection{Structure and Construction of Search Spaces}
+The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$.
+The basic idea underlying the construction of parameter spaces is that variables do not need to possess a unique value assingment, but can rather have a set of or possible values. Instead of saying $x = 1$ one can say that $x$ equals ether one or two. Any other operations that Finally this set of computation graphes can be applied to a performance measure, expressing an optimization problem with instances of the computation graph set as possible solutions.
 
-\subsubsection{Structure of search spaces}
+The basic idea of the search space descriprion lies in the declaration of variables.
+\subsubsection{Primitive Spaces}
+The smallest unit of a search spaces is a primitive space. It is a one dimensional collection of possible instances of a parameter. Every search space is ether a primitive space of a combination of primitive spaces.
+
+\paragraph{Categorical}
+Categoriacal parameters have a finite unsorted domain of numerical or non-numerical values. This type is used for nominal scaled parameters like labels in a classification problem, basis-functions in linear regression or different activation functions in feedforward neural networks.
+
+\paragraph{Continuous}
+Continues parametes are bounded or unbounded intervals over the real numbers. This type would, for example, be used for a regularization parameter or the discount factor in Q-learning.
+
+\paragraph{Discrete}
+Values of a discrete parameters are numerical. The cardinality of a discrete parameter is finite or countable (if defined over an unbounded interval).
+Other than categorical parameters, but similar to continous parameters, discrete parameters have a distance over their elements. If two elements are close, than the value of the objective fucntion is also assumed to be closed. This type is, for example, used as the number of layers in a neural network.
+
+\subsubsection{Combinations}
+
+\paragraph{Product}
+The product lines up multiple search spaces to form a sequence of search spaces.
+The search space becomes multi-dimensional and the values becomes tuples. The product of some primitive parameter spaces $A = {a,b}$ and $B = {x,y}$ is written as:
+$$\operatorname{prod}(A, B) = A \times B$$
+
+\paragraph{Joining}
+Two search spaces $A$ and $B$ can be joined to form a new search space $C$, containing all elements of $A$ and $B$. The join is expressed by a union symbol $\cup$. To enable programming language integration, in reseblence to the baccus naur form joining, the pipe symbol is an alias for the join.
+$$ \operatorname{join}(A, B) = A \cup B = A\ |\ B $$
 
 
-\begin{tabular}{ l | c | c }
-Language Feature & Search Space & Parameter Structure \\
-\hline
-atomic parameters   & one-dim          & single value \\
-join                & tree             &              \\
-product / operators & multi-dim        & tree         \\
-recursion           & infinite tree    &              \\
-expression equality & DAG              &              \\
-value identity      & ?                & DAG          \\
-recursive values    & ?                & ?
-\end{tabular}
+\paragraph{Renaming}
+An item in a tuple of parameters can be renamed. A renamed tuple can be expressed as an indexed family.
 
+$$(A, B) = (A_{0}, B_{1})$$
+
+In resemblence to relational algebra $\rho$ is used to refer to the rename.
+
+$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
+
+The product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first tumples is added to all indices of the second tuples.
+$$(0{:}A, 1{:}B) \times (0{:}C, 1{:}D) = (0{:}A, 1{:}B, 2{:}C, 3{:}D)$$
+Non-integer indices are simply copied to the resulting family.
+$$(0:A,\ \beta:B) \times (0:C,\ \delta:D) = (0:A,\ 1:C, \beta:B,\ \delta:D)$$
+The prodcut is undefined if two non-positional parameters share the same key.
+
+
+\paragraph{Application}
+With the apply combination the application of an abitrary function to the elements of a search space can be expressed.
+$$ f(A \cup B) = f(A) \cup f(B) $$
+Spaces can also be applied to other spaces.
+$$(f \cup g)(A) = f(A) \cup g(A)$$
+
+With function application it becomes possible to express \textit{dependendencies} between parameters.
+
+$$A = f(B) \cup g(C)$$
+
+If $B \neq C$ then the function $f$ and $g$ have different parameter domains. The choice of the parameter is dependent on previous choice of the function.  The structure of the search space is not a vector any more but becomes a tree.
+
+\paragraph{Recursion}
+With recursion it is possibel to express grammars.
+
+$$ A = (\ \mathbb{N}\ \cup\ f(\mathbb{N}, A)\ ) $$
+
+The extension of an expression is defined as the  :
+
+$$ A = \{\mathbb{N},\ f(\mathbb{N}, \mathbb{N}),\ f(\mathbb{N}, f(\mathbb{N}, \mathbb{N})), ... \}$$
+
+In this way the function nesting can become arbitrary deep. The search space becomes an infinite tree, but the instances stay finite trees.
+
+\paragraph{Expression Equality}
+Context free grammars can produce identical strings with a different sequence of production application. The same is true for parameter space definitions.
+If a function to measure the equality of two expressions is added to the system, the search space obtains the structure of a directed acyclic graph.
+Two expressions can have the same meaning even if the representations are not equal.
+
+
+\vspace*{0.5cm}
+\hspace*{-1cm}
+\includegraphics[scale=0.5]{search_space_hierachy.pdf}
+
+\paragraph{Constants}
+So far it is only possible to express search spaces over function trees.
+A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of computation tree evaluation.
+The structure of the describable structure is extended to a DAG and is called a \textit{computation graph}.
+Constants allow to express structures beyond the capabilities of a constext free grammar. For example to express a search space over matricies with arbitray size.
+
+\paragraph{Variables}
+Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures.
 
 
 \subsection{Demands to a good HPO-Algorithm}
-A non-exaustive list of general criteria for a good hyperparameter optimization algorithm.
+A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
 
 \section{Gaussian Processes Regression}
+The two big advantages of a Bayesian approach to supervised learning is for one the explicite integration of prior knowledge and for the other a distribution over the output space as an result istead of an point estimate.
 
 \subsection{Kernels}
 
@@ -201,7 +271,7 @@ What distinguished \ac{HPO} from other non-\ac{HPO}.
 \subsection{Aquisition Functions}
 
 \subsubsection{Probability of Improvement}
-\subsubsection{Expected Information}
+\subsubsection{Expected Improvement}
 
 Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
 
@@ -235,9 +305,6 @@ The need for a recommendation strategy arises for noisy objective functions. In 
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
 
 
-
-
-
 \subsection{Conditional Parameters}
 
 
@@ -248,10 +315,48 @@ Sequential model-based optimization is a very general algorithmic pattern for gl
 The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
 
 \subsection{Tree and Graph Kernels/Metrics}
+...
 
 
-\section{The Tree Farm Algorithm}
-Presenting my algorithm for Bayesian optimization of Grammar-Based search spaces.
+\section{Extension to Recursive Seach Spaces}
+
+This section describes an algorithm that extends Bayesian optimization algorithms to grammar based search spaces.
+
+Consider the recursive function tree definition of $G$:
+
+$$ G = (\ A\ |\ f(G,G)\ )$$
+
+Based on the rule application in context free grammar, one can select a subset of $G$ by choosing ether $A$ or $f(G,G)$.
+$$ A \subset G\ \land\ f(G,G) \subset G$$
+
+$$G \subset (G+\mathbb{N}) \subset (G+\mathbb{N}+\mathbb{N})$$
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\SetKwProg{Fn}{Function}{:}{end}
+\SetKwFunction{MatchPattern}{MatchPattern}
+\SetKwFunction{FindMatches}{FindMatches}
+\SetKwData{root}{root}
+\SetKwData{rootpattern}{rootpattern}
+\SetKwData{pattern}{pattern}
+\SetKw{in}{in}
+\Fn{\MatchPattern(\root, \rootpattern, \pattern)}
+{
+
+  \ForEach{node \in \root.descendant\_or\_self}{
+    \If{node satisfies \rootpattern constraints}
+    {
+      start\_nodes $\leftarrow$ node.no\_preceding
+
+      matches $\leftarrow$ \FindMatches(start\_nodes, \pattern)
+
+      return matches
+    }
+  }
+
+}
+\end{algorithm}
+
 
 \subsection{Extention to DAG-structured search spaces}
 Identifying equivalent function trees with computer algebra systems.
@@ -283,48 +388,37 @@ The \textit{credebility factor} or \textit{authority factor} is a way to ...
 
 
 \section{Implementation}
-\subsection{Search Space Construction DSL}
+The formalizm has been realized as a package for the Python programming language.
+
+\subsection{Example: Minimize two dimensional function}
 The search space construction system has atomic spaces that can
 be combined to construct more complex spaces.
-
-\subsubsection{Atomic Spaces}
-Atomic spaces cannot (as the name suggest)
-
-\paragraph{Categorical}
-Categoriacal parameters have a finite unstructured domain of numerical or non-numerical values. This type is used for nominal scaled parameters like labels in a classification problem, basis-functions in linear regression or different activation functions in feedforward neural networks.
-
-\paragraph{Continuous}
-Continues parametes are bounded or un-bounded intervals over the real numbers. The simplest way to construct them is by slicing wich represents the real numbers.
 
 \begin{minted}{python}
 from treefarm import *
 
-p1 = R[0:]
+def f:
+    return x**2 + 10
 
-inter = Intervall(sub=0, sub=float('inf'))
-p2 = to_space(inter)
+# convert function to operation
+f = op(f)
+
+# declate parameter space of fucntion f
+param = convert([
+  R[-10:10],
+  R[-10:10],
+])
+
+# apply parameter space to function f
+search_space = f(param)
+
+result = minimize(f, search_space)
 
 \end{minted}
 
-
-\paragraph{Discrete}
-
-
-
-\subsubsection{Combinators}
-
-\subsubsection{Functions}
-
-\subsubsection{Operators}
-
 \subsection{Function Graph Simplification}
 
-
-\subsection{Algorithm Templates}
-
-
 \section{Experiments}
-
 
 
 \subsection{Gaussian Process Regression}
@@ -341,6 +435,30 @@ p2 = to_space(inter)
 \paragraph{Connection to Probabilistic Programming}
 \paragraph{Connection to Reinforcement Learning}
 \paragraph{Integration with Workflow-Managers}
+
+\appendix
+
+
+\section{Formal descriptions}
+Join and prod over parameter-lists form an idempotent semiring:
+
+$(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:
+$$(a \cup b) \cup c = a \cup (b \cup c)$$
+$$\emptyset \cup a = a \cup \emptyset = a$$
+$$a \cup b = b \cup a$$
+$$a \cup a = a$$
+
+$(A, \times)$ is a commutative monoid with identity element $[\ ]$:
+$$(a \times b) \times c = a \times (b \times c)$$
+$$[\ ] \cup a = a \cup [\ ] = a$$
+
+Product left and right distributes over join:
+$$a\times(b \cup c) = (a\times b) \cup (a\times c)$$
+$$(a \cup b)\times c = (a\times c) \cup (b\times c)$$
+
+Product by $\emptyset$ annihilates $A$:
+$$\emptyset \times a = a \times \emptyset = \emptyset$$
+
 
 
 \printbibliography

@@ -50,3 +50,10 @@ class StandardProtocol(Protocol, list):
     def write(self, instance_str, start_ts, select_time, comp_time, perf, **kwargs):
         record = Record(instance_str, start_ts, select_time, comp_time, perf)
         self.append(record)
+
+    def to_csv(filename):
+        df = pd.DataFrame.from_records(
+            data = list(self),
+            columns = self[0]._fields,
+        )
+        df.to_csv(filename)
