@@ -1,6 +1,6 @@
 \documentclass[english]{article}
 \usepackage{amsfonts}
-%\usepackage{dot2texi}
+\usepackage{dot2texi}
 \usepackage[utf8]{inputenc}
 %\usepackage{babel}
 \usepackage[backend=bibtex]{biblatex}
@@ -14,7 +14,6 @@
 \usepackage{graphicx}
 \usepackage[linesnumbered]{algorithm2e}
 \usepackage{amssymb}
-
 
 \usetikzlibrary{shapes,arrows}
 
@@ -60,7 +59,7 @@
 
 Modern society heavly relies on automated information processing
 
-The increading amount of digital data that arises in modern modern society poses a difficult challange for established information technology. Developers are forced to adapt  ...
+The increading amount of digital data that arises in modern society poses a difficult challange for established information technology. Developers are forced to adapt  ...
 
 During its history the field of software engeneering was subject to a continual change. New affordances to computer systems forced developers to consistanty adopt concepts from academic fields into their own skill sets. The raising complexity in software projects gave birth high level programming languages that are easier to grasp for the human mind, which makes code generation and maintainance tractable for complex applications.
 In recent years, the increading amount of digital data, poses a untractable challange for conventional desing approaches. As a consequence techniques from  areas like machine learning are inceasingly applied.
@@ -166,7 +165,8 @@ Second, machine learning experiment EGO algorithm
 The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$.
 The basic idea underlying the construction of parameter spaces is that variables do not need to possess a unique value assingment, but can rather have a set of or possible values. Instead of saying $x = 1$ one can say that $x$ equals ether one or two. Any other operations that Finally this set of computation graphes can be applied to a performance measure, expressing an optimization problem with instances of the computation graph set as possible solutions.
 
-The basic idea of the search space descriprion lies in the declaration of variables.
+A search space is not a set but induces a unique set. The set of all instances that can be produced by a search space description $G$ is called the \textit{extension} of $G$ and expressed with a following apostrophe $G'$. While a unique extension can be assigned to every search space, an extension can be represented by multiple search spaces.
+
 \subsubsection{Primitive Spaces}
 The smallest unit of a search spaces is a primitive space. It is a one dimensional collection of possible instances of a parameter. Every search space is ether a primitive space of a combination of primitive spaces.
 
@@ -181,38 +181,32 @@ Values of a discrete parameters are numerical. The cardinality of a discrete par
 Other than categorical parameters, but similar to continous parameters, discrete parameters have a distance over their elements. If two elements are close, than the value of the objective fucntion is also assumed to be closed. This type is, for example, used as the number of layers in a neural network.
 
 \subsubsection{Combinations}
-
-\paragraph{Product}
-The product lines up multiple search spaces to form a sequence of search spaces.
-The search space becomes multi-dimensional and the values becomes tuples. The product of some primitive parameter spaces $A = {a,b}$ and $B = {x,y}$ is written as:
-$$\operatorname{prod}(A, B) = A \times B$$
+Combinations take search spaces and return a combined search space. A combined search space is represented by an application node which posseses an operation and a domain field. Combined search spaces can be combined again in order to create strcutured search spaces. The operation field is assiged with combinator itself, while the domain is assigned with a parameter family.
+In programming languages, when calling a function, the parameters are usually passed-by-name, passed-by-value or both. Mathematically this can be expressed by an indexed family. The passed-by-value arguemts are indexed by integers from $0$ to $n$ and the passde-by-name argumets are indexed by strings. A parameter family with two positional arguments $A,B$ and a key keyword argument $C$ with index $\gamma$ is written as:
+$$\{A_0, B_1, C_\gamma\}$$
+The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
+$$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
+Non-integer indices are simply copied to the resulting family.
+$$\{A_0,\ B_\beta\} \times \{C_0,\ D_\delta\} = \{A_0,\ C_1, B_\beta,\ D_\delta\}$$
+The prodcut is undefined if two non-positional parameters share the same key.
+Items of a parameter family can be renamed. In resemblence to relational algebra the greek letter $\rho$ is used to refer to the rename.
+$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
+Elements can by selected from parameter family be the projection $\pi$.
+$$\pi_1(\{A_0, B_1, C_\gamma\}) = B$$
 
 \paragraph{Joining}
-Two search spaces $A$ and $B$ can be joined to form a new search space $C$, containing all elements of $A$ and $B$. The join is expressed by a union symbol $\cup$. To enable programming language integration, in reseblence to the baccus naur form joining, the pipe symbol is an alias for the join.
-$$ \operatorname{join}(A, B) = A \cup B = A\ |\ B $$
+Two search spaces $A$ and $B$ can be joined to form a new search space, which contains all instances of $A$ and $B$. In recemblence to the Backus–Naur form, the join combination can also be expressed through a pipe symbol.
+$$ \operatorname{join}(A, B) = A\ |\ B $$
+The join is related to the set union, in that the extension of the join of two search spaces is the union of the extensions of these search spaces: $(A\ |\ B)' = A' \cup B'$. The only difference is that a join remembers the spaces it was constructed from.
 
+\paragraph{Product}
+The product lines up multiple search spaces to form a sequence of search spaces. The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone.
 
-\paragraph{Renaming}
-An item in a tuple of parameters can be renamed. A renamed tuple can be expressed as an indexed family.
-
-$$(A, B) = (A_{0}, B_{1})$$
-
-In resemblence to relational algebra $\rho$ is used to refer to the rename.
-
-$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
-
-The product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first tumples is added to all indices of the second tuples.
-$$(0{:}A, 1{:}B) \times (0{:}C, 1{:}D) = (0{:}A, 1{:}B, 2{:}C, 3{:}D)$$
-Non-integer indices are simply copied to the resulting family.
-$$(0:A,\ \beta:B) \times (0:C,\ \delta:D) = (0:A,\ 1:C, \beta:B,\ \delta:D)$$
-The prodcut is undefined if two non-positional parameters share the same key.
-
-
-\paragraph{Application}
+\paragraph{Function Application}
 With the apply combination the application of an abitrary function to the elements of a search space can be expressed.
-$$ f(A \cup B) = f(A) \cup f(B) $$
+$$ f(A \cup B) = f(A)\ |\ f(B) $$
 Spaces can also be applied to other spaces.
-$$(f \cup g)(A) = f(A) \cup g(A)$$
+$$(f\ |\ g)(A) = f(A)\ |\ g(A)$$
 
 With function application it becomes possible to express \textit{dependendencies} between parameters.
 
@@ -237,9 +231,21 @@ If a function to measure the equality of two expressions is added to the system,
 Two expressions can have the same meaning even if the representations are not equal.
 
 
-\vspace*{0.5cm}
-\hspace*{-1cm}
+%\vspace*{0.5cm}
+%\hspace*{-1cm}
+
+\begin{figure}
 \includegraphics[scale=0.5]{search_space_hierachy.pdf}
+
+  \caption{The leftmost node represents a system with only primitive spaces. Following the edges from left to write new operations are added. The field of a node hold following information from top to bottom: abbriviation of available operations, structure of search space and structure of resulting parameter. Constants and Variables are not represented.}
+  \label{fig_spaces}
+\end{figure}
+
+
+
+\subsubsection{Further Concepts}
+
+
 
 \paragraph{Constants}
 So far it is only possible to express search spaces over function trees.
@@ -249,7 +255,6 @@ Constants allow to express structures beyond the capabilities of a constext free
 
 \paragraph{Variables}
 Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures.
-
 
 \subsection{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
@@ -318,43 +323,52 @@ The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimiza
 ...
 
 
-\section{Extension to Recursive Seach Spaces}
+\section{Bayesain Optimization of Recursive Seach Spaces}
 
-This section describes an algorithm that extends Bayesian optimization algorithms to grammar based search spaces.
+Convential Bayesain optimization algorithms are only suitable for falt multidimesnional search spaces or search spaces containing conditional parameters (SMAC and TreeParzen). The specification language described in the previous chapters howerver allows for search spaces with an arbitrary amount of parameters. The following algorithm allows to employ any Bayesian optimization model for flat parameter spaces to be applied to recursive parameter spaces.
 
 Consider the recursive function tree definition of $G$:
 
-$$ G = (\ A\ |\ f(G,G)\ )$$
+$$ G \leftarrow \operatorname{join()}$$
+$$ G \ll (f(G,G)\ |\ A)$$
 
-Based on the rule application in context free grammar, one can select a subset of $G$ by choosing ether $A$ or $f(G,G)$.
-$$ A \subset G\ \land\ f(G,G) \subset G$$
+In the first step Variable $G$ gets initialized with an empty join-node. In the second step a function $f$ with $G$ in both arguments and primitive search space $A$ are inserted into the join-node. The join node has two options, that can be chosen by a selection function, which is similar to rule applicaiton in context free grammars. If we select the first option $f(G,G)$, we are faced with two times two choice options and need to select from four options in the next step.
 
-$$G \subset (G+\mathbb{N}) \subset (G+\mathbb{N}+\mathbb{N})$$
+\begin{figure}
+
+  \begin{dot2tex}[tikz,options=-t math]
+    digraph G {
+
+    node [shape=box]
+
+    b [label="f(G,G)"]
+    c [label="f(A,A)"]
+    d [label="f(A,f(G,G))"]
+    e [label="f(f(G,G),A)"]
+    f [label="f(f(G,G),f(G,G))"]
+
+    G -> A [label="(0)"]
+    G -> b [label="(1)"]
+    b -> c [label="(0,0)", lblstyle="left=1.1cm"]
+    b -> d [label="(0,1)"]
+    b -> e [label="(1,0)"]
+    b -> f [label="(1,1)"]
+
+    }
+  \end{dot2tex}
+
+
+  \caption{Three selection levels of search space $G$. }
+  \label{levels}
+\end{figure}
+
+This selection is continued until the expression containts no more joined nodes.
+
+$$ f(A,A)' \subset f(G,G)' \subset G' $$
 
 \begin{algorithm}[H]
 \SetAlgoLined
-\SetKwProg{Fn}{Function}{:}{end}
-\SetKwFunction{MatchPattern}{MatchPattern}
-\SetKwFunction{FindMatches}{FindMatches}
-\SetKwData{root}{root}
-\SetKwData{rootpattern}{rootpattern}
-\SetKwData{pattern}{pattern}
-\SetKw{in}{in}
-\Fn{\MatchPattern(\root, \rootpattern, \pattern)}
-{
 
-  \ForEach{node \in \root.descendant\_or\_self}{
-    \If{node satisfies \rootpattern constraints}
-    {
-      start\_nodes $\leftarrow$ node.no\_preceding
-
-      matches $\leftarrow$ \FindMatches(start\_nodes, \pattern)
-
-      return matches
-    }
-  }
-
-}
 \end{algorithm}
 
 
