@@ -379,14 +379,40 @@ Convential Bayesain optimization algorithms are only suitable for falt multidime
 
 The basic idea of the algorihm is to select subspaces from the search space as long as no joined node is presend in the tree any more. The resulting search space has only function applications and primitives and is therefore flat. On this subspace a flat optimizer can be applied.
 
-The algorihm creates a tree where every node represents an expansion of the previous expression. A working variable $W$ is initialized with the root node associated to the original search space $G$. If $G$ has join nodes, a full selection $G*$ is chosen from $G$ due to some selection criterion. If $G*$ has not been explored, a node is created. The node for $G^*$ is assigned to $W$. This steps are repreated until $W$ contains no join nodes any more. The resulting search space flat, a conventional \ac{BOA} is applied to select the next evaluation point from this search space. Since the selection criterion for a subspace makes use of the best aquisition value of the subspace's child nodes, each nodes keeps track of this value. After the chosen instance has been evaluated the results gets stored to the leaf node. The aquisition values have changed and need to be recalculated. The maximal aquisition value get propagated down through the meta tree as long as it is the best value in this subset. If the newly evaluated point hat the best observed performance, the aquisition values of all subtrees have to be recalculated.
+The algorihm creates a tree where every node represents an expansion of the previous expression. A working variable $W$ is initialized with the root node associated to the original search space $G$. If $G$ has join nodes, a full selection $G^*$ is chosen from $G$ due to some selection criterion. If $G^*$ has not been explored, a node is created. The node for $G^*$ is assigned to $W$. This steps are repreated until $W$ contains no join nodes any more. The resulting search space flat, a conventional \ac{BOA} is applied to select the next evaluation point from this search space. Since the selection criterion for a subspace makes use of the best aquisition value of the subspace's child nodes, each nodes keeps track of this value. After the chosen instance has been evaluated the results gets stored to the leaf node. The aquisition values have changed and need to be recalculated. The maximal aquisition value get propagated down through the meta tree as long as it is the best value in this subset. If the newly evaluated point hat the best observed performance, the aquisition values of all subtrees have to be recalculated.
 
 
 
 \begin{algorithm}[H]
 \SetAlgoLined
+initialize Root with G\;
+best\_value $\leftarrow$ $\infty$\;
+\For{i $\leftarrow$  0 \KwTo n}{
+  W $\leftarrow$ Root\;
+  \While{W is not flat}{
+    W $\leftarrow$ select(W, $crit$)\;
+    \If{Next = null}{
+      W $\leftarrow$ new node\;
+    }
+  }
+  p = next(W)\;
+  result = compute(p)\;
+  W.protocol.append(p, result)\;
+  \eIf{result $<$ best\_result}{
+    best\_result = result\;
+    update all\;
+  }{
+    update W\;
+    down propagate best aquisition\;
+  }
+}
+
+
+\caption{Bayesian Optimization for trees}
 
 \end{algorithm}
+%
+% \While{not flat(W.search_space) }{asd}
 
 
 \subsection{Extention to DAG-structured search spaces}
