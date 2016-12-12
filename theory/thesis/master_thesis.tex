@@ -79,6 +79,7 @@ Learning \& Optimizaion.
 
 \section{Global Black-Box Optimization}
 
+
 \subsection{Distinctions}
 
 \subsubsection*{gradient based vs. derivative free}
@@ -121,11 +122,7 @@ a.k.a. - model-free or direct
 The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
 
 
-\subsection{Active Learning}
-
-
-\subsection{Bandit Problem}
-
+\subsection{Active Learning and the Bandit Problem}
 
 \section{Hyperparameter Optimization}
 In Bayesain statistics the term \textit{hyperparameter} referes to the a parameter of the prior distribution. In \textit{hierarchical models} the priors distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin.
@@ -137,14 +134,9 @@ Key characteristics of a \ac{HPO} problems are:
 \paragraph{varying complexity} of search space ranging from simple homogenic cartesian search spaces to heterogenic graph shaped spaces.
 
 \subsection{Machine Learning as Optimization}
-
-
-
 Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}.
 
 \paragraph{Types and Error Functions}
-
-
 \paragraph{Model Selection}
 
 
@@ -165,7 +157,64 @@ Second, machine learning experiment EGO algorithm
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
 
 
-\section{Constructing Search Spaces}
+
+\section{Bayesian Optimization}
+Bayesian optimization is model-based optimization with a Bayesian model. The
+
+\subsection{SMBO}
+Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
+
+\subsection{Aquisition Functions}
+
+\subsubsection{Expected Improvement}
+
+Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
+
+$$ \EI(y|x) \coloneqq \int_{-\infty}^{\infty} \max(0, y^*-y)p(y|x)dy $$
+
+For the one-dimensional case a simple closes form formula can be derivated:
+
+$$ \EI(y|x) = \int_{-\infty}^{y^*}(y^*-y)p(y|x)dy$$
+
+$$ = \int_{-\infty}^{y^*}(y^*-y)\normal(y; \mu, \sigma)dy =
+\int_{-\infty}^{y^*}(y^*-y)\normal(y-\mu; 0, \sigma)dy$$
+
+$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$
+
+$$ = (y^*-\mu)\int_{-\infty}^{y^*}\normal(t; 0, \sigma)dt - \int_{-\infty}^{y^*}t\cdot\normal(t; 0, \sigma)dt$$
+
+$$ = (y^*-\mu)\Phi(y^*/\sigma) - \phi(y^*/\sigma) $$
+
+Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distribution.
+
+\subsubsection{Probability of Improvement}
+\subsubsection{Entropy search}
+\subsubsection{Upper confidence bound}
+
+\subsection{Aquisition optimization}
+The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
+
+\subsubsection{Recommendation Strategy}
+The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
+
+\subsection{Noisy fittness functions}
+
+\subsection{Conditional Parameters}
+
+\subsubsection{SMAC}
+
+\subsubsection{The Tree-Parzen Algorithm}
+The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
+
+\subsubsection{Tree and Graph Kernels/Metrics}
+...
+
+
+
+
+
+
+\section{Search Spaces Construction}
 The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$.
 The basic idea underlying the construction of parameter spaces is that variables do not need to possess a unique value assingment, but can rather have a set of or possible values. Instead of saying $x = 1$ one can say that $x$ equals ether one or two. Any other operations that Finally this set of computation graphes can be applied to a performance measure, expressing an optimization problem with instances of the computation graph set as possible solutions.
 
@@ -320,58 +369,6 @@ The squared-exponential kernel (also called radial basis function kernel (RBF)) 
 \subsubsection{Kernel Combination}
 Kernel combination properties. Maybe: Why do they work!
 
-\section{Bayesian Optimization}
-What distinguished \ac{HPO} from other non-\ac{HPO}.
-
-\subsection{Aquisition Functions}
-
-\subsubsection{Probability of Improvement}
-\subsubsection{Expected Improvement}
-
-Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
-
-$$ \EI(y|x) \coloneqq \int_{-\infty}^{\infty} \max(0, y^*-y)p(y|x)dy $$
-
-For the one-dimensional case a simple closes form formula can be derivated:
-
-$$ \EI(y|x) = \int_{-\infty}^{y^*}(y^*-y)p(y|x)dy$$
-
-$$ = \int_{-\infty}^{y^*}(y^*-y)\normal(y; \mu, \sigma)dy =
-\int_{-\infty}^{y^*}(y^*-y)\normal(y-\mu; 0, \sigma)dy$$
-
-$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$
-
-$$ = (y^*-\mu)\int_{-\infty}^{y^*}\normal(t; 0, \sigma)dt - \int_{-\infty}^{y^*}t\cdot\normal(t; 0, \sigma)dt$$
-
-$$ = (y^*-\mu)\Phi(y^*/\sigma) - \phi(y^*/\sigma) $$
-
-Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distribution.
-
-\subsubsection{Entropy search}
-\subsubsection{Upper confidence bound}
-
-\subsection{Aquisition optimization}
-The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
-
-\subsubsection{Recommendation Strategy}
-The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
-
-\subsection{SMBO}
-Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
-
-
-\subsection{Conditional Parameters}
-
-
-\subsubsection{SMAC}
-
-
-\subsubsection{The Tree-Parzen Algorithm}
-The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
-
-\subsection{Tree and Graph Kernels/Metrics}
-...
-
 
 \section{BO of Self-Referential Seach Spaces}
 
@@ -416,10 +413,11 @@ best\_value $\leftarrow$ $\infty$\;
 
 
 \subsection{Extention to DAG-structured search spaces}
+Some search spaces can be restricted by introducing an function, that detect if two search spaces share the same extension. 
 Identifying equivalent function trees with computer algebra systems.
 
 \subsection{Parallelization}
-Simple trick to extend algorithm to parrallel execution.
+A sequential Bayesian Optimization Algorithm can be extended to parrallel Algorithm with one simple trick. If an evaluation point is chosen, instead of waiting for the actual result, the expeced value estimate, which is easilz exessible with the Gaussian model, is inserted as a placeholder. The selection process is initiated again and will chose another point since the variance of the former point is zero. One the computation is complete the placeholder value is substituted by the real value. In this way objective function evaluations can be parralelized, while parameter selection keeps sequential.
 
 \subsection{Integration with Manual Search}
 Manual guidance before and during the optimization process.
@@ -551,6 +549,7 @@ opt_obj.run()
 \subsubsection{Kernel Parameter and Kernel Combination Optimization}
 \subsection{Elastic Net Linear Regression}
 \subsection{Feat-Forward Networks}
+\subsection{Self Optimization}
 
 \section{Conclusion}
 
