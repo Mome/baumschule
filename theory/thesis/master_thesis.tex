@@ -33,7 +33,7 @@
 
 \begin{document}
 
-\title{Bayesian Hyperparameter-Optimization in Self-Referential Search Spaces}
+\title{Bayesian Optimization in Self-Referential Search Spaces}
 \author{Moritz Meier}
 \maketitle
 \tableofcontents
@@ -156,6 +156,24 @@ Second, machine learning experiment EGO algorithm
 \subsection{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
 
+\section{Gaussian Processes Regression}
+The two big advantages of a Bayesian approach to supervised learning is for one the explicite integration of prior knowledge and for the other a distribution over the output space as an result instead of an point estimate.
+
+A GP (Gaussian process) is a (usually infinite) collection of random variables where any finite subset is multivariat normal distributed. These random variables can be indexed by $\mathbf{x} \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, x \mapsto f(\mathbf{x})$. This is written like:
+$$f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), k(\mathbf{x},\mathbf{x}')\big)$$
+Where $m$ is the function of the expected value, an $k$ the covariance function.
+
+
+
+
+
+\subsection{Kernels}
+
+\subsubsection{Squared-Exponential Kernel}
+The squared-exponential kernel (also called radial basis function kernel (RBF)) has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards one.
+
+\subsubsection{Kernel Combination}
+Kernel combination properties. Maybe: Why do they work!
 
 
 \section{Bayesian Optimization}
@@ -195,7 +213,7 @@ Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distrib
 The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
 
 \subsubsection{Recommendation Strategy}
-The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-deterministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
+The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-det erministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
 
 \subsection{Noisy fittness functions}
 
@@ -208,10 +226,6 @@ The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimiza
 
 \subsubsection{Tree and Graph Kernels/Metrics}
 ...
-
-
-
-
 
 
 \section{Search Spaces Construction}
@@ -358,17 +372,6 @@ Variables are like constants, with additional ability to change value in the com
 \end{figure}
 
 
-\section{Gaussian Processes Regression}
-The two big advantages of a Bayesian approach to supervised learning is for one the explicite integration of prior knowledge and for the other a distribution over the output space as an result istead of an point estimate.
-
-\subsection{Kernels}
-
-\subsubsection{Squared-Exponential Kernel}
-The squared-exponential kernel (also called radial basis function kernel (RBF)) has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards one.
-
-\subsubsection{Kernel Combination}
-Kernel combination properties. Maybe: Why do they work!
-
 
 \section{BO of Self-Referential Seach Spaces}
 
@@ -413,7 +416,7 @@ best\_value $\leftarrow$ $\infty$\;
 
 
 \subsection{Extention to DAG-structured search spaces}
-Some search spaces can be restricted by introducing an function, that detect if two search spaces share the same extension. 
+Some search spaces can be restricted by introducing an function, that detect if two search spaces share the same extension.
 Identifying equivalent function trees with computer algebra systems.
 
 \subsection{Parallelization}

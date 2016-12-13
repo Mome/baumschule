@@ -28,12 +28,12 @@ def serialize(param, lispstyle=False):
 
         op_name = serialize(param.operation)
 
-        arg_vals = map(serialize, param.domain.args)
+        arg_vals = tuple(map(serialize, param.domain.args))
         if param.domain.kwargs:
             kwarg_keys, kwarg_vals = zip(*param.domain.kwargs.items())
-            kwarg_vals =  map(serialize, param.domain.args)
+            kwarg_vals =  map(serialize, kwarg_vals)
             kwarg_items = [
-                '='.join(k,v) for k,v in zip(kwarg_vals, kwarg_keys)]
+                '%s=%s' % item for item in zip(kwarg_keys, kwarg_vals)]
         else:
             kwarg_items = ()
 

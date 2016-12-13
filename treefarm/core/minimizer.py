@@ -24,7 +24,7 @@ from .space_utils import get_crown, get_subspace, expand
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('INFO')
+log.setLevel('WARN')
 conf = get_config()
 
 
@@ -33,23 +33,23 @@ def minimize_func(
     param,
     max_iter = inf,
     timeout = inf,
-    minimizer = 'default',
-    return_object = None):
+    minimizer = 'default'
+    ):
 
     assert callable(func)
 
     operation = op(func) # convert function to operation
     search_space = operation(param) # integrate into search space
     return minimize( # minimize search space
-        search_space, max_iter, timeout, minimizer, return_object)
+        search_space, max_iter, timeout, minimizer)
 
 
 def minimize(
     search_space,
     max_iter = inf,
     timeout = inf,
-    minimizer = 'default',
-    return_object = False):
+    minimizer = 'default'
+    ):
 
     if type(minimizer) is str:
         minimizer = conf.minimizers[minimizer]
@@ -62,12 +62,8 @@ def minimize(
         # check for iteractive cell
         return_object = sys.stdout.isatty()"""
 
-    if return_object:
-        return opt_obj
-    else:
-        assert max_iter < inf or timeout < inf, 'set max_iter or timeout'
-        opt_obj.run()
-        prot = opt_obj.minimizeDEBUG
+    return opt_obj
+
 
 class Minimization(threading.Thread):
     def __init__(self, minimizer, max_iter, timeout):

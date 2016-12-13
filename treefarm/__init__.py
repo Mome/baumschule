@@ -9,7 +9,7 @@ from .core.environment import get_config, get_env
 from .core.domains import R, N, N0, Z, Interval, ParameterList
 
 from .core.spaces import (
-    Categorical, Discrete, Continuous, Apply, op,
+    Categorical, Discrete, Continuous, Apply, operation, op,
     join, intersect, power, prod, quote
 )
 

@@ -18,7 +18,7 @@ from ..core.random_variables import sample
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 
 class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
@@ -34,7 +34,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         search_space,
         engine = None,
         aquifunc = None,
-        kernel_cls = None,
+        kernel = None,
         aquiopt_cls = None,
         ):
         """
@@ -56,16 +56,17 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         # infere argumments
         if aquifunc == None:
             aquifunc = expected_improvement
-        if kernel_cls == None:
-            kernel_cls = [GPy.kern.RBF, GPy.kern.Bias]
+        if kernel == None:
+            kernel = GPy.kern.Bias(1) + GPy.kern.Linear(1) + GPy.kern.RBF(1)
         if aquiopt_cls == None:
             aquiopt_cls = RandomMinimizer
 
         # create kernel
-        self.kernel = reduce(
-            lambda x,y : x + y, (K(self.dim_number) for K in kernel_cls))
+        """self.kernel = reduce(
+            lambda x,y : x + y, (K(self.dim_number) for K in kernel_cls))"""
 
         # store to instance
+        self.kernel = kernel
         self.aquifunc = aquifunc
         self.aquiopt_cls = aquiopt_cls
         self.auto_update = True
@@ -80,7 +81,10 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         log.debug('X.shape %s' % (X.shape,))
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.Gaussian_noise.constrain_fixed(0.0)
-        m.optimize()
+        try:
+            m.optimize()
+        except np.linalg.linalg.LinAlgError as e:
+            print('Optimization failed:', e.message)
         return m
 
     def update(self, best_perf=None):
@@ -103,7 +107,6 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
             param = quote(self.search_space),
             minimizer = self.aquiopt_cls,
             max_iter = 100,
-            return_object = True,
         )
         opt_obj.run()
 

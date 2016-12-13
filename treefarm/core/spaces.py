@@ -12,6 +12,15 @@ log.setLevel('INFO')
 class Callable:
     def __call__(self, *args, **kwargs):
         log.debug('call: %s %s' % (args, kwargs))
+
+        # convert argument values to spaces
+        if args:
+            args = map(to_space, args)
+        if kwargs:
+            keys, vals = zip(*kwargs.items())
+            vals = map(to_space, vals)
+            kwargs = zip(keys, vals)
+
         domain = ParameterList(args, kwargs)
         return Apply(self, domain)
 
@@ -118,7 +127,6 @@ class Continuous(Primitive):
         return str(self.domain)
 
 
-
 class Operation(Callable):
 
     NOTATIONS = {'prefix', 'postfix', 'infix', 'name'}
@@ -160,6 +168,7 @@ class Operation(Callable):
         apply_obj.dist = self.dist
         return apply_obj"""
 
+
 class Combination(Operation):
     """
     Difference between a combination and other operations is that
@@ -170,13 +179,14 @@ class Combination(Operation):
         super().__init__(*args, **kwargs)
 
 
-def op(func, name=None, **kwargs):
+def operation(func, name=None, **kwargs):
     if name is None:
         name = func.__name__
         if name == '<lambda>':
             log.warn('You should give a proper name to the function.')
     return Operation(func, name, **kwargs)
 
+op = operation
 
 """def power(arg1, arg2):
     assert type(arg2) == int
@@ -259,3 +269,6 @@ apply = Operation(
     func = apply_func,
     name = 'apply'
 )
+
+# --- very dirty this is ---
+from .space_utils import to_space
