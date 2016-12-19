@@ -40,7 +40,7 @@
 \newpage
 
 \section*{List of Acronyms}
-  \begin{acronym}
+\begin{acronym}
   \acro{AI}{artificial intelligence}
   \acro{BO}{Bayesian Optimization}
   \acro{BOA}{Bayesian optimization algorithm}
@@ -53,6 +53,7 @@
   \acro{ML}{machine learning}
   \acro{SMAC}{sequential model-based algorithm configuration}
   \acro{SMBO}{sequential model-based optimization}
+  \acro{GPR}{Gaussian Process Regression}
 \end{acronym}
 
 \section{Introduction}
@@ -76,6 +77,7 @@ Metaheuristics
 Programm Configuration
 Learning \& Optimizaion.
 
+DACE - design and analysis of computer experiment
 
 \section{Global Black-Box Optimization}
 
@@ -124,17 +126,18 @@ The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO
 
 \subsection{Active Learning and the Bandit Problem}
 
+
+
 \section{Hyperparameter Optimization}
-In Bayesain statistics the term \textit{hyperparameter} referes to the a parameter of the prior distribution. In \textit{hierarchical models} the priors distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin.
-\acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{tuning} or \textit{search}. Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterions.
-The ususal \ac{HPO} procedure ...
-Key characteristics of a \ac{HPO} problems are:
+In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. \acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
+Also \textit{model selection} means essentially the same thing, the focus is more on the selection criterions.
+A key characteristic of \ac{HPO} problems is littel knowledge about the search space structure.  While \ac{ML}-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently.
 \paragraph{Long evaluation times}
 \paragraph{Little knowledge} of the objective function
 \paragraph{varying complexity} of search space ranging from simple homogenic cartesian search spaces to heterogenic graph shaped spaces.
 
 \subsection{Machine Learning as Optimization}
-Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}.
+Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function.
 
 \paragraph{Types and Error Functions}
 \paragraph{Model Selection}
@@ -145,9 +148,6 @@ Most \acf{ML} problems are expressable as optimization problems \cite{bennett_in
 Machine learning algorithms, however, have certain characteristics that distinguish them from other black-box optimization problems.  First, each function evaluation can require a variable amount of time:  training a small neural network with 10 hidden units will take less time than a bigger net-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing makes it possible to quantify economically the cost of requiring large-memory machines for learning, changing the actual cost in dollars of an experiment with a different number of hidden units.
 \end{quote}
 Second, machine learning experiment EGO algorithm
- - Categrorical
- - Discrete
- - Continunous
 
 
 \paragraph{Assumptions}
@@ -156,24 +156,84 @@ Second, machine learning experiment EGO algorithm
 \subsection{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
 
+
 \section{Gaussian Processes Regression}
-The two big advantages of a Bayesian approach to supervised learning is for one the explicite integration of prior knowledge and for the other a distribution over the output space as an result instead of an point estimate.
+Regression is the problem of estimating the relationship between an indendent random variable $X$ and a real-valued dependent random variable $Y$, by generalizing from examples. In frequentist settings one ususally defines a parametrized familiy of underlying functions. A point estimator is then applied to find the set of parameters that explains/predicts the data the best. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximised over the model parameters. The semi-Bayesian maximum a posteriori approach additionally assumes a prior probability over the model-parameters and can e.g. deal with overfitting in a natural way. Finally in the fully Bayesian approach the estimates are distributions over parameters rather than single paramters settings. Gaussian process regression goes even a step further by having a non-parameteric model that grows with in complexity with the amount of data (Some authers prefere to call them inifinte-parametric models for that reason).
 
 A GP (Gaussian process) is a (usually infinite) collection of random variables where any finite subset is multivariat normal distributed. These random variables can be indexed by $\mathbf{x} \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, x \mapsto f(\mathbf{x})$. This is written like:
-$$f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), k(\mathbf{x},\mathbf{x}')\big)$$
-Where $m$ is the function of the expected value, an $k$ the covariance function.
+$$f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}')\big)$$
+Where $m$ is the function of the expected value, and $\kappa$ the covariance function, which specifies the covariance of the dependet variable with respect to the independent variable:
 
+$$\operatorname{cov}(f(\mathbf{x}),f(\mathbf{x}')) = \kappa(\mathbf{x},\mathbf{x}')$$
+
+For comptational simplicity the prior mean is usually set to $m(\mathbf{x}) = \mathbf{0}$. In order to sample from the prior, $K_{**} = \kappa(X_*,X_*)$ one can use the multivariat normal distribution.
+$$\mathbf{f_*} \sim \mathcal{N}(\mathbf{0}, K_{**})$$
+
+Even though the model is a Gaussian process, the calculations can be done with mutivaraite Gaussian distributions and have a time complexity of only $O(N^3)$.
+
+The trick to conduct the conditional distribution, wich is required for prediction, is to formulate the joint distribution over observed points and the sample points:
+
+$$
+\begin{bmatrix}
+\ \mathbf{y}\ \\
+\ \mathbf{f_*} \\
+\end{bmatrix}
+\sim \mathcal{N} \Bigg(\mathbf{0},
+\begin{bmatrix}
+K_y & K_* \\
+\ K^{\top}_{*} & K_{**}  \\
+\end{bmatrix}
+\Bigg)
+$$
+
+Next condition on the sample points to end up with the following:
+
+$$\overline{\mathbf{f_*}} = K_*^\top K_y^{-1}\mathbf{y}$$
+$$cov(\mathbf{f_*}) = K_{**} - K_*^\top K_y^{-1} K_*$$
+
+For interpolation (noise free prediction) case $K_y$ euqals $\kappa(X,X)$. For noisy prediction $K_y$ gets and additional noise term $\kappa(X,X) + \sigma_n^2$.
+
+\begin{figure}
+
+  \begin{minipage}{0.5\textwidth}
+  \includegraphics[scale=0.3]{plots/prior_plot.pdf}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
+  \includegraphics[scale=0.3]{plots/posterior_no_noise.pdf}
+  \end{minipage}%
+
+  \begin{minipage}{0.5\textwidth}
+  \includegraphics[scale=0.3]{plots/posterior_with_noise.pdf}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
+  \includegraphics[scale=0.3]{plots/posterior_exp.pdf}
+  \end{minipage}%
+
+  \caption{Upper Left: Three samples for a Gaussian process with zero mean, and RBF Kernel. Upper Right: Posterior for some sample points, without noise term. The blue area displays the margin of the variance. Lower left: posterior with noise term. Lower right: Posterior with noise term and exponential kernel.}
+
+\end{figure}
+
+
+The actual implementation of \ac{GPR} requires further knowledge about numeric properties which are not discussed here. A practical algortihm description involving Cholesky decomposition can be found in \cite[Algorithm 2.1]{rasmussen_gaussian_2006}.
 
 
 
 
 \subsection{Kernels}
+A quadratic matrix $K$ with $\mathbf{v}^\top \mathbf{v} \ge 0$ for all $\mathbf{v} \in \mathbb{R}^n$.
 
-\subsubsection{Squared-Exponential Kernel}
-The squared-exponential kernel (also called radial basis function kernel (RBF)) has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards one.
+The \textbf{squared-exponential} kernel (SE), which is also called radial basis function kernel (RBF), has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards zero. This leads to very smooth function.
+
+
+
+\subsubsection{Kernel Hyperparamters}
+Parameters are optimized by optimizing the margnial likelihood ...
 
 \subsubsection{Kernel Combination}
 Kernel combination properties. Maybe: Why do they work!
+
+
+
 
 
 \section{Bayesian Optimization}
@@ -228,7 +288,52 @@ The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimiza
 ...
 
 
-\section{Search Spaces Construction}
+
+\section{Search Space Construction}
+
+
+\begin{table}
+  \begin{tabular}{| l | l |}
+    \hline
+    name & definition \\
+    \hline \hline
+    objective function & function to be optimized \\
+    search space &  domain of the objective function that is subject to the optimization\\
+    program space & search space together with the objective function \\
+    parameter space & search space \\
+    expression & representation of a search space, comprising primitive parameters and \\
+    grounded expression & expression where the cardinality of the extension equals one \\
+    instance & grounded expression \\
+    extension & set of all instances of an expression \\
+    semantic equal & equal extension \\
+    structural equal & ... \\
+    computation graph & instance with graph structure \\
+    computation tree & instance with tree structure \\
+    parameter & unspecified value, that is subject to the optimization \\
+    input & unspecified value, that is not subject to optimization \\
+    output & return value / space of the output \\
+    (computation) node & primitive node or application node \\
+    operation & wrapper of a function, creates a computation node when called, input and outputs must be value \\
+    combination & if evaluable: inputs and outputs can be computation graphs \\
+    grammar & self-referential expression \\
+    selection & ... \\
+    projection & ... \\
+    restriction & implicite selection via constraints \\
+    domain & all possible values of a parameter ... \\
+    parameter list & parameter family without named parameter \\
+    parameter family - \\
+    argument & value that is applied to a function / value of a parameter family \\
+    crown & list of independent choices of an expression \\
+    flat expression & expression without joined nodes \\
+    \hline
+  \end{tabular}
+  \caption{Definitions}
+  \label{definitions}
+
+\end{table}
+
+
+
 The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$.
 The basic idea underlying the construction of parameter spaces is that variables do not need to possess a unique value assingment, but can rather have a set of or possible values. Instead of saying $x = 1$ one can say that $x$ equals ether one or two. Any other operations that Finally this set of computation graphes can be applied to a performance measure, expressing an optimization problem with instances of the computation graph set as possible solutions.
 
@@ -251,15 +356,6 @@ Other than categorical parameters, but similar to continous parameters, discrete
 Combinations take search spaces and return a combined search space. A combined search space is represented by an application node which posseses an operation and a domain field. Combined search spaces can be combined again in order to create strcutured search spaces. The operation field is assiged with combinator itself, while the domain is assigned with a parameter family.
 In programming languages, when calling a function, the parameters are usually passed-by-name, passed-by-value or both. Mathematically this can be expressed by an indexed family. The passed-by-value arguemts are indexed by integers from $0$ to $n$ and the passde-by-name argumets are indexed by strings. A parameter family with two positional arguments $A,B$ and a key keyword argument $C$ with index $\gamma$ is written as:
 $$\{A_0, B_1, C_\gamma\}$$
-The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
-$$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
-Non-integer indices are simply copied to the resulting family.
-$$\{A_0,\ B_\beta\} \times \{C_0,\ D_\delta\} = \{A_0,\ C_1, B_\beta,\ D_\delta\}$$
-The prodcut is undefined if two non-positional parameters share the same key.
-Items of a parameter family can be renamed. In resemblence to relational algebra the greek letter $\rho$ is used to refer to the rename.
-$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
-Elements can by selected from parameter family be the projection $\pi$.
-$$\pi_1(\{A_0, B_1, C_\gamma\}) = B$$
 
 \paragraph{Joining}
 Two search spaces $A$ and $B$ can be joined to form a new search space, which contains all instances of $A$ and $B$. In recemblence to the Backus–Naur form, the join combination can also be expressed through a pipe symbol.
@@ -268,11 +364,23 @@ The join is related to the set union, in that the extension of the join of two s
 
 \paragraph{Product}
 The product lines up multiple search spaces to form a sequence of search spaces. The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone.
+The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
+$$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
+Non-integer indices are simply copied to the resulting family.
+$$\{A_0,\ B_\beta\} \times \{C_0,\ D_\delta\} = \{A_0,\ C_1, B_\beta,\ D_\delta\}$$
+The prodcut is undefined if two non-positional parameters share the same key.
+
+\paragraph{Projection}
+Items of a parameter family can be renamed. In resemblence to relational algebra the greek letter $\rho$ is used to refer to the rename.
+$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
+Elements can by selected from parameter family be the projection $\pi$.
+$$\pi_1(\{A_0, B_1, C_\gamma\}) = B$$
 
 \paragraph{Function Application}
 With the apply combination the application of an abitrary function to the elements of a search space can be expressed.
-$$ f(A \cup B) = f(A)\ |\ f(B) $$
-Spaces can also be applied to other spaces.
+$$ f(A | B) = f(A)\ |\ f(B) $$
+
+If two search spaces can also be applied to other spaces.
 $$(f\ |\ g)(A) = f(A)\ |\ g(A)$$
 
 With function application it becomes possible to express \textit{dependendencies} between parameters.
@@ -351,18 +459,87 @@ Context free grammars can produce identical strings with a different sequence of
 If a function to measure the equality of two expressions is added to the system, the search space obtains the structure of a directed acyclic graph.
 Two expressions can have the same meaning even if the representations are not equal. So far this is
 
-
-\paragraph{Constants}
+\paragraph{Constants \& Variables}
 So far it is only possible to express search spaces over function trees.
 A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of computation tree evaluation.
 The structure of the describable structure is extended to a DAG and is called a \textit{computation graph}.
 Constants allow to express structures beyond the capabilities of a constext free grammar. For example to express a search space over matricies with arbitray size.
-
-\paragraph{Variables}
 Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures.
+Both constants and variables are not integrated into the system and will not be discussed further.
+
+\subsection{Simplification}
+Simplification of the search space expression can improve comprehensibility for humans, but can also improve performance of optimization algorithms working with it. The other use of simplification is the transformation of instance expressions into a normal form, in order to detect equality of expressions.
+Simplification can be realized by using methods used by term rewriting systems. In our case we can directly work on computation trees/graphs,  simplification is a tree/graph transformation. Operations can be supplemented with properties, which indicate legal transformations to the system.
+
+\paragraph{commutative} Commutativity as known from binary operators indicates a symmetric realation. The order in which the arguments are applied is irrelevant. This notion can be extended to multvariate functions. The system can arbitrarily change the argument order. To bring an application of a commutative function into normal form, the parameters are sorted in alphabetical order of its serialization.
+
+\paragraph{associative} For three or more binary associative operators in a row the application order is irrelevant. Computation trees are invariant under tree rotation if the two involved nodes are in a parent-child relationship and the operations of the node are identic and associative. For associative nodes left-to-right application conforms to the normal-form.
+
+\paragraph{variadic}
+In programming languages a variadic function is a function, that has a variable arity. Here the definition is stricter and requieres the function to be defined on an arbitrary arity ($f(),\ f(x),\ f(x_1,x_2),\ f(x_1,x_2,...,x_n)$).  The property also implies that arguments of a left-to-right applications of a node with equal operation can be merged into the parent node. An example of this is is given with the sum operation, depicted in Figure \ref{as/var transform}.
+
+\begin{figure}
+
+\begin{minipage}[b]{0.35\textwidth}
+\caption{Two parsings of $a+b+c$. The left computation graph shows a usual left-to-right parsing, also written as sum(sum(a,b),c). With the as/var properties it can be simplified to the right computation graph sum(a,b,c).}
+\label{as/var transform}
+\end{minipage}%
+\hfill%
+\begin{minipage}[b]{0.3\textwidth}
+\centering
+\includegraphics[scale=0.3]{sum_not_simplified-crop.pdf}
+
+% \label{Text}
+\end{minipage}%
+\hfill%
+\begin{minipage}[b]{0.3\textwidth}
+\centering
+\includegraphics[scale=0.3]{sum_simplified-crop.pdf}
+\end{minipage}%
+\end{figure}
+
+If the operation is also associative, child nodes with equal-operation can be merged into the parent node from any position (Table \ref{funcprops} row: ac/var).
+
+\paragraph{distributivity}
+...
+
+\paragraph{other proerties}
+Idempotence can have two different meanings.
+
+If a function is variadic, associative, commutative and binary idempotent it follows that any multiply occuring argument can be deleted. Proof:
+
+$$f(\alpha_1, \mathbf{x}, \alpha_2, \mathbf{x}, \alpha_3) \stackrel{com}{=}
+f(\mathbf{x},\mathbf{x}, \alpha_1, \alpha_2, \alpha_3) \stackrel{as/var}{=}
+f(f(\mathbf{x},\mathbf{x}), f(\alpha_1, \alpha_2, \alpha_3)) \stackrel{bid_1}{=}$$
+$$f(\mathbf{x}, f(\alpha_1, \alpha_2, \alpha_3)) \stackrel{as/var}{=}
+f(\mathbf{x}, \alpha_1, \alpha_2, \alpha_3)$$
+
+This is for example the case for the join, which plays
+
+
+\begin{table}
+\centering
+\begin{tabular}{c | c | l}
+abbr & property name & definition \\
+\hline
+as               & associative        & $f(f(x,y),z) = f(x,f(y,z))$ \\
+com              & commutative        & $f(x,y)=f(y,x)$ \\
+ldis             & left distributive  & $f(x,g(y,z))=g(f(x,y),g(x,z))$ \\
+rdis             & right distributive & $f(g(x,y),z)=g(f(x,z),g(y,z))$ \\
+id               & identity           & $f(x) = x$ \\
+uid              & unary idempotent   & $f(f(x)) = f(x)$ \\
+bid$_{\text{1}}$ & binary idempotent  & $f(x,x) = x$ \\
+bid$_{\text{2}}$ & \multicolumn{1}{|c|}{$-$} & $f(x,x) = f(x)$ \\
+var              & variadic           & $f(f(x,y),z) = f(x,y,z)$\\
+as/var           & \multicolumn{1}{|c|}{$-$} & $f(x,f(y,z)) = f(x,y,z)$ \\
+\end{tabular}
+\caption{Overview of function/combination properties}
+\label{funcprops}
+\end{table}
 
 
 \subsection{Structure of search spaces}
+Depending on the available operation the e
 
 \begin{figure}
 \includegraphics[scale=0.5]{search_space_hierachy.pdf}
@@ -370,8 +547,6 @@ Variables are like constants, with additional ability to change value in the com
   \caption{The leftmost node represents a system with only primitive spaces. Following the edges from left to write new operations are added. The field of a node hold following information from top to bottom: abbriviation of available operations, structure of search space and structure of resulting parameter. Constants and Variables are not represented.}
   \label{fig_spaces}
 \end{figure}
-
-
 
 \section{BO of Self-Referential Seach Spaces}
 
@@ -413,6 +588,10 @@ best\_value $\leftarrow$ $\infty$\;
 \end{algorithm}
 %
 % \While{not flat(W.search_space) }{asd}
+\subsection{selection criteria from subexpression}
+In two cases the subexpression selection is striaght forward: If on choice has been explored, an expansion can simply be chosen by random. If all choices are have at least been explored twice, the subexpression with the highest aquisition value would ne chosen. Any case in between with explored and unexplored choices can be chosen by different criteria.
+In the simplest approach a fix value, which servers as a default aquisition, would be assigned to any unexplored node. High default aquisitions would benefit exploration of unknown structures, for self-referential expressions this leads to a faster exploration of bigger structures. Lower values would rather encourage exploration of varaints of known structures.
+A more sophisticated approch is to apply \ac{GPR} on every selection level as well.
 
 
 \subsection{Extention to DAG-structured search spaces}
@@ -421,6 +600,7 @@ Identifying equivalent function trees with computer algebra systems.
 
 \subsection{Parallelization}
 A sequential Bayesian Optimization Algorithm can be extended to parrallel Algorithm with one simple trick. If an evaluation point is chosen, instead of waiting for the actual result, the expeced value estimate, which is easilz exessible with the Gaussian model, is inserted as a placeholder. The selection process is initiated again and will chose another point since the variance of the former point is zero. One the computation is complete the placeholder value is substituted by the real value. In this way objective function evaluations can be parralelized, while parameter selection keeps sequential.
+
 
 \subsection{Integration with Manual Search}
 Manual guidance before and during the optimization process.
@@ -453,13 +633,12 @@ The formalizm has been realized as a package for the Python programming language
 \begin{minted}{python}
 from treefarm import *
 
+# declares the objective fucntion
+@operation
 def f(x, y):
     return x**2 + y**2
 
-# convert function to operation
-f = op(f)
-
-# declate parameter search space
+# declare parameter search space
 search_space = f(
   x = R[-10:10],
   y = R[-10:10],
@@ -478,7 +657,7 @@ import numpy as np
 import GPy
 from treefarm import *
 
-# Bayesian information criterion of a gpy model
+# Bayesian information criterion of a GPy model
 def bic(model):
     return -2 * model.log_likelihood() + np.log(len(model.X)) * model.size
 
@@ -564,6 +743,7 @@ opt_obj.run()
 \paragraph{Integration with Workflow-Managers}
 
 \appendix
+
 
 
 \section{Formal descriptions}

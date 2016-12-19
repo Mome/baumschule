@@ -1,5 +1,5 @@
 # %% preliminaries
-import sys
+import sys, os
 
 from pylab import *
 from treefarm import *
@@ -24,24 +24,25 @@ G = join()
 G <<= K+G | K*G | K
 G = simplify(G)
 
-kernels = [
-    GPy.kern.RBF(1),
-    GPy.kern.RBF(1) + GPy.kern.Linear(1),
-    GPy.kern.RBF(1) + GPy.kern.Bias(1),
-    GPy.kern.RBF(1) + GPy.kern.Linear(1) + GPy.kern.Bias(1),
-    GPy.kern.Linear(1) + GPy.kern.Bias(1),
-    GPy.kern.Linear(1),
-    GPy.kern.Bias(1),
-]
+if os.path.exists('wild_kernel_names.npy'):
+    names = list(np.load('wild_kernel_names.npy'))
+else:
+    names = []
 
-kernels_str ="""RBF
-RBF + Linear
-RBF + Bias
-RBF + Linear + Bias
-Linear + Bias
-Linear
-Bias""".split('\n')
+if os.path.exists('wild_kernel_search.npy'):
+    perf_stor = list(np.load('wild_kernel_search.npy'))
+else:
+    perf_stor = []
 
+def str_deep(kern):
+    try :
+        L = [str_deep(k) for k in kern.parts]
+        out = kern.name + '(' + ','.join(L) + ')'
+    except:
+        out = kern.name
+    return out
+
+@operation
 def test_kernel(kernel):
 
     def f(x):
@@ -49,16 +50,16 @@ def test_kernel(kernel):
 
     search_space = op(f)(R[-1000:1000])
 
-    print('test kernel:', kernel)
-    sys.stdout.flush()
+    print('test kernel:', str_deep(kernel))
 
+    outer_iterations = 10
     for i in range(outer_iterations):
         print('iteration', i, end='')
 
         obj = minimize(
-            search_space = ss,
+            search_space = search_space,
             max_iter = 30,
-            minimizer = FlatGPMinimizer(ss, kernel=kernel),
+            minimizer = FlatGPMinimizer(search_space, kernel=kernel),
             )
         obj.run()
         if 'min_perfs' not in locals():
@@ -67,25 +68,32 @@ def test_kernel(kernel):
             min_perfs += np.array(get_minium_states(obj.minimizer.protocol))
         print(':', min_perfs[-1]/(i+1))
 
-    return min_perfs / outer_iterations
+    out = min_perfs / outer_iterations
+    perf_stor.append(out)
+    names.append(str_deep(kernel))
+    return out[-1]
 
 
+kernel_ss = test_kernel(G)
 
-min_perfss = np.array([
-    test_kernel(search_space, k, 10)
-    for k in kernels
-])
+min_obj = minimize(kernel_ss, max_iter=10)
 
-min_perfss.dump('kerel_test.npy')
 
-# %%
-figure("Performances")
-for k, mperfs in zip(kernels_str, min_perfss):
-    plot(mperfs, label=str(k))
-legend()
+#min_obj.run()
 
-figure("log-Performances")
-for k, mperfs in zip(kernels_str, min_perfss):
-    plot(np.log(mperfs), label=str(k))
-legend()
-show()
+def plot_and_dump():
+    _perf_stor = np.array(perf_stor)
+    _perf_stor.dump('wild_kernel_search.npy')
+    np.array(names).dump('wild_kernel_names.npy')
+
+    # %%
+    figure("Performances")
+    for k, mperfs in zip(names, _perf_stor):
+        plot(mperfs, label=str(k))
+    legend()
+
+    figure("log-Performances")
+    for k, mperfs in zip(names, _perf_stor):
+        plot(np.log(mperfs), label=str(k))
+    legend()
+    show()

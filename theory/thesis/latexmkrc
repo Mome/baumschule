@@ -1,4 +1,10 @@
 sub createlnk{
     system("ln -s tmp/master_thesis.pyg");
 }
+
+sub createplots{
+    system("python plots/create_plots.py");
+}
+
+createplots();
 createlnk();
