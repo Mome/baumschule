@@ -31,6 +31,7 @@
 \newcommand{\EI}{\operatorname{EI}}
 \newcommand{\normal}{\mathcal{N}}
 
+
 \begin{document}
 
 \title{Bayesian Optimization in Self-Referential Search Spaces}
@@ -58,18 +59,15 @@
 
 \section{Introduction}
 
-Modern society heavly relies on automated information processing
+In past years the growing amount of collected data caused a increasing application of automated data processing in a wide range of areas streching from  science to industry.
+The hight demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standarts. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use /out-of-the-box solution movend big software companies to develop big systems with features like integratet plotting, data-IO or even model sharing. The dataflow processing computation model turned out especially suited for data processing.
 
-The increading amount of digital data that arises in modern society poses a difficult challange for established information technology. Developers are forced to adapt  ...
 
-During its history the field of software engeneering was subject to a continual change. New affordances to computer systems forced developers to consistanty adopt concepts from academic fields into their own skill sets. The raising complexity in software projects gave birth high level programming languages that are easier to grasp for the human mind, which makes code generation and maintainance tractable for complex applications.
-In recent years, the increading amount of digital data, poses a untractable challange for conventional desing approaches. As a consequence techniques from  areas like machine learning are inceasingly applied.
+The usual
 
-Due to the large amount of digital information collected in modern society the need for automated data processing and analysis tools rises in many areas of the industry. The
+Figure \ref{ml-workflow} shows
 
 This work proposes a formalism to state optimization problems by describing the structure of a wide range of search spaces together with an algorithm adopted from the field of hyperparamter-optimization as an approach to high level machine learning.
-
-
 
 The mathematical branch of Optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
 
@@ -78,6 +76,14 @@ Programm Configuration
 Learning \& Optimizaion.
 
 DACE - design and analysis of computer experiment
+
+\begin{figure}
+  \includegraphics[scale=0.7]{figures/ml-workflow.pdf}
+  \caption{Simplified overview of a machine learning workflow.}
+  \label{ml-workflow}
+\end{figure}
+
+
 
 \section{Global Black-Box Optimization}
 
@@ -140,6 +146,8 @@ A key characteristic of \ac{HPO} problems is littel knowledge about the search s
 Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function.
 
 \paragraph{Types and Error Functions}
+
+
 \paragraph{Model Selection}
 
 
@@ -363,7 +371,9 @@ $$ \operatorname{join}(A, B) = A\ |\ B $$
 The join is related to the set union, in that the extension of the join of two search spaces is the union of the extensions of these search spaces: $(A\ |\ B)' = A' \cup B'$. The only difference is that a join remembers the spaces it was constructed from.
 
 \paragraph{Product}
-The product lines up multiple search spaces to form a sequence of search spaces. The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone.
+The product lines up multiple search spaces to form a sequence of search spaces.
+$$prod(A,B) = A\ &\ B$$
+The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone.
 The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
 $$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
 Non-integer indices are simply copied to the resulting family.
@@ -487,21 +497,24 @@ In programming languages a variadic function is a function, that has a variable 
 \hfill%
 \begin{minipage}[b]{0.3\textwidth}
 \centering
-\includegraphics[scale=0.3]{sum_not_simplified-crop.pdf}
+\includegraphics[scale=0.3]{figures/sum_not_simplified.pdf}
 
 % \label{Text}
 \end{minipage}%
 \hfill%
 \begin{minipage}[b]{0.3\textwidth}
 \centering
-\includegraphics[scale=0.3]{sum_simplified-crop.pdf}
+\includegraphics[scale=0.3]{figures/sum_simplified.pdf}
 \end{minipage}%
 \end{figure}
 
 If the operation is also associative, child nodes with equal-operation can be merged into the parent node from any position (Table \ref{funcprops} row: ac/var).
 
-\paragraph{distributivity}
-...
+\paragraph{Distributivity} is a property between two functions that is known from arithmetic addition and multiplication. In regard to search space expressions, function application is left and right distributive to joining.
+
+$$f(A|B) = f(A)\ |\ f(B)$$
+$$(f|g)\ @\ A = f(A)\ |\ g(A)$$
+$$(f|g)\ @\ (A|B) = f(A)\ |\ f(B)\ |\ g(A)\ |\ g(B)$$
 
 \paragraph{other proerties}
 Idempotence can have two different meanings.
@@ -539,12 +552,16 @@ as/var           & \multicolumn{1}{|c|}{$-$} & $f(x,f(y,z)) = f(x,y,z)$ \\
 
 
 \subsection{Structure of search spaces}
-Depending on the available operation the e
+The range of available combinations induces the search space structure and allows for different kinds of value structures. The structure of the search space again, conditions the class of optimizers that is applicable.
+With no combinations and only the primitive spaces at hand, the search space must be one dimensional and the value structure a single value.
+The product allows for vectors of primitives, the search space becomes multidimensional. Remember that the product is associative, which forbids
+With the join operation it is possible to construct hierachical trees of choices. The structure of the values however, remains untouched.
+
 
 \begin{figure}
-\includegraphics[scale=0.5]{search_space_hierachy.pdf}
+\includegraphics[scale=0.5]{figures/search_space_hierachy.pdf}
 
-  \caption{The leftmost node represents a system with only primitive spaces. Following the edges from left to write new operations are added. The field of a node hold following information from top to bottom: abbriviation of available operations, structure of search space and structure of resulting parameter. Constants and Variables are not represented.}
+  \caption{The leftmost node represents a system with only primitive spaces. Following the edges from left to right, new operations are added. The field of a node holds the following information from top to bottom: initials of available operations, structure of search space and structure of resulting values. Constants and variables are not depicted.}
   \label{fig_spaces}
 \end{figure}
 

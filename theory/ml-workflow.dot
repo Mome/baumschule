@@ -1,0 +1,41 @@
+digraph ml {
+
+rankdir = LR;
+
+edge [arrowhead=open, arrowtail=open, arrowsize=0.7]
+
+node [shape=box]
+data 
+//validset [label="validation\nset"]
+//trainset [label="training\nset"]
+model
+algorithm
+prediction[shape=oval, label="done", peripheries=2]
+
+node [shape=diamond]
+satisfied
+
+
+node [shape=oval, style=filled, color=lightgrey]
+train
+valid [label=validate]
+select
+
+
+data -> train
+data -> valid
+train -> model
+algorithm -> train
+model -> valid
+valid -> satisfied
+select -> satisfied [label=no, arrowhead=none, dir=both]
+algorithm -> select [arrowhead=none, dir=both]
+satisfied -> prediction [label=yes]
+
+{rank=same; model train valid}
+//{rank=same; select algorithm valid}
+{rank=same;  satisfied algorithm select}
+//{rank=same; valid prediction}
+
+
+}
