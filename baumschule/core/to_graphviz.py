@@ -118,6 +118,7 @@ def _primitive_to_dot(param, graph):
 def _value_to_dot(param, graph):
 
     name = str(id(param))
+    label = get_value_label(param)
 
     if isinstance(param, Operation):
         color = colors['operation']
@@ -131,10 +132,8 @@ def _value_to_dot(param, graph):
                 shape = 'square'
             else:
                 shape = 'box'
-        label = param.symbol if param.symbol else str(param)
     else:
         color = colors['value']
-        label = str(param)
         if len(label) <= 1:
             shape = 'square'
         else:
@@ -149,6 +148,14 @@ def _value_to_dot(param, graph):
         fillcolor = color,
         shape = shape)
 
+def get_value_label(param):
+    if isinstance(param, Operation):
+        label = param.symbol if param.symbol else str(param)
+    elif str(type(param)) == "<class 'numpy.ndarray'>":
+        label = 'numpy.ndarray\nshape = ' + str(param.shape)
+    else:
+        label = str(param)
+    return label
 
 def _paint_associative_node(param, graph, recursion_tracker):
     label_parts = []
