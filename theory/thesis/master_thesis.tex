@@ -67,9 +67,17 @@ The selection is usually seen as a two step process: from the range of aplicable
 The often multimodal, mostly unknown and sometimes discontinous nature of hyperparamter optimization problem leads many users to apply the easy to implement, exaustive and uninformed grid search or random search. The only source of information about the objective function, that can be embraced, is often the evaluation for some parameter setting of the objective function itself. Model-based global optimization methods try to harness this information by estimatating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
 In recent years Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesain model of the objective function, which essential means to have a distribution over function values, enabled to express the trade of between exploration and exploitation as a form of inference.
 The problem of also automating the choice of the ML-algorithm is classified as \textit{automated machine learning}. The Combined Algorithm Selection and Hyperparameter optimization problem is also denoted by its acronym \textit{CASH} \cite{feurer_efficient_2015}. The configuration space is of cause different among different algorithms, such that the presence or relevance of a parameter can be dependent of the algorithm search. Algorithms like Tree-Parzen-Estimator and SMAC have been developt to deal with this condition.
-Going a step further the parameter space can become even more complicated. 
+Going a step further the parameter space can become even more complicated. If one considers for example multilayer perceptrons, where the number of layers needs to be determined before the number of neurons per layer can be chosen. In this case the number of model paramters can be of arbitray number. (put kernel example maybe here!)
+This work proposes a formalism to state optimization problems by describing the structure of search spaces together, that range from simple one-dimensional strucutres to complicated infinte structures. The second contribution is an algorithm that extends known Bayesian optimization algorithm, such that self-referential search space description can be examined in an efficent manner.
+(make my point clearer here!)
+Section 2 discusses the probelm of global black-box optimization in general. Section 3 narrows the view point to hyperparamter optimization.
+Section 4 shortly introduces Gaussian process regression, since they are from the Bayesian model in the algorithms.
+Section 5 explains methods of Bayesian optimization.
+Section 6 describes the search space description formalism.
+Finally section 7 exmplains the tree Bayesian algorithm.
+Section 8 give some comments to the implementation and show code examples.
+In Section 9 the results of a row of experiments that apply the system to various differnt problems is presented.
 
-This work proposes a formalism to state optimization problems by describing the structure of a wide range of search spaces together with an algorithm adopted from the field of hyperparamter-optimization as an approach to high level machine learning.
 
 The mathematical branch of optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
 
