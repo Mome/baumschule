@@ -88,9 +88,14 @@ class ParameterList:
             else:
                 raise KeyError('Key must be str or int.')
         num_items.sort()
-        indices, args = zip(*num_items)
+
+        if num_items:
+            indices, args = zip(*num_items)
+        else:
+            indices = args = ()
+
         assert tuple(range(len(indices))) == indices, \
-            'integer keys must all integres from 0 to n'
+            'integer keys must have all integers from 0 to n'
         return cls(args, kwargs)
 
     def __getitem__(self, key):

@@ -2,7 +2,7 @@ from collections.abc import Sequence, Mapping, Set
 from itertools import chain
 
 
-from .domains import Interval
+from .domains import Interval, ParameterList
 from .spaces import (
     Apply, Combination, Primitive, Parameter, prod, join,
     Categorical, Discrete, Continuous)
@@ -173,7 +173,7 @@ def is_recursive(space, parents=()):
 
     if is_recursive(space.operation, parents):
         return True
-        
+
     for sub in space.domain.values():
         if is_recursive(sub, parents):
             return True
