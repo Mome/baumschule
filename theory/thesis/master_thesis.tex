@@ -62,14 +62,16 @@
 In past years the growing amount of collected data caused a increasing application of automated data processing in a wide range of areas streching from  science to industry.
 The hight demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standarts. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use /out-of-the-box solution movend big software companies to develop big systems with features like integratet plotting, data-IO or even model sharing. The dataflow processing computation model turned out especially suited for data processing.
 
-
-The usual
-
-Figure \ref{ml-workflow} shows
+Figure \ref{ml-workflow} shows a simlified view on a machine learning workflow. First an algorithm selected, which is trained to obtain a model. The model is validated to measure generalization. This process is repeated for different algorithms, until a satisfying performance reached, or (probabily more frequent) a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this treatise.
+The selection is usually seen as a two step process: from the range of aplicable machine learning algorithms select the most promising and in a second step select algorithm's configuration. While the former one is almost always done manually the automation of the second one is research object of the field of hyperparamter optimization.
+The often multimodal, mostly unknown and sometimes discontinous nature of hyperparamter optimization problem leads many users to apply the easy to implement, exaustive and uninformed grid search or random search. The only source of information about the objective function, that can be embraced, is often the evaluation for some parameter setting of the objective function itself. Model-based global optimization methods try to harness this information by estimatating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
+In recent years Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesain model of the objective function, which essential means to have a distribution over function values, enabled to express the trade of between exploration and exploitation as a form of inference.
+The problem of also automating the choice of the ML-algorithm is classified as \textit{automated machine learning}. The Combined Algorithm Selection and Hyperparameter optimization problem is also denoted by its acronym \textit{CASH} \cite{feurer_efficient_2015}. The configuration space is of cause different among different algorithms, such that the presence or relevance of a parameter can be dependent of the algorithm search. Algorithms like Tree-Parzen-Estimator and SMAC have been developt to deal with this condition.
+Going a step further the parameter space can become even more complicated. 
 
 This work proposes a formalism to state optimization problems by describing the structure of a wide range of search spaces together with an algorithm adopted from the field of hyperparamter-optimization as an approach to high level machine learning.
 
-The mathematical branch of Optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
+The mathematical branch of optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
 
 Metaheuristics
 Programm Configuration
@@ -204,17 +206,17 @@ For interpolation (noise free prediction) case $K_y$ euqals $\kappa(X,X)$. For n
 \begin{figure}
 
   \begin{minipage}{0.5\textwidth}
-  \includegraphics[scale=0.3]{plots/prior_plot.pdf}
+  \includegraphics[scale=0.3]{figures/prior_plot.pdf}
   \end{minipage}%
   \begin{minipage}{0.5\textwidth}
-  \includegraphics[scale=0.3]{plots/posterior_no_noise.pdf}
+  \includegraphics[scale=0.3]{figures/posterior_no_noise.pdf}
   \end{minipage}%
 
   \begin{minipage}{0.5\textwidth}
-  \includegraphics[scale=0.3]{plots/posterior_with_noise.pdf}
+  \includegraphics[scale=0.3]{figures/posterior_with_noise.pdf}
   \end{minipage}%
   \begin{minipage}{0.5\textwidth}
-  \includegraphics[scale=0.3]{plots/posterior_exp.pdf}
+  \includegraphics[scale=0.3]{figures/posterior_exp.pdf}
   \end{minipage}%
 
   \caption{Upper Left: Three samples for a Gaussian process with zero mean, and RBF Kernel. Upper Right: Posterior for some sample points, without noise term. The blue area displays the margin of the variance. Lower left: posterior with noise term. Lower right: Posterior with noise term and exponential kernel.}
@@ -371,9 +373,9 @@ $$ \operatorname{join}(A, B) = A\ |\ B $$
 The join is related to the set union, in that the extension of the join of two search spaces is the union of the extensions of these search spaces: $(A\ |\ B)' = A' \cup B'$. The only difference is that a join remembers the spaces it was constructed from.
 
 \paragraph{Product}
-The product lines up multiple search spaces to form a sequence of search spaces.
-$$prod(A,B) = A\ &\ B$$
-The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone.
+The product lines up multiple search spaces to form a sequence of search spaces. It expressed by the $\operatorname{prod}$ or alternatively by an ampersand.
+$$\operatorname{prod}(A,B) = A\ \&\ B$$
+The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone. If evaluated the product returns a parameter family. Under the hood
 The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
 $$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
 Non-integer indices are simply copied to the resulting family.
@@ -556,14 +558,17 @@ The range of available combinations induces the search space structure and allow
 With no combinations and only the primitive spaces at hand, the search space must be one dimensional and the value structure a single value.
 The product allows for vectors of primitives, the search space becomes multidimensional. Remember that the product is associative, which forbids
 With the join operation it is possible to construct hierachical trees of choices. The structure of the values however, remains untouched.
+Adding function application changes the value structure to a tree, the search space structure remains.
+Only primitives, product and function application together, (labeld $PA$ in Figure \ref{space_structure}) forms the space that contains only flat structures. Adding the join combination to $PA$ forms $JPA$ and requieres algorithms with handling of conditional parameters.
 
 
 \begin{figure}
 \includegraphics[scale=0.5]{figures/search_space_hierachy.pdf}
 
   \caption{The leftmost node represents a system with only primitive spaces. Following the edges from left to right, new operations are added. The field of a node holds the following information from top to bottom: initials of available operations, structure of search space and structure of resulting values. Constants and variables are not depicted.}
-  \label{fig_spaces}
+  \label{space_structure}
 \end{figure}
+
 
 \section{BO of Self-Referential Seach Spaces}
 
@@ -713,6 +718,8 @@ opt_obj.run()
 
 \subsection{Example: Regression}
 The ...
+
+
 
 \begin{minted}{python}
 import numpy as np
