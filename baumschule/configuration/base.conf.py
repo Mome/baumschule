@@ -10,7 +10,7 @@ c.protocol_path = join(c.base_path, 'protocol')
 c.env_path = join(c.base_path, 'environment')
 
 
-from treefarm.minimizers import *
+from baumschule.minimizers import *
 c.minimizers = {
     'flatgp' : FlatGPMinimizer,
     'random' : RandomMinimizer,

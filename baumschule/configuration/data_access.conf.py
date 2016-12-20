@@ -1,5 +1,5 @@
 import sys, os
-sys.path.append(os.path.expanduser('~/code/treefarm'))
+sys.path.append(os.path.expanduser('~/code/baumschule'))
 
 c.add_subgroup('datasets')
 
