@@ -82,7 +82,7 @@ def fc_shape(search_space, include_primitives=True):
             shape.append(len(search_space))
 
     else:
-        raise NotImplementedError('Not a parameter.')
+        pass
 
     return tuple(shape)
 
@@ -163,11 +163,14 @@ def converts_to_primitive(arg):
 
 def is_recursive(space, parents=()):
 
-    if space in parents:
-        return True
+    # switching the first and the second if statement
+    # causes a crash for numpy values for some reason
 
     if type(space) != Apply:
         return False
+
+    if space in parents:
+        return True
 
     parents += (space,)
 

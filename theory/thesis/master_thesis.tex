@@ -34,9 +34,50 @@
 
 \begin{document}
 
-\title{Bayesian Optimization in Self-Referential Search Spaces}
-\author{Moritz Meier}
-\maketitle
+%\title{Bayesian Optimization in Self-Referential Search Spaces}
+%\author{Moritz Meier}
+
+\begin{titlepage}
+	\centering
+	%\includegraphics[width=0.15\textwidth]{example-image-1x1}\par\vspace{1cm}
+	{\scshape\LARGE Universität Osnabrück\par}
+	\vspace{1cm}
+	{\scshape\Large Master Thesis\par}
+	\vspace{1.5cm}
+	{\huge\bfseries Bayesian Optimization in Self-Referential Search Spaces\par}
+	\vspace{2cm}
+	{\Large\itshape Moritz Meier\par}
+	\vfill
+	First Supervisor:\par
+	\textsc{Prof.~Dr.~Gordon Pipa}\par
+  \vspace{1cm}
+  Second Supervisor:\par
+	\textsc{Prof.~Dr.~Frank Jaekel}\par
+	\vfill
+
+% Bottom of the page
+	{\large \today\par}
+\end{titlepage}
+
+
+
+\begin{center}
+\textbf{Declaration of Authorship}
+\end{center}
+I hereby certify that the work presented here is, to the best of my knowledge and belief, original and the result of my own investigations, except as acknowledged, and has not been submitted, either in part or whole, for a degree at this or any other university.
+
+
+\noindent\begin{tabular}{ll}
+&\\[8ex]
+\makebox[2.5in]{\hrulefill} & \makebox[2.5in]{}\\
+Signature & \\[8ex]% adds space between the two sets of signatures
+\makebox[2.5in]{\hrulefill} & \makebox[2.5in]{}\\
+City, Date & \
+\end{tabular}
+
+
+\newpage
+
 \tableofcontents
 \newpage
 
@@ -94,11 +135,7 @@ DACE - design and analysis of computer experiment
 \end{figure}
 
 
-
-\section{Global Black-Box Optimization}
-
-
-\subsection{Distinctions}
+\section{Hyperparameter Optimization}
 
 \subsubsection*{gradient based vs. derivative free}
 also
@@ -113,26 +150,18 @@ More sophisticated \ac{GO} algorithms can be devided into
 a.k.a. - model-free or direct
 
 \subsubsection*{multi vs. single instance}
-
 \subsubsection*{exploration-exploitation tradeoff}
-
 \subsubsection*{interactive}
-
 \subsubsection*{predictive vs. explanatory model}
-
 \subsubsection*{parallelizabel}
-
 \subsubsection*{stochastic objective function}
-
 \subsubsection*{single vs multiobjective}
-
 \subsubsection*{scalability}
-
 \subsubsection*{approximations}
  - early stopping
  - data subset
 
- \subsection{computational costs}
+ \subsection*{computational costs}
  - space \& time
  - intelligent selection vs massive sampling tradeoff
 
@@ -140,11 +169,13 @@ a.k.a. - model-free or direct
 The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
 
 
+\subsection{Global Black-Box Optimization}
+
+
 \subsection{Active Learning and the Bandit Problem}
 
 
-
-\section{Hyperparameter Optimization}
+\subsection{Hyperparameter Optimization}
 In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. \acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
 Also \textit{model selection} means essentially the same thing, the focus is more on the selection criterions.
 A key characteristic of \ac{HPO} problems is littel knowledge about the search space structure.  While \ac{ML}-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently.
@@ -171,7 +202,7 @@ Second, machine learning experiment EGO algorithm
 \paragraph{Assumptions}
 ...
 
-\subsection{Demands to a good HPO-Algorithm}
+\paragraph{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
 
 
@@ -244,10 +275,10 @@ The \textbf{squared-exponential} kernel (SE), which is also called radial basis 
 
 
 
-\subsubsection{Kernel Hyperparamters}
+\paragraph{Kernel Hyperparamters}
 Parameters are optimized by optimizing the margnial likelihood ...
 
-\subsubsection{Kernel Combination}
+\paragraph{Kernel Combination}
 Kernel combination properties. Maybe: Why do they work!
 
 
@@ -262,7 +293,7 @@ Sequential model-based optimization is a very general algorithmic pattern for gl
 
 \subsection{Aquisition Functions}
 
-\subsubsection{Expected Improvement}
+\paragraph{Expected Improvement}
 
 Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
 
@@ -283,26 +314,25 @@ $$ = (y^*-\mu)\Phi(y^*/\sigma) - \phi(y^*/\sigma) $$
 
 Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distribution.
 
-\subsubsection{Probability of Improvement}
-\subsubsection{Entropy search}
-\subsubsection{Upper confidence bound}
+\paragraph{other aquisition functions}
+Probability of Improvement, Entropy search, Upper confidence bound
 
-\subsection{Aquisition optimization}
+\subsection*{Aquisition optimization}
 The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
 
-\subsubsection{Recommendation Strategy}
+\subsubsection*{Recommendation Strategy}
 The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-det erministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
 
-\subsection{Noisy fittness functions}
+\subsection{Noisy Objective Functions}
 
 \subsection{Conditional Parameters}
 
-\subsubsection{SMAC}
+\paragraph{SMAC}
 
-\subsubsection{The Tree-Parzen Algorithm}
+\paragraph{The Tree-Parzen Algorithm}
 The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
 
-\subsubsection{Tree and Graph Kernels/Metrics}
+\paragraph{Tree and Graph Kernels/Metrics}
 ...
 
 
@@ -381,8 +411,8 @@ $$ \operatorname{join}(A, B) = A\ |\ B $$
 The join is related to the set union, in that the extension of the join of two search spaces is the union of the extensions of these search spaces: $(A\ |\ B)' = A' \cup B'$. The only difference is that a join remembers the spaces it was constructed from.
 
 \paragraph{Product}
-The product lines up multiple search spaces to form a sequence of search spaces. It expressed by the $\operatorname{prod}$ or alternatively by an ampersand.
-$$\operatorname{prod}(A,B) = A\ \&\ B$$
+The product lines up multiple search spaces to form a sequence of search spaces. It expressed by the $\operatorname{prod}$. If evaluated the product is evaluated it returns a parameter family.
+$$\operatorname{eval}(\operatorname{prod}(A, B, C)) = \{A_0, B_1, C_2\}$$
 The extension of a product of two spaces is the cartesian product of the extension of these two spaces: $\operatorname{prod}(A,B)' = A' \times B'$. In constrast to the cartesian product, the product of search spaces is associative.  In this way no nested structures can be constucted with the product alone. If evaluated the product returns a parameter family. Under the hood
 The cartesian product of two parameter families is defined as follows. If all indices are integers the product is a usual cartesian product. The length of the first family is added to all indices of the second tuples.
 $$\{A_0, B_1\} \times \{C_0, D_1\} = \{A_0, B_1, C_2, D_3\}$$
@@ -390,31 +420,35 @@ Non-integer indices are simply copied to the resulting family.
 $$\{A_0,\ B_\beta\} \times \{C_0,\ D_\delta\} = \{A_0,\ C_1, B_\beta,\ D_\delta\}$$
 The prodcut is undefined if two non-positional parameters share the same key.
 
+\paragraph{Quoting}
+In some cases it is required to hand an unevaluated computation tree to an operation. In reseblence to the correstponding operator in the Lisp programming, this is expressed by the $\operatorname{quote}$ operation. It is simply a wrapper for a computation tree, that returns the computation tree if evaluated.
+
 \paragraph{Projection}
-Items of a parameter family can be renamed. In resemblence to relational algebra the greek letter $\rho$ is used to refer to the rename.
-$$\rho_{1/a}((A_{0}, B_{1})) = (A_{0}, B_{a}) = (A, a:B)$$
-Elements can by selected from parameter family be the projection $\pi$.
+Elements can by selected from parameter family through the projection $\pi$.
 $$\pi_1(\{A_0, B_1, C_\gamma\}) = B$$
+The correstponding operation is $project$.
+
+\paragraph{Rename}
+Items of a parameter family can be renamed. In resemblence to relational algebra the greek letter $\rho$ is used to refer to the rename.
+$$\rho_{1/a}(\{A_{0}, B_{1}\}) = \{A_{0}, B_{a}\}$$
+The corresponding operation is $rename$. The rename can be used in to change the order.
 
 \paragraph{Function Application}
-With the apply combination the application of an abitrary function to the elements of a search space can be expressed.
-$$ f(A | B) = f(A)\ |\ f(B) $$
+Any function can be integrated into the system by converting it to an operation with the "op" function. If a parameter is applied to an operation an apply node is created that simply represents the application of the underlying function to the arguments. An alternative way to express application with is with the @ symbol.
+$$f(A) = f\ @\ A$$
 
-If two search spaces can also be applied to other spaces.
+Parameters can also be applied to joined spaces. This is equivalent the join of the correstponding function application node.
 $$(f\ |\ g)(A) = f(A)\ |\ g(A)$$
 
-With function application it becomes possible to express \textit{dependendencies} between parameters.
-
-$$A = f(B) \cup g(C)$$
-
-If $B \neq C$ then the function $f$ and $g$ have different parameter domains. The choice of the parameter is dependent on previous choice of the function.  The structure of the search space is not a vector any more but becomes a tree.
-
-
+With function application it finally becomes possible to express \textit{dependendencies} between parameters.
+$$f(B)\ |\ g(C)$$
+If $B \neq C$ then the function $f$ and $g$ have different parameter domains. The choice of the parameter is dependent on previous choice of the function.  The structure of the search space is not a vector any more but becomes a tree. (put this further down)
 
 \paragraph{Recursion}
-With recursion it is possibel to express self-referential search spaces.
-
-$$ A = (\ \mathbb{N}\ \cup\ f(\mathbb{N}, A)\ ) $$
+With recursion it is possibel to express self-referential search spaces. This is done by introducting the insertion operator "$<<$" which distingiushes itself from any other previous functions by its capability to change an expression, as opposed to just combining expressions to a new one. The insertion appends into the parameter family of a node. In this manner expressions that have $G$ as a substructure can be inserted into $G$. Consider the following construction of $G$:
+$$G \leftarrow join(A)$$
+$$ G  \ll f(G, G)$$
+In the first line $G$ is initialized be an empty join node. In the second line an
 
 The extension of an expression is defined as the  :
 
@@ -578,8 +612,9 @@ Only primitives, product and function application together, (labeld $PA$ in Figu
 \end{figure}
 
 
-\section{BO of Self-Referential Seach Spaces}
+\section{Optimization of Self-Referential Seach Space}
 
+\subsection{}
 Convential Bayesain optimization algorithms are only suitable for falt multidimesnional search spaces or search spaces containing conditional parameters (SMAC and TreeParzen). The specification language described in the previous chapters however allows for search spaces with an arbitrary amount of parameters. The following algorithm allows to employ any Bayesian optimization model for flat parameter spaces to be applied to recursive parameter spaces.
 
 The basic idea of the algorihm is to select subspaces from the search space as long as no joined node is presend in the tree any more. The resulting search space has only function applications and primitives and is therefore flat. On this subspace a flat optimizer can be applied.
@@ -618,13 +653,13 @@ best\_value $\leftarrow$ $\infty$\;
 \end{algorithm}
 %
 % \While{not flat(W.search_space) }{asd}
-\subsection{selection criteria from subexpression}
+\subsection*{selection criteria from subexpression}
 In two cases the subexpression selection is striaght forward: If on choice has been explored, an expansion can simply be chosen by random. If all choices are have at least been explored twice, the subexpression with the highest aquisition value would ne chosen. Any case in between with explored and unexplored choices can be chosen by different criteria.
 In the simplest approach a fix value, which servers as a default aquisition, would be assigned to any unexplored node. High default aquisitions would benefit exploration of unknown structures, for self-referential expressions this leads to a faster exploration of bigger structures. Lower values would rather encourage exploration of varaints of known structures.
 A more sophisticated approch is to apply \ac{GPR} on every selection level as well.
 
 
-\subsection{Extention to DAG-structured search spaces}
+\subsection{Extention to DAG-structured Search Spaces}
 Some search spaces can be restricted by introducing an function, that detect if two search spaces share the same extension.
 Identifying equivalent function trees with computer algebra systems.
 
@@ -635,11 +670,11 @@ A sequential Bayesian Optimization Algorithm can be extended to parrallel Algori
 \subsection{Integration with Manual Search}
 Manual guidance before and during the optimization process.
 
-\subsubsection{Prior Information}
+\subsubsection*{Prior Information}
 In machine learning preknowledge about the learning task can be consindered as choice and distribution over the hypothesis space. This is determined rather indirect by the choice of the \ac{ML}-algorithm and its hyperparameters (or distribution over hyperparameters) or in Bayesian method directly expressed via prior probabilities. Since gaussian processes regession is used here, the choice of the kernel
 Prior infotmation can for example be an actual probabilistic prior over the search space. For random sampling this probability can just be used as the sampling probability. For model-based methods, which have no direct sampling, this probability can be interpreted as \textit{probability of improvement} or (more plausible) as \textit{probability of optimum}.
 
-\subsubsection{Search Hints}
+\subsubsection*{Search Hints}
 A concept I labeled \textit{search hints} is a way to express external knowledge about the search space. I contranst to regular prior knowledge search hits can also be injected into search process on the fly. Intuitively a search hint just denotes good region to search. And once again it is not obvious how to translate this human instructions into the search process.
 The easier part is to construct a probability distribution only from hints. If a hint is interpreted as a sample from the space of the probability of optimum then distribution estimation methods like Parzen-Window can be used. If one takes a squard exponential kernel, a hint translates to good region. To indicate better regions one would need to give multiple of samples from the same region, which is unfavourable. To solve this one could give weighted hints. Once again there are different ways to do this.
 First one could assign the probability of optimium directly to a region. This however is hard to conceptualize for users and requires not to violate the normalization property (sum of hints must not excede one).
@@ -661,7 +696,7 @@ The formalizm has been realized as a package for the Python programming language
 \subsection{Example: Minimize two dimensional function}
 
 \begin{minted}{python}
-from treefarm import *
+from baumschule import *
 
 # declares the objective fucntion
 @operation
@@ -685,7 +720,7 @@ opti_obj.run()
 \begin{minted}{python}
 import numpy as np
 import GPy
-from treefarm import *
+from baumschule import *
 
 # Bayesian information criterion of a GPy model
 def bic(model):
@@ -724,40 +759,62 @@ opt_obj.run()
 \end{minted}
 
 
-\subsection{Example: Regression}
+\subsection{Example: Multilayer Perceptron}
 The ...
 
 
-
 \begin{minted}{python}
-import numpy as np
-import GPy
-from treefarm import *
+from baumschule import *
+from sklearn.neural_network import MLPClassifier
+from sklearn.datasets import fetch_mldata
+from sklearn.model_selection import train_test_split
 
-# load data
-data = load('01-airline.mat')
-split = 2 * len(data['X']) // 3
+mnist = fetch_mldata('MNIST original', data_home='~/data/baumschule')
 
-search_space = regression(
-    error_func = env['rmse'],
-    x_train = data['X'][split:],
-    y_train = data['y'][split:],
-    x_test = data['X'][:split],
-    y_test = data['y'][:split],
-)
+X_train, X_test, y_train, y_test = train_test_split(
+     mnist.data, mnist.target, test_size=0.4)
 
-# create and run optimization
-opt_obj = minimize(search_space, max_iter=100)
-opt_obj.run()
+@operation
+def train_and_validate(model):
+    model.fit(X_train, y_train)
+    score = model.score(X_test, y_test)
+    error = -1 * score + 1
+    return error
+
+# Define grammar for the layers:
+# Abitrary length tuple, with integrers between 1 and 100.
+nn = N[:100]
+layers = join()
+layers << (prod(nn, layers) | nn)
+layers = tuple_op(layers) # converts parameter family to tuple
+layers = simplify(layers) # merges the join nodes
+
+# Set parameters of classifier.
+parameters = convert({
+    'hidden_layer_sizes' : layers,
+    'activation' : {'identity', 'logistic', 'tanh', 'relu'},
+    'learning_rate' :  {'constant', 'invscaling', 'adaptive'},
+})
+
+# Apply paramters to classifier and model to validation routine.
+model_space = op(MLPClassifier)(parameters)
+search_space = train_and_validate(model_space)
+
+min_obj = minimize(search_space, max_iter=100)
+print('start ...')
+min_obj.run()
+min_obj.observers['standard'].to_csv('mnist_mlp.csv')
 
 \end{minted}
 
+\begin{figure}
+  \includegraphics[scale=0.6]{figures/mlp_search_space.pdf}
+  \caption{Visualization produced by the "to\_dot" function, showing the search space of the multilayer perceptron. Red nodes are primitive, blue nodes are application, yellow means combination.}
+  \label{mlp_search_space}
+\end{figure}
 
-\subsection{Function Graph Simplification}
 
 \section{Experiments}
-
-
 \subsection{Gaussian Process Regression}
 \subsubsection{Kernel Combination Optimization}
 \subsubsection{Kernel Parameter and Kernel Combination Optimization}
@@ -765,20 +822,23 @@ opt_obj.run()
 \subsection{Feat-Forward Networks}
 \subsection{Self Optimization}
 
-\section{Conclusion}
+\section{Conclusion \& Outlook}
 
-\section{Outlook}
-\paragraph{Connection to Functional Programming}
-\paragraph{Connection to Constraint Satisfaction Problems}
-\paragraph{Connection to Probabilistic Programming}
-\paragraph{Connection to Reinforcement Learning}
-\paragraph{Integration with Workflow-Managers}
+\begin{enumerate}
+  \item{Connection to Functional Programming}
+  \item{Connection to Constraint Satisfaction Problems}
+  \item{Connection to Probabilistic Programming}
+  \item{Connection to Reinforcement Learning}
+  \item{Integration with Workflow-Managers}
+\end{enumerate}
+
+
 
 \appendix
 
 
 
-\section{Formal descriptions}
+\section*{Formal descriptions}
 Join and prod over parameter-lists form an idempotent semiring:
 
 $(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:

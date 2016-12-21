@@ -15,6 +15,7 @@ from ..core.minimizer import (
 from .simple import RandomMinimizer
 from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
+from ..core.simplify import simplify
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -126,7 +127,9 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         if self.auto_update:
             self.update()
 
-        return self.best_aqui_instance
+        instance = self.best_aqui_instance
+        instance = simplify(instance)
+        return instance
 
 
 def expected_improvement0(mean_Y, var_Y, best_y):

@@ -49,6 +49,8 @@ def serialize(param, lispstyle=False):
             sep2 = sep if arg_vals and kwarg_items else '',
             kwargs = sep.join(kwarg_items),
         )
+    elif str(type(param)) == "<class 'numpy.ndarray'>":
+        return 'ndarray%s'% (param.shape,)
     else:
         return str(param)
 

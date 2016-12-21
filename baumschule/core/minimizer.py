@@ -24,7 +24,7 @@ from .space_utils import get_crown, get_subspace, expand
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('WARN')
+log.setLevel('INFO')
 conf = get_config()
 
 

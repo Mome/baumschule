@@ -126,6 +126,8 @@ class Continuous(Primitive):
     def __str__(self):
         return str(self.domain)
 
+class Constant(Primitive):
+    pass
 
 class Operation(Callable):
 

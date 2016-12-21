@@ -13,7 +13,7 @@ def set_func(*args, **kwargs):
     return {*args, *kwargs.values()}
 
 def tuple_func(*args, **kwargs):
-    return tuple(*args, *kwargs.values())
+    return args + tuple(kwargs.values())
 
 
 dict_op = Operation(

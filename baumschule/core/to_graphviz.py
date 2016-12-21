@@ -152,7 +152,7 @@ def get_value_label(param):
     if isinstance(param, Operation):
         label = param.symbol if param.symbol else str(param)
     elif str(type(param)) == "<class 'numpy.ndarray'>":
-        label = 'numpy.ndarray\nshape = ' + str(param.shape)
+        label = 'ndarray\n' + str(param.shape)
     else:
         label = str(param)
     return label

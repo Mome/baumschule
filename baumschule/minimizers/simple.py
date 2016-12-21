@@ -3,6 +3,7 @@ from time import sleep
 
 from ..core.random_variables import sample
 from ..core.minimizer import SequentialMinimizer
+from ..core.simplify import simplify
 
 
 class RandomMinimizer(SequentialMinimizer):
@@ -12,7 +13,9 @@ class RandomMinimizer(SequentialMinimizer):
     """
 
     def pick_next(self):
-        return sample(self.search_space)
+        instance = sample(self.search_space)
+        instance = simplify(instance)
+        return instance
 
 
 class ExhaustiveMinimizer(SequentialMinimizer):
@@ -26,4 +29,6 @@ class ExhaustiveMinimizer(SequentialMinimizer):
         self.iterator = iter(search_space)
 
     def pick_next(self):
-        return next(self.iterator)
+        instance = next(self.iterator)
+        instance = simplify(instance)
+        return instance
