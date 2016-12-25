@@ -155,3 +155,6 @@ def expected_improvement(mean_Y , var_Y, best_y):
     lhs = (best_y - mean_Y)*stats.norm.cdf(ratio)
     rhs = stats.norm.pdf(ratio)*s
     return lhs + rhs
+
+
+__all__ = ['expected_improvement0', 'expected_improvement', 'FlatGPMinimizer']

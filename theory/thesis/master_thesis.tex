@@ -3,13 +3,13 @@
 \usepackage{dot2texi}
 \usepackage[utf8]{inputenc}
 %\usepackage{babel}
-\usepackage[backend=bibtex]{biblatex}
+\usepackage[backend=bibtex, url=false]{biblatex}
 \usepackage{hyperref}
 \usepackage{mathtools}
 \usepackage[printonlyused]{acronym}
 \usepackage{minted}
-\usepackage{amsthm}
-%\usepackage{amsmath}
+%\usepackage{amsthm}
+\usepackage{amsmath}
 \usepackage{tikz}
 \usepackage{graphicx}
 \usepackage[linesnumbered]{algorithm2e}
@@ -30,7 +30,10 @@
 % Add mathematical foo
 \newcommand{\EI}{\operatorname{EI}}
 \newcommand{\normal}{\mathcal{N}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\E}{\mathbb{E}}
 
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 \begin{document}
 
@@ -52,7 +55,7 @@
 	\textsc{Prof.~Dr.~Gordon Pipa}\par
   \vspace{1cm}
   Second Supervisor:\par
-	\textsc{Prof.~Dr.~Frank Jaekel}\par
+	\textsc{Prof.~Dr.~Frank Jäkel}\par
 	\vfill
 
 % Bottom of the page
@@ -171,9 +174,13 @@ The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO
 
 \subsection{Global Black-Box Optimization}
 
+\subsection{Bandit Problem}
 
-\subsection{Active Learning and the Bandit Problem}
+\subsection{Active Learning \& Experimental design}
+Active learning is a related method, that is applied for classification task with lots of unlabeld data which, which are expensive to label. It is very similar to BO in the way that promising unlabeld datapoint are selected by a model, which is adapted to every new label. Differences are tha labels are delivered by a human (called the \textit{oracle}) and that the samples come usually from a finite set (\textit{pool based sampling}) \cite{settles_active_2010}.
 
+ - optimal experimental design
+ - response surface model
 
 \subsection{Hyperparameter Optimization}
 In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. \acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
@@ -184,11 +191,52 @@ A key characteristic of \ac{HPO} problems is littel knowledge about the search s
 \paragraph{varying complexity} of search space ranging from simple homogenic cartesian search spaces to heterogenic graph shaped spaces.
 
 \subsection{Machine Learning as Optimization}
-Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function.
+Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function. From this perspective learning on the most general level can be stated as a global black-box optimization problem problem.
+$$\mathbf{x^*} = \argmin_{\mathbf{x}\in \mathcal{X}} f(\mathbf{x})$$
+A best general solution of this problem does of cause not exists. Due to \textit{No Free Lunch} theorem for optimization, which roughly speaking states that the average performance of any algorithm across all possible optimizaion problems is identical. In other words efficient optimization without any assumptions or prior over the hypothesis space is impossible. Luckily in most cases the assumption can be made that points which are close in the input space are probabliy also close their performance. This requires a topology (structure) of the search space, which is naturally given for numerical inputs.
+
+In his famous \textit{Statistical Learning Theory}, Vladimir Vapnik states the \textit{General Setting of the Learning Problem} as a minimization of the risk function \cite{vapnik_overview_1999}.
+\begin{equation}
+R(\alpha) = \int Q(z,\alpha)dP(z)
+\label{risk}
+\end{equation}
+The risk $R$ takes the role of the objective function. $P$ is the true probability distribution over the data. The function $Q$, which is parametrized by $alpha$, measures the performance on a single data point $z$. The structure of $Q$ is left open and incorporates a possible model, algorithm or loss function. While this genral risk function is not as general as the name may suggest it still covers a majority of problems in machine learning. Since $P$ is usually unknown and represented by samples as the data, it is estimated by the more practical empirical risk function.
+\begin{equation}
+R_{emp}(\alpha) = \frac{1}{l} \sum_{i=1}^l Q(z_i,\alpha)
+\label{empirical risk}
+\end{equation}
+Depending on the problem the function $Q$ takes different forms. For supervised learning, for example, a data point $z$ is a tuple of a dependent and an independent variable $(x,y)$. The task is to find a function $f$ that maps from $x$ to $y$. Eventually $Q$ can be written in terms of a lossfunction $L(y,f(x,\alpha))$.
+To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor mapping hyperparameter setting $\lambda$ and a traningg set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparamter problem as it is defined by Bergstra et al. in \cite{bergstra_random_2012}.
+\begin{equation}
+\lambda^{(*)} = \argmin_{\lambda \in \Lambda} \E_{x \sim \mathcal{G}_x}\big[\mathcal{L}\big(x;\mathcal{A}_\lambda(X_{train})\big)\big]
+\label{hypa_opt_1}
+\end{equation}
+Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not requiered to be sampled form $G_x$, and thus covers learning problems where the data in training and application is different.
+In order to avoid overfitting and estimate the generalization error, model selection technics are applied. In special cases measures which trade off number of parameter and sample size with the training loss (like BIC or AIC) can be applied. In most practical application however, having a separated training and validation set is most popular. The empirical risc version of the hyperparmeter optimization looks like this:
+\begin{equation}
+  \Psi(\lambda) = \sum_{x \in X_{val}} \mathcal{L}\big(x;\mathcal{A}_\lambda(X_{train})\big)
+\end{equation}
+Optimizing over the whole hyperparameter space is not possible in the general case. The search is thus limites to a finite subset $\{\lambda_1, \lambda_2, ... \} \subset \Lambda$
+\begin{equation}
+  \hat{\lambda} = \argmin_{\lambda \in \{\lambda_1, \lambda_2, ... \}} \Psi(\lambda)
+\label{empirical hypa_opt_1}
+\end{equation}
+
+% risk with loss function
+%\begin{equation}
+%R(\alpha) = \int L(y,f(x,\alpha))dP(x,y)
+%\end{equation}
+
+\begin{enumerate}
+  \item approximation by iterration
+  \item approximation by limit data
+  \item approximation by less crossvalidation
+  \item randomness in training process -> stochastic objective function
+\end{enumerate}
+
+Even if one can only make a few or no assumptions about the structure of a hyperparamter search space, one has always the option to use estimations to gather information about the function faster.
 
 \paragraph{Types and Error Functions}
-
-
 \paragraph{Model Selection}
 
 
@@ -200,7 +248,7 @@ Second, machine learning experiment EGO algorithm
 
 
 \paragraph{Assumptions}
-...
+
 
 \paragraph{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
@@ -273,7 +321,10 @@ A quadratic matrix $K$ with $\mathbf{v}^\top \mathbf{v} \ge 0$ for all $\mathbf{
 
 The \textbf{squared-exponential} kernel (SE), which is also called radial basis function kernel (RBF), has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards zero. This leads to very smooth function.
 
-
+\begin{itemize}
+  \item local kernel
+  \item stationary kernel
+\end{itemize}
 
 \paragraph{Kernel Hyperparamters}
 Parameters are optimized by optimizing the margnial likelihood ...
@@ -283,39 +334,55 @@ Kernel combination properties. Maybe: Why do they work!
 
 
 
-
-
 \section{Bayesian Optimization}
 Bayesian optimization is model-based optimization with a Bayesian model. The
+
+- mential pelikan stuff
 
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
 
+
+
+\begin{figure}
+  \includegraphics[width=1\textwidth]{figures/bayesian_optimization.png}
+  \caption{Three steps in a Gaussian process based SMBO.}
+  \label{bayesian optimization}
+\end{figure}
+
 \subsection{Aquisition Functions}
 
+The role of the aquisition function is to quantify how profitable an evaluation of the objective function is for a point $\x$. The location of the best known value of the aquisition function is the next point that will be evaluate. It is a trade off between exploitation of less known regions and exploitation of promising areas. The function described in the following can all be brought into the form:
+
+$$\alpha(\x) = \E_{y|\x}[U(\x,y)]$$
+
+Where $U$ is an utility function. In experiemtal design $\alpha$ is therefore also known as the expected utility.
+A very aquistion is used by the
+
+$$\alpha_{UCB}(\x) \coloneqq \mu(\x) + \beta \cdot \sigma(\x) $$
+
+\paragraph{Probability of Improvement}
+
+(Kushner 1964)
+
+$$
+\alpha_{PI}(\x) \coloneqq \mathbb{P}[v>\tau] = \Phi\bigg(\frac{\mu(\x)-\tau}{\sigma_n(\x)}\bigg)
+$$
+
+With this definition
+
 \paragraph{Expected Improvement}
+Expected Improvement (EI) was first used by Mockus et al. in 1978 \cite{mockus_application_1978} in the context of noise free computer experiments. The first application to Bayesian optimization was done by Jones in 1998 \cite{jones_efficient_1998}, who called hist approach \textit{efficient bayesian optimization}(EGO). Since empirical studies have shown good results for EI (CITATION HERE) it has become widely adopted. The utility for EI is the so called improvment function.
+$$\alpha_{\EI}(\x) \coloneqq \E_{y|\x}\big[(y - \tau)\mathbf{I}_{[y > \tau]}\big]$$
+With $\tau$ beening a treshold that is usually chosen as the best observed performance of the objective function $y_{max}$. $\mathbf{I}$ denotes the indicator function that equals one if $y$ is bigger than the treshold and zero else. For a Gaussian model the EI can be witten in closed form:
+$$ \alpha_{\EI}(\x) = \int\limits_{-\infty}^{\infty} \max(0, y-\tau)p(y|\x)dy$$
+$$= (\mu - \tau) \Phi \bigg(\frac{\tau-\mu}{\sigma}\bigg) + \sigma \phi \bigg(\frac{\tau-\mu}{\sigma}\bigg)$$
+$\phi$ is the standart normal PDF and $\Phi$ the standart normal CDF. $\mu$ and $\sigma$ are expected value and standart deviation of the model at point $\x$.
 
-Expected Information (EI) is the most widely used aquistion function. First use was 1998 \cite{jones_efficient_1998}.
-
-$$ \EI(y|x) \coloneqq \int_{-\infty}^{\infty} \max(0, y^*-y)p(y|x)dy $$
-
-For the one-dimensional case a simple closes form formula can be derivated:
-
-$$ \EI(y|x) = \int_{-\infty}^{y^*}(y^*-y)p(y|x)dy$$
-
-$$ = \int_{-\infty}^{y^*}(y^*-y)\normal(y; \mu, \sigma)dy =
-\int_{-\infty}^{y^*}(y^*-y)\normal(y-\mu; 0, \sigma)dy$$
-
-$$ = \int_{-\infty}^{y^*}(y^*- t - \mu)\normal(t; 0, \sigma)dt $$
-
-$$ = (y^*-\mu)\int_{-\infty}^{y^*}\normal(t; 0, \sigma)dt - \int_{-\infty}^{y^*}t\cdot\normal(t; 0, \sigma)dt$$
-
-$$ = (y^*-\mu)\Phi(y^*/\sigma) - \phi(y^*/\sigma) $$
-
-Where $\phi$ and $\Phi$ refere to the PDF and CDF of the standart normal distribution.
+EI can be seen as a truncated expected value of
 
 \paragraph{other aquisition functions}
-Probability of Improvement, Entropy search, Upper confidence bound
+Entropy search, Upper confidence bound
 
 \subsection*{Aquisition optimization}
 The use of a model and an aquisition function leads to a new non-convex optimization problem. Algorithms to find the maximum of the figure of merrit include global optimization technics uschas: DIRECT, L-BFGS-B, ...
@@ -595,7 +662,7 @@ as/var           & \multicolumn{1}{|c|}{$-$} & $f(x,f(y,z)) = f(x,y,z)$ \\
 \end{table}
 
 
-\subsection{Structure of search spaces}
+\subsection{Structure of Search Spaces}
 The range of available combinations induces the search space structure and allows for different kinds of value structures. The structure of the search space again, conditions the class of optimizers that is applicable.
 With no combinations and only the primitive spaces at hand, the search space must be one dimensional and the value structure a single value.
 The product allows for vectors of primitives, the search space becomes multidimensional. Remember that the product is associative, which forbids
