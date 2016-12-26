@@ -12,7 +12,7 @@
 \usepackage{amsmath}
 \usepackage{tikz}
 \usepackage{graphicx}
-\usepackage[linesnumbered]{algorithm2e}
+\usepackage[linesnumbered, boxed]{algorithm2e}
 \usepackage{amssymb}
 
 \usetikzlibrary{shapes,arrows}
@@ -32,8 +32,11 @@
 \newcommand{\normal}{\mathcal{N}}
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\E}{\mathbb{E}}
-
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\X}{\mathcal{X}}
 \DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
 
 \begin{document}
 
@@ -102,7 +105,6 @@ City, Date & \
 \end{acronym}
 
 \section{Introduction}
-
 In past years the growing amount of collected data caused a increasing application of automated data processing in a wide range of areas streching from  science to industry.
 The hight demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standarts. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use /out-of-the-box solution movend big software companies to develop big systems with features like integratet plotting, data-IO or even model sharing. The dataflow processing computation model turned out especially suited for data processing.
 
@@ -122,9 +124,6 @@ Finally section 7 exmplains the tree Bayesian algorithm.
 Section 8 give some comments to the implementation and show code examples.
 In Section 9 the results of a row of experiments that apply the system to various differnt problems is presented.
 
-
-The mathematical branch of optimization is mathematical programming, where a mathematical program referes to an optimization problem with additional equality and inequality constraints.
-
 Metaheuristics
 Programm Configuration
 Learning \& Optimizaion.
@@ -137,36 +136,39 @@ DACE - design and analysis of computer experiment
   \label{ml-workflow}
 \end{figure}
 
+Bayesian optimization is a Bayesion approach to global black-box optimization with an application in Hyperparameter optimization.
 
 \section{Hyperparameter Optimization}
+Optimization problems occur in a wide range of fields in various different forms. There are different fields that are solely concerned with optimization problems of one kind or another. \textit{Mathematical programming} is the subbrach of applied mathematics, that is concerned with optimization. Classes of problems are stated formally, ofter together with with additional eqaulity or inequality contraints. The solution (algorithm) comes usually with a formal proofs of convergence or accurracy bounds. The field of \textit{Metaheuristics}
+on the other side is rather based on intuitions, metaphoric priniciples and validation by simulation. A metaheuristic can be defined as "a high-level problem-independent algorithmic framework that provides a set of guidelines or strategies to develop heuristic optimization algorithms". \cite{sorensen_history_2014} Due to generality in method and application of the field, a vast amount of algorithms that are tageted to global optimization, led to a confusing (almost litteral) \textit{zoo of metaheuristics}. Researches with sometimes minor mathematical background, adopted metaphors from other scientific fields to describe algorithms in unconentional terminology which obscurify the relations to more established methods. \cite{sorensen_metaheuristics-metaphor_2015}
 
-\subsubsection*{gradient based vs. derivative free}
-also
+\subsection{Distinctions}
 
-\subsubsection*{Local vs. Global}
 
-\subsubsection*{Heuristic strategies vs. Exect methods}
+\paragraph{local vs. global} Local optimization as opposed to global optimization just aim to find local minimas. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points.
+
+\paragraph{gradient based vs. derivative free}
+An algorithm which makes use of the first derivative of the objective function is called gradient based or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
+
+\paragraph{heuristic strategies vs. Exect methods}
 aka. stochastic vs deterministic
 
-\subsubsection*{model-based vs. instance-based}
+\paragraph{model-based vs. instance-based}
 More sophisticated \ac{GO} algorithms can be devided into
 a.k.a. - model-free or direct
 
-\subsubsection*{multi vs. single instance}
-\subsubsection*{exploration-exploitation tradeoff}
-\subsubsection*{interactive}
-\subsubsection*{predictive vs. explanatory model}
-\subsubsection*{parallelizabel}
-\subsubsection*{stochastic objective function}
-\subsubsection*{single vs multiobjective}
-\subsubsection*{scalability}
-\subsubsection*{approximations}
- - early stopping
- - data subset
+\paragraph{population vs. single instance}
+Population based methods remember multiple isntances.
 
- \subsection*{computational costs}
- - space \& time
- - intelligent selection vs massive sampling tradeoff
+\subsubsection*{single vs multiobjective}
+
+
+\subsubsection*{stochastic objective function}
+
+
+
+
+
 
 
 The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
@@ -174,7 +176,11 @@ The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO
 
 \subsection{Global Black-Box Optimization}
 
+
+
 \subsection{Bandit Problem}
+exploration-exploitation tradeoff
+
 
 \subsection{Active Learning \& Experimental design}
 Active learning is a related method, that is applied for classification task with lots of unlabeld data which, which are expensive to label. It is very similar to BO in the way that promising unlabeld datapoint are selected by a model, which is adapted to every new label. Differences are tha labels are delivered by a human (called the \textit{oracle}) and that the samples come usually from a finite set (\textit{pool based sampling}) \cite{settles_active_2010}.
@@ -192,7 +198,7 @@ A key characteristic of \ac{HPO} problems is littel knowledge about the search s
 
 \subsection{Machine Learning as Optimization}
 Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function. From this perspective learning on the most general level can be stated as a global black-box optimization problem problem.
-$$\mathbf{x^*} = \argmin_{\mathbf{x}\in \mathcal{X}} f(\mathbf{x})$$
+$$\x^* = \argmin_{\x \in \mathcal{X}} f(\x)$$
 A best general solution of this problem does of cause not exists. Due to \textit{No Free Lunch} theorem for optimization, which roughly speaking states that the average performance of any algorithm across all possible optimizaion problems is identical. In other words efficient optimization without any assumptions or prior over the hypothesis space is impossible. Luckily in most cases the assumption can be made that points which are close in the input space are probabliy also close their performance. This requires a topology (structure) of the search space, which is naturally given for numerical inputs.
 
 In his famous \textit{Statistical Learning Theory}, Vladimir Vapnik states the \textit{General Setting of the Learning Problem} as a minimization of the risk function \cite{vapnik_overview_1999}.
@@ -208,7 +214,7 @@ R_{emp}(\alpha) = \frac{1}{l} \sum_{i=1}^l Q(z_i,\alpha)
 Depending on the problem the function $Q$ takes different forms. For supervised learning, for example, a data point $z$ is a tuple of a dependent and an independent variable $(x,y)$. The task is to find a function $f$ that maps from $x$ to $y$. Eventually $Q$ can be written in terms of a lossfunction $L(y,f(x,\alpha))$.
 To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor mapping hyperparameter setting $\lambda$ and a traningg set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparamter problem as it is defined by Bergstra et al. in \cite{bergstra_random_2012}.
 \begin{equation}
-\lambda^{(*)} = \argmin_{\lambda \in \Lambda} \E_{x \sim \mathcal{G}_x}\big[\mathcal{L}\big(x;\mathcal{A}_\lambda(X_{train})\big)\big]
+\lambda^{(*)} = \argmin_{\lambda \in \Lambda} \E_{\x \sim \mathcal{G}_\x}\big[\mathcal{L}\big(\x;\mathcal{A}_\lambda(X_{train})\big)\big]
 \label{hypa_opt_1}
 \end{equation}
 Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not requiered to be sampled form $G_x$, and thus covers learning problems where the data in training and application is different.
@@ -236,10 +242,6 @@ Optimizing over the whole hyperparameter space is not possible in the general ca
 
 Even if one can only make a few or no assumptions about the structure of a hyperparamter search space, one has always the option to use estimations to gather information about the function faster.
 
-\paragraph{Types and Error Functions}
-\paragraph{Model Selection}
-
-
 
 \begin{quote}
 Machine learning algorithms, however, have certain characteristics that distinguish them from other black-box optimization problems.  First, each function evaluation can require a variable amount of time:  training a small neural network with 10 hidden units will take less time than a bigger net-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing makes it possible to quantify economically the cost of requiring large-memory machines for learning, changing the actual cost in dollars of an experiment with a different number of hidden units.
@@ -247,11 +249,18 @@ Machine learning algorithms, however, have certain characteristics that distingu
 Second, machine learning experiment EGO algorithm
 
 
-\paragraph{Assumptions}
-
-
 \paragraph{Demands to a good HPO-Algorithm}
 A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
+\paragraph{parallelizabel}
+\paragraph{interactive}
+\paragraph{scalability}
+\paragraph{Assumptions}
+\paragraph{approximations}
+ - early stopping
+ - data subset
+ \subsection*{computational costs}
+ - space \& time
+ - intelligent selection vs massive sampling tradeoff
 
 
 \section{Gaussian Processes Regression}
@@ -336,13 +345,26 @@ Kernel combination properties. Maybe: Why do they work!
 
 \section{Bayesian Optimization}
 Bayesian optimization is model-based optimization with a Bayesian model. The
-
 - mential pelikan stuff
 
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
 
+\begin{algorithm}[H]
+\SetAlgoLined
 
+$S \leftarrow \emptyset$\;
+\Repeat{stop criterion reached}
+{
+  $\mathcal{M} \leftarrow$ fitModel($S$)\;
+  $\x_{next} \leftarrow \argmax_{\x \in \X} \alpha(\x|\M)$\;
+  $y \leftarrow f(x_{next})$\;
+  $S \leftarrow S \cup \{(x,y)\}$\;
+}
+\caption{SMBO}
+\end{algorithm}
+
+The algorithm starts by initializing an empty set $S$ that is about store pairs $(x,y)$ of argument and result of the objective function (line 1). Loop is entered that iterates until a stopping criterium is reached. Such a criterium is usually a timeout, maximal number of iterations or sufficient performance of a configuration (line 2 \& 7). A curve/model is fittet through the pairs in $S$ (line 3). The model is used to conduct inference about unseen points of the objection. The aquisition function calculates a value that indicates how usefull/promising an evaluation of a point is. The point with the maximal aquisition value gets selected to be the next evaluation point (line 4). The next point gets evaluated(line 5). Add new pair to set $S$ (line 6).
 
 \begin{figure}
   \includegraphics[width=1\textwidth]{figures/bayesian_optimization.png}
@@ -366,7 +388,7 @@ $$\alpha_{UCB}(\x) \coloneqq \mu(\x) + \beta \cdot \sigma(\x) $$
 (Kushner 1964)
 
 $$
-\alpha_{PI}(\x) \coloneqq \mathbb{P}[v>\tau] = \Phi\bigg(\frac{\mu(\x)-\tau}{\sigma_n(\x)}\bigg)
+\alpha_{PI}(\x) \coloneqq \mathbb{P}[v>\tau] = \Phi\bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)
 $$
 
 With this definition
@@ -374,12 +396,11 @@ With this definition
 \paragraph{Expected Improvement}
 Expected Improvement (EI) was first used by Mockus et al. in 1978 \cite{mockus_application_1978} in the context of noise free computer experiments. The first application to Bayesian optimization was done by Jones in 1998 \cite{jones_efficient_1998}, who called hist approach \textit{efficient bayesian optimization}(EGO). Since empirical studies have shown good results for EI (CITATION HERE) it has become widely adopted. The utility for EI is the so called improvment function.
 $$\alpha_{\EI}(\x) \coloneqq \E_{y|\x}\big[(y - \tau)\mathbf{I}_{[y > \tau]}\big]$$
-With $\tau$ beening a treshold that is usually chosen as the best observed performance of the objective function $y_{max}$. $\mathbf{I}$ denotes the indicator function that equals one if $y$ is bigger than the treshold and zero else. For a Gaussian model the EI can be witten in closed form:
-$$ \alpha_{\EI}(\x) = \int\limits_{-\infty}^{\infty} \max(0, y-\tau)p(y|\x)dy$$
-$$= (\mu - \tau) \Phi \bigg(\frac{\tau-\mu}{\sigma}\bigg) + \sigma \phi \bigg(\frac{\tau-\mu}{\sigma}\bigg)$$
+With $\tau$ beening a treshold that is usually chosen as the best observed performance of the objective function $y_{max}$. $\mathbf{I}$ denotes the indicator function that equals one if $y$ is bigger than the treshold and zero if it is smaller of equal. For a Gaussian model the EI can be witten in closed form:
+$$ \alpha_{\EI}(\x) = \int\limits_{\mathbb{R}} \max(0, y-\tau)p(y|\x)dy$$
+$$= (\mu(\x) - \tau) \cdot \Phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg) + \sigma \cdot \phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)$$
 $\phi$ is the standart normal PDF and $\Phi$ the standart normal CDF. $\mu$ and $\sigma$ are expected value and standart deviation of the model at point $\x$.
-
-EI can be seen as a truncated expected value of
+For a derivation of the closed form see appendix \ref{EI derivation}.
 
 \paragraph{other aquisition functions}
 Entropy search, Upper confidence bound
@@ -391,7 +412,7 @@ The use of a model and an aquisition function leads to a new non-convex optimiza
 The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-det erministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
 
 \subsection{Noisy Objective Functions}
-
+In machine lerning experiments the objective function can be noisy, if explicite randomness is used in the algorithm or when approximation of the real function are used.
 \subsection{Conditional Parameters}
 
 \paragraph{SMAC}
@@ -582,9 +603,9 @@ Two expressions can have the same meaning even if the representations are not eq
 
 \paragraph{Constants \& Variables}
 So far it is only possible to express search spaces over function trees.
-A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of computation tree evaluation.
-The structure of the describable structure is extended to a DAG and is called a \textit{computation graph}.
-Constants allow to express structures beyond the capabilities of a constext free grammar. For example to express a search space over matricies with arbitray size.
+A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of a computation tree evaluation. Implementationwise the constant is a wrapper around a search space, that remembers the first chosen value of that search space.
+Constants allow to express structures beyond the capabilities of a context free grammars. For example a search space over matricies with arbitray size:
+
 Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures.
 Both constants and variables are not integrated into the system and will not be discussed further.
 
@@ -669,6 +690,7 @@ The product allows for vectors of primitives, the search space becomes multidime
 With the join operation it is possible to construct hierachical trees of choices. The structure of the values however, remains untouched.
 Adding function application changes the value structure to a tree, the search space structure remains.
 Only primitives, product and function application together, (labeld $PA$ in Figure \ref{space_structure}) forms the space that contains only flat structures. Adding the join combination to $PA$ forms $JPA$ and requieres algorithms with handling of conditional parameters.
+With constants the structure of the describable structure is extended to a DAG and is called a \textit{computation graph}.
 
 
 \begin{figure}
@@ -760,7 +782,7 @@ The \textit{credebility factor} or \textit{authority factor} is a way to ...
 \section{Implementation}
 The formalizm has been realized as a package for the Python programming language.
 
-\subsection{Example: Minimize two dimensional function}
+\subsection{Example: Minimum of two function}
 
 \begin{minted}{python}
 from baumschule import *
@@ -826,7 +848,7 @@ opt_obj.run()
 \end{minted}
 
 
-\subsection{Example: Multilayer Perceptron}
+\subsection{Example: Multilayer Perceptron, with variable layers}
 The ...
 
 
@@ -848,27 +870,27 @@ def train_and_validate(model):
     error = -1 * score + 1
     return error
 
-# Define grammar for the layers:
-# Abitrary length tuple, with integrers between 1 and 100.
+# define grammar for network layers:
+# abitrary length tuple, with integrers between 1 and 100
 nn = N[:100]
 layers = join()
 layers << (prod(nn, layers) | nn)
 layers = tuple_op(layers) # converts parameter family to tuple
 layers = simplify(layers) # merges the join nodes
 
-# Set parameters of classifier.
+# set parameters of classifier
 parameters = convert({
     'hidden_layer_sizes' : layers,
     'activation' : {'identity', 'logistic', 'tanh', 'relu'},
     'learning_rate' :  {'constant', 'invscaling', 'adaptive'},
 })
 
-# Apply paramters to classifier and model to validation routine.
+# apply paramters to classifier and model to validation routine
 model_space = op(MLPClassifier)(parameters)
 search_space = train_and_validate(model_space)
 
+# run optimization and save results
 min_obj = minimize(search_space, max_iter=100)
-print('start ...')
 min_obj.run()
 min_obj.observers['standard'].to_csv('mnist_mlp.csv')
 
@@ -903,9 +925,25 @@ min_obj.observers['standard'].to_csv('mnist_mlp.csv')
 
 \appendix
 
+\section{Derivation of Expected Improvement}
+\label{EI derivation}
 
+$$\alpha_{\EI}(\x) := \mathbb{E}_{y|\x}[max(y-\tau, 0)]\ $$
 
-\section*{Formal descriptions}
+$$= \int\limits_{\tau}^{\infty}(x-\tau)dp(y|\x) = \int\limits_{\tau}^{\infty}(x-\tau)\mathcal{N}(y;\mu,\sigma)dy$$
+
+$$ = \frac{1}{\sigma\sqrt{2\pi}} \int\limits_{\tau}^{\infty}(y-\tau)e^{-\frac{1}{2}\big(\frac{y-\mu}{\sigma}\big)^2}dy =
+\frac{1}{\sqrt{2\pi}} \int\limits_{(\tau-\mu)/\sigma}^{\infty}(u\sigma+\mu-\tau)e^{-\frac{1}{2}u^2}du$$
+
+$$=\frac{1}{\sqrt{2\pi}}\bigg((\mu-\tau) \mkern-12mu \int\limits_{(\tau-\mu)/\sigma}^{\infty} \mkern-10mu e^{-\frac{1}{2}u^2}du + \sigma \mkern-12mu \int\limits_{(\tau-\mu)/\sigma}^{\infty} \mkern-10mu u e^{-\frac{1}{2}u^2}du \bigg)$$
+
+$$=(\mu-\tau)\bigg|\ \Phi(u)\ \bigg|_{(\tau-\mu)/\sigma}^{\infty} \mkern-6mu + \ \ \ \sigma\bigg|-\frac{1}{\sqrt{2\pi}}e^{-\frac{1}{2}u^2}\bigg|_{(\tau-\mu)/\sigma}^{\infty}$$
+
+$$=(\mu-\tau)\bigg(1-\Phi\bigg(\frac{\tau-\mu}{\sigma}\bigg)\bigg) + \sigma \cdot \phi \bigg(\frac{\tau-\mu}{\sigma}\bigg)$$
+
+$$ = (\mu - \tau) \cdot \Phi \bigg(\frac{\mu-\tau}{\sigma}\bigg) + \sigma \cdot \phi \bigg(\frac{\mu-\tau}{\sigma}\bigg)$$
+
+\section{Formal descriptions}
 Join and prod over parameter-lists form an idempotent semiring:
 
 $(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:
