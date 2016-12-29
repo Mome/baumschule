@@ -31,7 +31,7 @@ def simplify(param):
             if 'idempotent' in op.properties:
                 dom = delete_duplicate_children(op, dom)
 
-            if 'kommutative' in op.properties:
+            if 'commutative' in op.properties:
                 ...
 
         elif isinstance(op, Parameter):

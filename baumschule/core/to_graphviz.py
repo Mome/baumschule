@@ -165,9 +165,12 @@ def _paint_associative_node(param, graph, recursion_tracker):
     op = param.operation
     if op.symbol:
         name = op.symbol
-        shape = 'circle'
     else:
         name = op.name
+
+    if len(name) == 1:
+        shape = 'circle'
+    else:
         shape = 'oval'
 
     if isinstance(op, Combination):
