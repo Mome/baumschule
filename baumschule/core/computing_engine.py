@@ -25,7 +25,7 @@ class SimpleEngine(ComputingEngine):
             op = self.evaluate(func_tree.operation)
         else:
             op = func_tree.operation
-
+            
         dom = func_tree.domain
 
         # combination are evaluated from ouside to inside

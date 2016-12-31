@@ -1,3 +1,6 @@
+from .protocol import StandardProtocol
+import numpy as np
+
 def execfile(fname, glob=None, loc=None, compiler=None):
     """
     Execute a Python file.
@@ -17,12 +20,16 @@ def divisible(num, denum):
         denum *= 10
     return not (num % denum)
 
-def get_minium_states(protocol):
-    _, perfs = zip(*protocol)
+def get_minium_perfs(protocol):
+    if type(protocol) == StandardProtocol:
+        perfs = list(protocol.to_dataframe()['perf'])
+    else:
+        perfs = protocol
+
     a = [perfs[0]]
     for p in perfs[0:]:
          if p < a[-1]:
              a.append(p)
          else:
              a.append(a[-1])
-    return a
+    return np.array(a)

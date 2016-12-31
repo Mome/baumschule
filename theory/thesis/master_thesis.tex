@@ -135,30 +135,27 @@ Bayesian optimization is a Bayesion approach to global black-box optimization wi
 Optimization problems occur in a wide range of fields in various different forms. There are different fields that are solely concerned with optimization problems of one kind or another. \textit{Mathematical programming} is the subbrach of applied mathematics, that is concerned with optimization. Classes of problems are stated formally, ofter together with with additional eqaulity or inequality contraints. The solution (algorithm) comes usually with a formal proofs of convergence or accurracy bounds. The field of \textit{Metaheuristics}
 on the other side is rather based on intuitions, metaphoric priniciples and validation by simulation. A metaheuristic can be defined as "a high-level problem-independent algorithmic framework that provides a set of guidelines or strategies to develop heuristic optimization algorithms". \cite{sorensen_history_2014} Due to generality in method and application of the field, a vast amount of algorithms that are tageted to global optimization, led to a confusing (almost litteral) \textit{zoo of metaheuristics}. Researches with sometimes minor mathematical background, adopted metaphors from other scientific fields to describe algorithms in unconentional terminology which obscurify the relations to more established methods. \cite{sorensen_metaheuristics-metaphor_2015}
 
-\paragraph{local vs. global} Local optimization as opposed to global optimization just aim to find local minimas. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points.
+On the most general level optimization algorithms are devidable by some rough distincions:
 
-\paragraph{gradient based vs. derivative free}
-An algorithm which makes use of the first derivative of the objective function is called gradient based or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
+\begin{itemize}
+  \item \textit{Local} optimization as opposed to \textit{global} optimization just aim to find local minimas. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points. Most optimization problems in machine learning are local, since successful algorithms are usually designed that the parameter space is convex and can be minimizes efficiently.
 
-\paragraph{heuristic strategies vs. Exect methods}
-aka. stochastic vs deterministic
+  \item An algorithm which makes use of the first derivative of the objective function is called \textbf{gradient based} or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
 
-\paragraph{model-based vs. instance-based}
-More sophisticated \ac{GO} algorithms can be devided into
-a.k.a. - model-free or direct
+  \item If an optimization method involves random sampling at some point it is called \textit{stochastic} and \textit{deterministic} if not. This must be distinguished from \textit{probabilistic} methods that used probability theory but are usually deterministic. In the metaheuristics community the terms "heuristic" is roughly used for "stochastic" and "exact" for deterministic. Whereby the field of origin (metaheuristics or mathematics) is also a factor in the  word usage.
 
-\paragraph{population vs. single instance}
-Population based methods remember multiple isntances.
+  \item More sophisticated \ac{GO} algorithms than random search or grid search can be devided into model-based or instance-based (a.k.a. model-free or direct) methods. Instance based methods usually population vs. single instance Population based methods remember multiple isntances.
 
-\subsubsection*{single vs multiobjective}
+  \item While most optimization problems in research are single-objective, in fields like eoconomics or operation research multi-objective optimizations are targeted. In this problems multiple pareto optimimal sultions can occur.
+
+  \item Somtimes the objective function can be stochastic. Usually this happens when there is a true underlying function but the measurement of this function is distorted by noise. In hyperparameter optimization it very common that the objective algorithm is stochastic (e.g MCMC-algorithms).
+
+\end{itemize}
 
 
-\subsubsection*{stochastic objective function}
 
 \subsection{Global Black-Box Optimization}
-
-
-The use of stochastic processe in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
+The use of stochastic processes in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
 
 
 \subsection{Bandit Problems}
@@ -242,7 +239,6 @@ A non-exaustive list of general criteria for a good hyperparameter optimization 
 \paragraph{parallelizabel}
 \paragraph{interactive}
 \paragraph{scalability}
-\paragraph{Assumptions}
 \paragraph{approximations}
  - early stopping
  - data subset
@@ -252,6 +248,7 @@ A non-exaustive list of general criteria for a good hyperparameter optimization 
 
 
 \section{Gaussian Processes Regression}
+\label{GPR}
 Regression is the problem of estimating the relationship between an indendent random variable $X$ and a real-valued dependent random variable $Y$, by generalizing from examples. In frequentist settings one ususally defines a parametrized familiy of underlying functions. A point estimator is then applied to find the set of parameters that explains/predicts the data the best. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximised over the model parameters. The semi-Bayesian maximum a posteriori approach additionally assumes a prior probability over the model-parameters and can e.g. deal with overfitting in a natural way. Finally in the fully Bayesian approach the estimates are distributions over parameters rather than single paramters settings. Gaussian process regression goes even a step further by having a non-parameteric model that grows with in complexity with the amount of data (Some authers prefere to call them inifinte-parametric models for that reason).
 
 A GP (Gaussian process) is a (usually infinite) collection of random variables where any finite subset is multivariat normal distributed. These random variables can be indexed by $\mathbf{x} \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, x \mapsto f(\mathbf{x})$. This is written like:
@@ -365,37 +362,45 @@ The algorithm starts by initializing an empty set $S$ that is about store pairs 
 \end{figure}
 
 \subsection{Aquisition Functions}
-
+\label{aquifuncs}
 The role of the aquisition function is to quantify the profitability of an objective function evaluation for a point $\x$. In the SMBO The location of the best known value of the aquisition function is the next point that will be evaluate. It is a trade off between exploitation of less known regions and exploitation of promising areas. The function described in the following can all be brought into the form:
-
-$$\alpha(\x) = \E_{y|\x}[U(\x,y)]$$
-
+\begin{equation}
+  \alpha(\x) = \E_{y|\x}[U(\x,y)]
+\end{equation}
 Where $U$ is an utility function. In experiemtal design $\alpha$ is therefore also known as the expected utility.
-A very aquistion is used by the
 
-$$\alpha_{UCB}(\x) \coloneqq \mu(\x) + \beta \cdot \sigma(\x) $$
+\paragraph{Upper Confidence Bound}
+An easiest way to make a tradeof beteew variance and mean is the \textit{Upper Confidence Bound}:
+\begin{equation}
+  \alpha_{UCB}(\x) \coloneqq \mu(\x) + \beta \cdot \sigma(\x)
+\end{equation}
 
 \paragraph{Probability of Improvement}
 
 (Kushner 1964)
 
-$$
-\alpha_{PI}(\x) \coloneqq \mathbb{P}[v>\tau] = \Phi\bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)
-$$
+\begin{equation}
+  \alpha_{PI}(\x) \coloneqq \mathbb{P}[v>\tau] = \Phi\bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)
+\end{equation}
 
 With this definition
 
 \paragraph{Expected Improvement}
 Expected Improvement (EI) was first used by Mockus et al. in 1978 \cite{mockus_application_1978} in the context of noise free computer experiments. The first application to Bayesian optimization was done by Jones in 1998 \cite{jones_efficient_1998}, who called hist approach \textit{efficient bayesian optimization}(EGO). Since empirical studies have shown good results for EI (CITATION HERE) it has become widely adopted. The utility for EI is the so called improvment function.
-$$\alpha_{\EI}(\x) \coloneqq \E_{y|\x}\big[(y - \tau)\mathbf{I}_{[y > \tau]}\big]$$
+\begin{equation}
+  \alpha_{\EI}(\x) \coloneqq \E_{y|\x}\big[(y - \tau)\mathbf{I}_{[y > \tau]}\big]
+\end{equation}
 With $\tau$ beening a treshold that is usually chosen as the best observed performance of the objective function $y_{max}$. $\mathbf{I}$ denotes the indicator function that equals one if $y$ is bigger than the treshold and zero if it is smaller of equal. For a Gaussian model the EI can be witten in closed form:
-$$ \alpha_{\EI}(\x) = \int\limits_{\mathbb{R}} \max(0, y-\tau)p(y|\x)dy$$
-$$= (\mu(\x) - \tau) \cdot \Phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg) + \sigma \cdot \phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)$$
+\begin{equation}
+  \begin{split}
+    \alpha_{\EI}(\x) = \int\limits_{\mathbb{R}} \max(0, y-\tau)p(y|\x)dy
+    \\
+    = (\mu(\x) - \tau) \cdot \Phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg) + \sigma \cdot \phi \bigg(\frac{\mu(\x)-\tau}{\sigma(\x)}\bigg)
+  \end{split}
+\end{equation}
 $\phi$ is the standard normal PDF and $\Phi$ the standard normal CDF. $\mu$ and $\sigma$ are expected value and standard deviation of the model at point $\x$.
 For a derivation of the closed form see appendix \ref{EI derivation}.
-
-\paragraph{other aquisition functions}
-Entropy search, Upper confidence bound
+There are also other aquisition functions like Entropy search, which are not discussed here.
 
 \subsection*{Aquisition optimization}
 The use of a model and an aquisition function leads to a new non-convex optimization problem. The aquisition function can often be more multimodal and difficult to optimize than the original objective function. The big adavantage is the much shorter evaluation time, and hence the efficient applicability of conventional global optimization methods which often rely on numerous evaluations (but no secondary optimization problem) to find good approximative solutions.
@@ -405,18 +410,34 @@ Methods that have been applied are for example: DIRECT, L-BFGS-B, dynamic grid, 
 The need for a recommendation strategy arises for noisy objective functions. In the deterministic setting the maximal aquisition value becomes the recommendation for the next evaluation step. For non-det erministic aquisition function one needs to generate a sample from a distribution over aquisition values. Strategies like returning the maximum observed value or returning the optimal latent posterior mean can be encountered. Different objective function can require different strategies \cite{hoffman_modular_2014}.
 
 \subsection{Noisy Objective Functions}
-In machine lerning experiments the objective function can be noisy, if explicite randomness is used in the algorithm or when approximation of the real function are used.
+In machine lerning experiments the objective function can be noisy, when explicite randomness is used in the algorithm or approximations of the true function are used. As described in section \ref{GPR} GPR can be defined with an additive noise term. The classical defintions of aquisiton function (section \ref{aquifuncs}) are only defined for deterministic objective functions. They heavily relay on a vanishing variance at a position once it has been observed.  In stochastic models the model variance will however converge to the noise variance ant the aquisition value never drops. SMBO algorithm would evaluate the same point ad infinitum. Redemption can come from a separate consideration of epestemic and measurment uncertainty.
+EI and PI both require a threshold value $tau$ which is usually chosen as the best ever observed value of the objective function $y_{best}$. Due to noise distortion the measurment of $y_{best}$ would be underestimated.  Instead the observed filtered minimum ($\bar{y}_{best}$) can be employed, which is the minimum of the posterior averages $\mu(\x)$ of the model at every observed position $\x$.
+\begin{equation}
+  \bar{y}_{best} = \min_{\x \in X} \mu(\x)
+\end{equation}
+
+This approach is used in expected expected improvement (EEI) \cite{pandita_extending_2016}. The usage of EEI requires a hierachical Bayesian model with a distribution over the kernel parameters and noise variance parameter. The aquisition value is calculated by integrating over the objective function distribution (like normal EI) and over the kernel parameter distribution.
+
+Another algorithm for stochastic BO is sequential kringing optimization (SKO) \cite{huang_global_2006}. Here EI is modified to augmented expected improvement (AEI) by multiplication with a correction term.
+\begin{equation}
+  \alpha_{\operatorname{AEI}} = \alpha_{\EI}(\x) \cdot \bigg(1 - \frac{\sigma_\epsilon}{\sqrt{\sigma(\x)^2 + \sigma_\epsilon^2}}\bigg)
+\end{equation}
+Where $\sigma_\epsilon$ denotes the noise variance and $\sigma(\x)$ (like above) the posterior varaiance of the GP-model. If the model variance is high, AEI is close to EI, but with decreasing model variance the AEI also decreases. In the way the misinterpretation of noise as epistemic uncertainty is corrected.
+
+
 \subsection{Conditional Parameters}
 
 \paragraph{SMAC}
+The Sequential-Model Based Algorithm Configuration, developed by Hutter et al. and used in the Auto-Weka \cite{thornton_auto-weka:_2013} and Auto-Sklearn \cite{feurer_efficient_2015}. SMAC is based on Random Forrests.
 
 \paragraph{The Tree-Parzen Algorithm}
-The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces.
+The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces. Instead of modelling $p(y|\x)$ directly, $p(\x|y)$ and $p(y)$ are modelled. Instead of Gaussian processes, Gaussian-Mixture Model and Parzen-window kernel density estimation are used.
 
 \paragraph{Tree and Graph Kernels/Metrics}
-...
+An application of GPR for HPO of a deep belief network is described in \cite{bergstra_algorithms_2011}. Where multiple GP are fittet to each independent parameter groups, including the conditional groups that indicate which other goups to consider. This way they manage to use kernels that are not suitable for conditional parameter spaces out off to box. Kernels for conditional parameter spaces are developed in \cite{swersky_raiders_2014, chandar_hierarchical_2016}.
 
 \newpage
+
 
 \section{Search Space Construction}
 The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$. In reality however parameter search spaces can be much more complicated. This section discribes a formalism to construct search spaces in a convenient way. First of all it must be possible to describe the parameter space of a single algorithm, which can contain an arbitrary number of integer, floating point or nominal valued parameters. Second it shall be possible to include the choice of an algorithm into the optimization process. Thrid parameters with special structure (like trees or graphs), shall also be describable in a natural way.
@@ -491,7 +512,7 @@ The extension of $G$ has infinite many elements now. If $A$ is set to a categori
 $$ G' = \{a\ ,f(a,a),\ f(a,f(a)),\ f(f(a),a),\ f(f(a),f(a)), ...\}$$
 In this way the function nesting can become arbitrary deep.
 
-\paragraph{Selection}
+\paragraph{Selection} The reverse of joining is selection.
 In a generative grammar, sentences can be generated by a successive rule application. A sample from a search space can be generated by successively selecting from the joined nodes.
 $$X \leftarrow (A\ |\ B)\ |\ (C\ |\ D)$$
 $$\sigma_1(X) = (C\ |\ D)$$
@@ -557,8 +578,30 @@ Variables are like constants, with additional ability to change value in the com
 Both constants and variables are not integrated into the system and will not be discussed further.
 
 \subsection{Simplification}
-Simplification of the search space expression can improve comprehensibility for humans, but can also improve performance of optimization algorithms working with it. The other use of simplification is the transformation of instance expressions into a normal form, in order to detect equality of expressions.
-Simplification can be realized by using methods used by term rewriting systems. In our case we can directly work on computation trees/graphs,  simplification is a tree/graph transformation. Operations can be supplemented with properties, which indicate legal transformations to the system.
+Simplification of the search space expression can improve comprehensibility for humans, but can also improve performance of optimization algorithms applied to it. The other use of simplification is the transformation of instance expressions into a normal form, in order to detect equality of expressions.
+Simplification can be realized by using methods known from term rewriting systems. In our case we can directly work on the expression, which makes simplification a mapping between expressions.
+Operations can possess certain properties, which indicate the legal transformations that change the structure of the expression but maintain semantic equality.
+
+\begin{table}[h]
+\def\arraystretch{1.2}%
+\centering
+\begin{tabular}{c | c | l}
+abbr & property name & definition \\
+\hline
+as               & associative        & $f(f(x,y),z) = f(x,f(y,z))$ \\
+com              & commutative        & $f(x,y)=f(y,x)$ \\
+ldis             & left distributive  & $f(x,g(y,z))=g(f(x,y),g(x,z))$ \\
+rdis             & right distributive & $f(g(x,y),z)=g(f(x,z),g(y,z))$ \\
+id               & identity           & $f(x) = x$ \\
+uid              & unary idempotent   & $f(f(x)) = f(x)$ \\
+bid$_{\text{1}}$ & binary idempotent  & $f(x,x) = x$ \\
+bid$_{\text{2}}$ & \multicolumn{1}{|c|}{$-$} & $f(x,x) = f(x)$ \\
+var              & variadic           & $f(f(x,y),z) = f(x,y,z)$\\
+as/var           & \multicolumn{1}{|c|}{$-$} & $f(x,f(y,z)) = f(x,y,z)$ \\
+\end{tabular}
+\caption{Overview of function properties}
+\label{funcprops}
+\end{table}
 
 \paragraph{commutative} Commutativity as known from binary operators indicates a symmetric realation. The order in which the arguments are applied is irrelevant. This notion can be extended to multvariate functions. The system can arbitrarily change the argument order. To bring an application of a commutative function into normal form, the parameters are sorted in alphabetical order of its serialization.
 
@@ -589,45 +632,23 @@ In programming languages a variadic function is a function, that has a variable 
 
 If the operation is also associative, child nodes with equal-operation can be merged into the parent node from any position (Table \ref{funcprops} row: ac/var).
 
-\paragraph{Distributivity} is a property between two functions that is known from arithmetic addition and multiplication. In regard to search space expressions, function application is left and right distributive to joining.
+\paragraph{distributive} is a property between two functions that is known from arithmetic addition and multiplication. In regard to search space expressions, function application is left and right distributive to joining.
 
 $$f(A|B) = f(A)\ |\ f(B)$$
 $$(f|g)\ @\ A = f(A)\ |\ g(A)$$
 $$(f|g)\ @\ (A|B) = f(A)\ |\ f(B)\ |\ g(A)\ |\ g(B)$$
 
-\paragraph{other proerties}
-Idempotence can have two different meanings.
+\paragraph{idempotent}
+Idempotence can have different meanings. For binary operators it says that two equal operants map to the same value. For unary functions it says that the composition of this function is binary idempotent. Both are properties of the join operation. The normal form for idempotent functions is fewer function applications and fewer arguments.
 
-If a function is variadic, associative, commutative and binary idempotent it follows that any multiply occuring argument can be deleted. Proof:
-
+\paragraph{com/as/var/bid1}
+If a function is variadic, associative, commutative and binary idempotent it follows that any argument that occurs more than once can be deleted. Proof:
 $$f(\alpha_1, \mathbf{x}, \alpha_2, \mathbf{x}, \alpha_3) \stackrel{com}{=}
 f(\mathbf{x},\mathbf{x}, \alpha_1, \alpha_2, \alpha_3) \stackrel{as/var}{=}
 f(f(\mathbf{x},\mathbf{x}), f(\alpha_1, \alpha_2, \alpha_3)) \stackrel{bid_1}{=}$$
 $$f(\mathbf{x}, f(\alpha_1, \alpha_2, \alpha_3)) \stackrel{as/var}{=}
 f(\mathbf{x}, \alpha_1, \alpha_2, \alpha_3)$$
-
-This is for example the case for the join, which plays
-
-
-\begin{table}
-\centering
-\begin{tabular}{c | c | l}
-abbr & property name & definition \\
-\hline
-as               & associative        & $f(f(x,y),z) = f(x,f(y,z))$ \\
-com              & commutative        & $f(x,y)=f(y,x)$ \\
-ldis             & left distributive  & $f(x,g(y,z))=g(f(x,y),g(x,z))$ \\
-rdis             & right distributive & $f(g(x,y),z)=g(f(x,z),g(y,z))$ \\
-id               & identity           & $f(x) = x$ \\
-uid              & unary idempotent   & $f(f(x)) = f(x)$ \\
-bid$_{\text{1}}$ & binary idempotent  & $f(x,x) = x$ \\
-bid$_{\text{2}}$ & \multicolumn{1}{|c|}{$-$} & $f(x,x) = f(x)$ \\
-var              & variadic           & $f(f(x,y),z) = f(x,y,z)$\\
-as/var           & \multicolumn{1}{|c|}{$-$} & $f(x,f(y,z)) = f(x,y,z)$ \\
-\end{tabular}
-\caption{Overview of function/combination properties}
-\label{funcprops}
-\end{table}
+The $\alpha$ variables stands for an abitrary amount of arguments. Each equal sign is labeled with the abbreviation of the property which was applied for that step (for legend see Table \ref{funcprops}).
 
 
 \subsection{Structure of Search Spaces}
@@ -728,7 +749,7 @@ The \textit{credebility factor} or \textit{authority factor} is a way to ...
 
 
 \section{Implementation}
-The formalism is implemented as a package for the programming language Python. The code repository can be accessed on \url{http://www.github.com/mome/baumschule}.
+The formalism is implemented as a package for the programming language Python. The code repository can be accessed on \url{http://github.com/mome/baumschule}. For Gaussian processe regression the implementation relies on the GPy library \footnote{\url{http://github.com/SheffieldML/GPy}}.
 
 Primitive spaces can be constructed by using the \python{convert} function. Python sets are converted to categorical and lists to discrete sapces. Dictionaries (with keyes of type \python{str} or \python{int}) are converted to product nodes. Continous parameters can be constructed by slicing from real numbers. For example floating point values from -1 to 3.5 are written with \python{R[-1:3.5]}. Internally \python{R} is represented as an open intervall from minus infinity to plus infinity. Discrete parameterers can be constructed in the same way by slicing from \python{N}. Create a joined node with \python{join} or the pipe operator (\python{|}). Create a product node with \python{prod}. Insertion can be done with the left shift operator (\python{<<}). There is support for arithmetics with builtin operations (\python{add}, \python{sub}, \python{mul} and \python{div}) or simply by using the correstponding python operators on two parameterspaces (\python{+}, \python{-}, \python{*} and \python{/}). Parameter families can be converted to python containers with the operations: \python{list_op}, \python{tuple_op}, \python{dict_op} and \python{set_op}.
 The \python{operation} function (short \python{op}) creates an operation from a python function. Operation objects are callable, so application is expressed with normal calling notation. Alternatively the \python{apply} operation or the @-operator does the same thing. The \python{minimize_func} function takes an objective function, a parameter space, a stopping criterium and a string to specify the opimizer.  The currently implemented optimizers are random search, Bayesian Optimization for unconditional spaces and Bayesian Optimization for infinte tree structured spaces. The \python{"minimize_func"} function returns a minimization object, which is executed with \python{.run()} or can be run in a separate thread with \python{.start()}. A minimization object has a dict of observers that get notified about all executions and results. The \python{"standard"} observer stores a list of tuples with instance, start/finsh times and results.
@@ -883,6 +904,8 @@ min_obj.observers['standard'].to_csv('mnist_mlp.csv')
 
 
 \section{Experiments}
+A first experiment of unconditional BO on vaious multimodal objective function with a domain from $\mathbb{R}^n$, clearly showed a better performance for BO compared to random search. A variation in aquisition function showed no signifficant effect.
+
 \subsection{Gaussian Process Regression}
 \paragraph{Kernel Combination Optimization}
 \paragraph{Kernel Parameter and Kernel Combination Optimization}

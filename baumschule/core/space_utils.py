@@ -111,12 +111,18 @@ def get_crown(search_space, include_primitives=True):
     return crown, indices
 
 
-def get_subspace(subspace, index):
+def get_subspace(subspace, index, index_expansion=True):
+    """Get a substructure from an expression."""
+
     for i in index:
         if i == -1:
             subspace = subspace.operator
         else:
-            subspace = subspace.domain[i]
+            if type(i) == int and index_expansion:
+                dom = list(subspace.domain.values())
+                subspace = dom[i]
+            else:
+                subspace = subspace.domain[i]
     return subspace
 
 

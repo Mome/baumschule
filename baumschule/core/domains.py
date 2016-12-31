@@ -102,7 +102,7 @@ class ParameterList:
         if type(key) == int:
             return self.args[key]
         elif type(key) == str:
-            return  self.kwargs[key]
+            return self.kwargs[key]
         else:
             raise ValueError('Invalid index/key type: %s' % type(key))
 

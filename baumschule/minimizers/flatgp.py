@@ -57,6 +57,9 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         # infere argumments
         if aquifunc == None:
             aquifunc = expected_improvement
+        elif type(aquifunc) is str:
+            aquifunc = aquifunc_dict[aquifunc]
+
         if kernel == None:
             kernel = GPy.kern.Bias(1) + GPy.kern.Linear(1) + GPy.kern.RBF(1)
         if aquiopt_cls == None:
@@ -73,6 +76,9 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         self.auto_update = True
         self.best_aquival = None # best aquisition value
         self.best_aqui_instance = None # instance with best aquisition value
+        self.optimize_kernel = True
+        # how many evaluations of the aq-function per step
+        self.aq_evaluations = 100
 
 
     def fit_model(self):
@@ -82,10 +88,11 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         log.debug('X.shape %s' % (X.shape,))
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.Gaussian_noise.constrain_fixed(0.0)
-        try:
-            m.optimize()
-        except np.linalg.linalg.LinAlgError as e:
-            print('Optimization failed:', e.message)
+        if self.optimize_kernel:
+            try:
+                m.optimize()
+            except np.linalg.linalg.LinAlgError as e:
+                print('Optimization failed:', str(e))
         return m
 
     def update(self, best_perf=None):
@@ -107,7 +114,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
             func = merrit_func,
             param = quote(self.search_space),
             minimizer = self.aquiopt_cls,
-            max_iter = 100,
+            max_iter = self.aq_evaluations,
         )
         opt_obj.run()
 
@@ -125,14 +132,18 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
             return sample(self.search_space)
 
         if self.auto_update:
-            self.update()
+            try:
+                self.update()
+            except Exception as e:
+                print('Updating failed:', type(e), e)
+                return sample(self.search_space)
 
         instance = self.best_aqui_instance
         instance = simplify(instance)
         return instance
 
 
-def expected_improvement0(mean_Y, var_Y, best_y):
+def expected_improvement(mean_Y, var_Y, best_y):
     """
     The expected improvment aquisition function.
 
@@ -143,13 +154,6 @@ def expected_improvement0(mean_Y, var_Y, best_y):
     best_y : saclar
     """
 
-    ratio = best_y / np.sqrt(var_Y)
-    lhs = (best_y - mean_Y)*stats.norm.cdf(ratio)
-    rhs = stats.norm.pdf(ratio)
-    return lhs - rhs
-
-
-def expected_improvement(mean_Y , var_Y, best_y):
     s = np.sqrt(var_Y)
     ratio = (best_y - mean_Y) / s
     lhs = (best_y - mean_Y)*stats.norm.cdf(ratio)
@@ -157,4 +161,27 @@ def expected_improvement(mean_Y , var_Y, best_y):
     return lhs + rhs
 
 
-__all__ = ['expected_improvement0', 'expected_improvement', 'FlatGPMinimizer']
+def probability_of_improvement(mean_Y , var_Y, best_y):
+    """
+    The probability of improvement aquisition function.
+
+    Paramameters
+    ------------
+    mean_Y : ndarray
+    var_Y : ndarray
+    best_y : saclar
+    """
+
+    ratio = (best_y - mean_Y) / np.sqrt(var_Y)
+    return stats.norm.cdf(ratio)
+
+
+def upper_confidence_bound(mean_Y , var_Y, beta):
+    return mean_Y + beta*np.sqrt(var_Y)
+
+
+aquifunc_dict = {
+    "ucb" :  upper_confidence_bound,
+    "ei"  : expected_improvement,
+    "pi"  : probability_of_improvement,
+}

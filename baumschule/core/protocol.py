@@ -51,10 +51,14 @@ class StandardProtocol(Protocol, list):
         record = Record(instance_str, start_ts, select_time, comp_time, perf)
         self.append(record)
 
-    def to_csv(self, filename):
+    def to_dataframe(self):
         import pandas as pd
         df = pd.DataFrame.from_records(
             data = list(self),
             columns = self[0]._fields,
         )
+        return df
+
+    def to_csv(self, filename):
+        df = self.to_dataframe()
         df.to_csv(filename)

@@ -11,7 +11,7 @@ import threading
 from math import inf
 import time
 import logging
-from itertools import chain
+from itertools import chain, count
 
 import numpy as np
 
@@ -24,7 +24,7 @@ from .space_utils import get_crown, get_subspace, expand
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('INFO')
+log.setLevel('WARN')
 conf = get_config()
 
 
@@ -54,7 +54,7 @@ def minimize(
     if type(minimizer) is str:
         minimizer = conf.minimizers[minimizer]
     if type(minimizer) is type:
-            minimizer = minimizer(search_space)
+        minimizer = minimizer(search_space)
 
     opt_obj = Minimization(minimizer, max_iter, timeout)
 
@@ -176,7 +176,7 @@ class FlatMinimizer(Minimizer):
         # get crown & calc dimensions of the Gaussian process
         crown, crown_indices = get_crown(search_space, include_primitives=True)
         dim_number = sum(
-            len(ss) if type(ss) is Categorical else 1
+            len(ss.domain) if type(ss) is Categorical else 1
             for ss in crown)
 
         self.dim_number = dim_number
@@ -198,11 +198,12 @@ class FlatMinimizer(Minimizer):
             transform([1,3,'A',9]) -> [1,3,0,0,1,9]
         """
 
-        translations = {}
+
+        translations = {} # stores the on-hot code for a label
         for i, ss in enumerate(self.crown):
             if type(ss) != Categorical:
                 continue
-            one_hot = lambda j : tuple(int(j==x) for x in range(len(ss)))
+            one_hot = lambda j : tuple(int(j==x) for x in range(len(ss.domain)))
             code = map(one_hot, count())
             items = zip(ss.domain, code)
             translations[i] = dict(items)
