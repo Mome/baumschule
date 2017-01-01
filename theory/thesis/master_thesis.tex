@@ -122,25 +122,25 @@ Finally section 7 exmplains the tree Bayesian algorithm.
 Section 8 give some comments to the implementation and show code examples.
 In Section 9 the results of a row of experiments that apply the system to various differnt problems is presented.
 
-Metaheuristics
-Programm Configuration
-Learning \& Optimizaion.
-
-DACE - design and analysis of computer experiment
-
-
-Bayesian optimization is a Bayesion approach to global black-box optimization with an application in Hyperparameter optimization.
+\newpage
 
 \section{Hyperparameter Optimization}
+In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
+Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterions.
+
+Despite decades of research in global optimization the predominant methods for HPO are of modest complexity. A review of all 86 papers from the NIPS2014 conference revealed that the fast majority used either grid search or default parameters\footnote{\url{http://github.com/jaak-s/nips2014-survey}}. Grid search (sometime also "parameter scan"), is an exhaustive search over a predefined subset of the full parameter space. The points have equal distance within one input dimension forming the interjections of a grid, whereby all kind of varaition is possible in the placements. In contrast the random search picks samples from a distribution over the parameter space (mostly uniform distribution). Both methods are unadaptive in the way that the next parameter setting $\lambda$ is independent of any previous evaluation. A combination of one of these methods together with random search is also popular. A reasons for this preference is that both algorithms are trivial to implement and parallelize. A recent comparison between random and grid search has shown that random search is empirically and theoretically superior \cite{bergstra_random_2012}. This result is explained by the  \textit{low effective dimension} of the parameter space. Intuitively that means that the value of certain parameters can become irrelevant if other parameters have a certain allocation. In grid search all settings of an ineffective parameter are evalutated while the rest of the parameters are constant in each step. In random search all parameters change all the time, such that an optimization with an ineffective parameter is equivalent to a lower dimensional optimization with this parameter fixed.
+
+\subsection{Global Optimization}
 Optimization problems occur in a wide range of fields in various different forms. There are different fields that are solely concerned with optimization problems of one kind or another. \textit{Mathematical programming} is the subbrach of applied mathematics, that is concerned with optimization. Classes of problems are stated formally, ofter together with with additional eqaulity or inequality contraints. The solution (algorithm) comes usually with a formal proofs of convergence or accurracy bounds. The field of \textit{Metaheuristics}
 on the other side is rather based on intuitions, metaphoric priniciples and validation by simulation. A metaheuristic can be defined as "a high-level problem-independent algorithmic framework that provides a set of guidelines or strategies to develop heuristic optimization algorithms". \cite{sorensen_history_2014} Due to generality in method and application of the field, a vast amount of algorithms that are tageted to global optimization, led to a confusing (almost litteral) \textit{zoo of metaheuristics}. Researches with sometimes minor mathematical background, adopted metaphors from other scientific fields to describe algorithms in unconentional terminology which obscurify the relations to more established methods. \cite{sorensen_metaheuristics-metaphor_2015}
+
 
 On the most general level optimization algorithms are devidable by some rough distincions:
 
 \begin{itemize}
   \item \textit{Local} optimization as opposed to \textit{global} optimization just aim to find local minimas. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points. Most optimization problems in machine learning are local, since successful algorithms are usually designed that the parameter space is convex and can be minimizes efficiently.
 
-  \item An algorithm which makes use of the first derivative of the objective function is called \textbf{gradient based} or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
+  \item An algorithm which makes use of the first derivative of the objective function is called \textit{gradient based} or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
 
   \item If an optimization method involves random sampling at some point it is called \textit{stochastic} and \textit{deterministic} if not. This must be distinguished from \textit{probabilistic} methods that used probability theory but are usually deterministic. In the metaheuristics community the terms "heuristic" is roughly used for "stochastic" and "exact" for deterministic. Whereby the field of origin (metaheuristics or mathematics) is also a factor in the  word usage.
 
@@ -152,10 +152,6 @@ On the most general level optimization algorithms are devidable by some rough di
 
 \end{itemize}
 
-
-
-\subsection{Global Black-Box Optimization}
-The use of stochastic processes in \ac{GO} for surrogate fitting is called \ac{BO}. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. In \cite{jones_efficient_1998} the surrogate is also called \textit{figure of merrit}.
 
 
 \subsection{Bandit Problems}
@@ -173,14 +169,6 @@ Active learning is a related method, that is applied for classification task wit
  - optimal experimental design
  - response surface model
 
-\subsection{Hyperparameter Optimization}
-In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. \acf{HPO} Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
-Also \textit{model selection} means essentially the same thing, the focus is more on the selection criterions.
-A key characteristic of \ac{HPO} problems is littel knowledge about the search space structure.  While \ac{ML}-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently.
-\paragraph{Long evaluation times}
-\paragraph{Little knowledge} of the objective function
-\paragraph{varying complexity} of search space ranging from simple homogenic cartesian search spaces to heterogenic graph shaped spaces.
-
 \subsection{Machine Learning as Optimization}
 Most \acf{ML} problems are expressable as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or maximization of fittnes or utility function. From this perspective learning on the most general level can be stated as a global black-box optimization problem problem.
 $$\x^* = \argmin_{\x \in \mathcal{X}} f(\x)$$
@@ -197,26 +185,42 @@ R_{emp}(\alpha) = \frac{1}{l} \sum_{i=1}^l Q(z_i,\alpha)
 \label{empirical risk}
 \end{equation}
 Depending on the problem the function $Q$ takes different forms. For supervised learning, for example, a data point $z$ is a tuple of a dependent and an independent variable $(x,y)$. The task is to find a function $f$ that maps from $x$ to $y$. Eventually $Q$ can be written in terms of a lossfunction $L(y,f(x,\alpha))$.
-To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor mapping hyperparameter setting $\lambda$ and a traningg set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparamter problem as it is defined by Bergstra et al. in \cite{bergstra_random_2012}.
+To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor mapping hyperparameter setting $\lambda$ and a training set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparamter problem as it is defined by Bergstra et al. in \cite{bergstra_random_2012}.
 \begin{equation}
 \lambda^{(*)} = \argmin_{\lambda \in \Lambda} \E_{\x \sim \mathcal{G}_\x}\big[\mathcal{L}\big(\x;\mathcal{A}_\lambda(X_{train})\big)\big]
 \label{hypa_opt_1}
 \end{equation}
-Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not requiered to be sampled form $G_x$, and thus covers learning problems where the data in training and application is different.
+Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not requiered to be sampled form $G_x$, and thus covers learning problems where the data is separated in training and application is different.
 In order to avoid overfitting and estimate the generalization error, model selection technics are applied. In special cases measures which trade off number of parameter and sample size with the training loss (like BIC or AIC) can be applied. In most practical application however, having a separated training and validation set is most popular. The empirical risc version of the hyperparmeter optimization looks like this:
 \begin{equation}
   \Psi(\lambda) = \sum_{x \in X_{val}} \mathcal{L}\big(x;\mathcal{A}_\lambda(X_{train})\big)
 \end{equation}
-Optimizing over the whole hyperparameter space is not possible in the general case. The search is thus limites to a finite subset $\{\lambda_1, \lambda_2, ... \} \subset \Lambda$
+This form of the objective function also called respond function in the experiment design litterature. In most cases an exhaustive search over the whole parameter space is infeasible. The search is thus limited to a finite subset $\{\lambda_1, \lambda_2, ... \} \subset \Lambda$:
 \begin{equation}
   \hat{\lambda} = \argmin_{\lambda \in \{\lambda_1, \lambda_2, ... \}} \Psi(\lambda)
 \label{empirical hypa_opt_1}
 \end{equation}
-
+Now we have a practical definition of hyperparamter optimization.
 % risk with loss function
 %\begin{equation}
 %R(\alpha) = \int L(y,f(x,\alpha))dP(x,y)
 %\end{equation}
+
+\subsection{Properties of HPO}
+HPO problems have some properties that distinguishes them from other black-box optimization problems.
+
+Training of machine learning algorithms can take minutes, hours, days or more. The costlier an evaluation is, the less evaluations are available within fixed time boundaries. Indeed the performance of an HPO algorithms can almost solely measured by the number of evaluations it takes to find values close to the optimum or reverse the best value after a fixed number of iterations. Most global optimization algorithms relay on a high amount of evaluations, which makes them unfit for HPO. The longer an evaluation takes the more time can be spend on inferring the next optimal evaluation point. So there is a tradeoff between intelligent selection and massive sampling. The evaluation time can also vary for different parameter settings. Consider the number of neurons in a neural network. More neurons take obviously longer to train than fiewer neurons.
+As for other black-box optimization problems there is littel knowledge about the search space. But HPO problems go even further in the way that the parameter domains can have very different structure. Search spaces range from simple homogenic cartesian search spaces to heterogenic graph shaped spaces, with mixtures of real, integer or categorical valued paramerters. While \ac{ML}-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently, usually with a convex search space, HPO spaces have no such design benefits.
+
+On top of that a (perfect) hyperparameter optimization algorithm is faced with other affordences. First of all multicore processors and computer clusters are avaiable for most researchers nowadays. This requires an optimization algorithm to be parallelizable. A long optimization might not be a linear process and may require an interruption and a save to disc, that can be restored for later continuation. Also the knowledge about the problem can change outside the optimization process. An algorithm that allows the interactive integration of new knowledge, maybe in the form of hints for good regions, is desirable.
+At last the ...
+\paragraph{approximations}
+ - early stopping
+ - data subset
+% \paragraph{scalability}
+% \subsection*{computational costs}
+% - space \& time
+% - intelligent selection vs massive sampling tradeoff
 
 \begin{enumerate}
   \item approximation by iterration
@@ -232,19 +236,6 @@ Even if one can only make a few or no assumptions about the structure of a hyper
 Machine learning algorithms, however, have certain characteristics that distinguish them from other black-box optimization problems.  First, each function evaluation can require a variable amount of time:  training a small neural network with 10 hidden units will take less time than a bigger net-work with 1000 hidden units.  Even without considering duration, the advent of cloud computing makes it possible to quantify economically the cost of requiring large-memory machines for learning, changing the actual cost in dollars of an experiment with a different number of hidden units.
 \end{quote}
 Second, machine learning experiment EGO algorithm
-
-
-\paragraph{Demands to a good HPO-Algorithm}
-A non-exaustive list of general criteria for a good hyperparameter optimization algorithm. ???
-\paragraph{parallelizabel}
-\paragraph{interactive}
-\paragraph{scalability}
-\paragraph{approximations}
- - early stopping
- - data subset
- \subsection*{computational costs}
- - space \& time
- - intelligent selection vs massive sampling tradeoff
 
 
 \section{Gaussian Processes Regression}
@@ -930,6 +921,7 @@ A first experiment of unconditional BO on vaious multimodal objective function w
 
 \section{Derivation of Expected Improvement}
 \label{EI derivation}
+I counld not find derivation of the closed-form version of expected improvement anywhere in the litterature, so I just add it here. Note that for simplicity $\mu(\x)$ and $\sigma(\x)$ have been replaced with $\mu$ and $\sigma$.
 
 $$\alpha_{\EI}(\x) := \mathbb{E}_{y|\x}[max(y-\tau, 0)]\ $$
 
