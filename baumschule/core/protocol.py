@@ -4,6 +4,8 @@ import json
 from datetime import datetime
 from itertools import chain
 
+from .utils import get_minium_perfs
+
 
 class Protocol:
     def write(self, *args, **kwargs):
@@ -62,3 +64,13 @@ class StandardProtocol(Protocol, list):
     def to_csv(self, filename):
         df = self.to_dataframe()
         df.to_csv(filename)
+
+    def get_min(self):
+        best = self[0]
+        for record in self[1:]:
+            if record.perf < best.perf:
+                best = record
+        return best
+
+    def minium_perfs(self):
+        return get_minium_perfs(self)

@@ -96,7 +96,7 @@ City, Date & \
 
 
 \section{Introduction}
-In past years the growing amount of collected data caused an increasing application of automated data processing in a wide range of areas streching from  science to industry.
+In the past years a growing amount of collected data caused an increasing application of automated data processing in a wide range of areas streching from  science to industry.
 The heigh demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standards. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use / out-of-the-box solutions moved big software companies to develop big systems with features, like integratet plotting, data-IO or even model sharing. The dataflow processing computation model turned out especially suited for data processing.
 
 \begin{figure}[h]
@@ -106,11 +106,12 @@ The heigh demand of experts with an understanding of computer programming and st
   \label{ml-workflow}
 \end{figure}
 
-Figure \ref{ml-workflow} shows a simlified view if a machine learning workflow. First an algorithm selected, which is trained to obtain a model. The model is validated to measure generalization. This process is repeated for different algorithms, until a satisfying performance reached, or (probabily more frequent) a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this treatise.
-The selection is usually seen as a two step process: from the range of aplicable machine learning algorithms select the most promising and in a second step select algorithm's configuration. While the former one is almost always done manually the automation of the second one is research object of the field of hyperparamter optimization.
-The often multimodal, mostly unknown and sometimes discontinous nature of hyperparamter optimization problem leads many users to apply the easy to implement, exaustive and uninformed grid search or random search. The only source of information about the objective function, that can be embraced, is often the evaluation for some parameter setting of the objective function itself. Model-based global optimization methods try to harness this information by estimatating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
+Figure \ref{ml-workflow} shows a simlified view of a machine learning workflow. First an algorithm is selected, which is trained to obtain a model. The model is validated to measure generalization. This process is repeated for different algorithms, until a satisfying performance is reached, or a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this these.
+The selection is usually a two step process: First from the range of aplicable machine learning algorithms the most promising one is selected. This step is nearly always done manually. In a second step the algorithm configuration is chosen. This selection problem is addressed in the field of hyperparameter optimization.
+Hyperparamter optimization problems are usually black-box optimization problems, since less or nothing is known about the function. Furthermore the  landscape is often multimodal and sometimes discontinous. The especially nasty nature of this problem leads to a frequent usage of naive methods, like random or exhaustive search. In recent years however many publications on Bayesian optimization have delivered a more informed approach to hyperparameter optimization.
+In black-bock optimization the only source of information about the objective function, is the evaluation of the objective function itself. Model-based global optimization methods try to harness this information by estimatating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
 In recent years Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesain model of the objective function, which essential means to have a distribution over function values, enabled to express the trade of between exploration and exploitation as a form of inference.
-The problem of also automating the choice of the ML-algorithm is classified as \textit{automated machine learning}. The Combined Algorithm Selection and Hyperparameter optimization problem is also denoted by its acronym \textit{CASH} \cite{feurer_efficient_2015}. The configuration space is of cause different among different algorithms, such that the presence or relevance of a parameter can be dependent of the algorithm search. Algorithms like Tree-Parzen-Estimator and SMAC have been developt to deal with this condition.
+The problem of also automating the choice of the ML-algorithm is classified as \textit{automated machine learning}. The Combined Algorithm Selection and Hyperparameter optimization problem is also denoted by its acronym \textit{CASH} \cite{feurer_efficient_2015}. The configuration space is of cause different among different algorithms, such that the presence or relevance of a certain parameter depends on the algorithm previously selected. Algorithms like Tree-Parzen-Estimator and SMAC have been developed to deal with this conditional parameters.
 Going a step further the parameter space can become even more complicated. If one considers for example multilayer perceptrons, where the number of layers needs to be determined before the number of neurons per layer can be chosen. In this case the number of model paramters can be of arbitray number. (put kernel example maybe here!)
 This work proposes a formalism to state optimization problems by describing the structure of search spaces together, that range from simple one-dimensional strucutres to complicated infinte structures. The second contribution is an algorithm that extends known Bayesian optimization algorithm, such that self-referential search space description can be examined in an efficent manner.
 (make my point clearer here!)
@@ -223,20 +224,18 @@ At last even if one can only make a few or no assumptions about the structure of
 
 \section{Gaussian Processes Regression}
 \label{GPR}
-Regression is the problem of estimating the relationship between an indendent random variable $X$ and a real-valued dependent random variable $Y$, by generalizing from examples. In frequentist settings one ususally defines a parametrized familiy of underlying functions. A point estimator is then applied to find the set of parameters that explains/predicts the data the best. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximised over the model parameters. The semi-Bayesian maximum a posteriori approach additionally assumes a prior probability over the model-parameters and can e.g. deal with overfitting in a natural way. Finally in the fully Bayesian approach the estimates are distributions over parameters rather than single paramters settings. Gaussian process regression goes even a step further by having a non-parameteric model that grows with in complexity with the amount of data (Some authers prefere to call them inifinte-parametric models for that reason).
+Regression is the problem of estimating the relationship between an indendent random variable $X$ and a real-valued dependent random variable $Y$, by generalizing from examples. In frequentist settings one ususally defines a parametrized familiy of underlying functions. A point estimator is then applied to find the set of parameters that explains/predicts the data the best. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximized over the model parameters. The semi-Bayesian maximum a posteriori approach additionally assumes a prior probability over the model-parameters and can e.g. deal with overfitting in a natural way. Finally in the fully Bayesian approach the estimates are distributions over parameters rather than single paramters settings. Gaussian process regression goes even a step further by having a non-parameteric model that grows with in complexity with the amount of data (Some authers prefere to call them inifinte-parametric models for that reason).
 
-A GP (Gaussian process) is a (usually infinite) collection of random variables where any finite subset is multivariat normal distributed. These random variables can be indexed by $\mathbf{x} \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, x \mapsto f(\mathbf{x})$. This is written like:
+A Gaussian process (GP) is a (usually infinite) collection of random variables where any finite subset is multivariat normal distributed. These random variables can be indexed by $\mathbf{x} \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, x \mapsto f(\mathbf{x})$. This is written like:
 $$f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}')\big)$$
-Where $m$ is the function of the expected value, and $\kappa$ the covariance function, which specifies the covariance of the dependet variable with respect to the independent variable:
+Where $m$ is the function of the expected value, and $\kappa$ the covariance function or kernel. The kernel determines the covariance between two function outputs in dependence of function inputs.
+$$\kappa(\mathbf{x},\mathbf{x}') = \operatorname{cov}(f(\mathbf{x}),f(\mathbf{x}'))$$
+In order to sample from the prior the multvariat normal distribution can be used. The sample points $X_*$ are applied to the kernel to get the covariance matrix $K_{**} = \kappa(X_*,X_*)$. For comptational simplicity the prior mean is usually set to $m(\mathbf{x}) = \mathbf{0}$.
+$$\mathbf{f_*} \sim \mathcal{N}(\mathbf{\mathbf{\mu}}, K_{**})$$
+Samples for different covariance functions can be seen in figure \ref{kernels}.
 
-$$\operatorname{cov}(f(\mathbf{x}),f(\mathbf{x}')) = \kappa(\mathbf{x},\mathbf{x}')$$
-
-For comptational simplicity the prior mean is usually set to $m(\mathbf{x}) = \mathbf{0}$. In order to sample from the prior, $K_{**} = \kappa(X_*,X_*)$ one can use the multivariat normal distribution.
-$$\mathbf{f_*} \sim \mathcal{N}(\mathbf{0}, K_{**})$$
-
-Even though the model is a Gaussian process, the calculations can be done with mutivaraite Gaussian distributions and have a time complexity of only $O(N^3)$.
-
-The trick to conduct the conditional distribution, wich is required for prediction, is to formulate the joint distribution over observed points and the sample points:
+The key to use Gaussian processes for regression is the conditional distribution of unseen points in dependence of already observed points.
+To obtain the conditional distribution, the joined distribution is formulated first.
 
 $$
 \begin{bmatrix}
@@ -250,13 +249,10 @@ K_y & K_* \\
 \end{bmatrix}
 \Bigg)
 $$
-
-Next condition on the sample points to end up with the following:
-
+$K_y$ is the covariance matrix for some hyopthetical input points. $K_*$ is the covariance of matrix of the observed and unobserved points. All four matricies together form a big covariance matrix for the joined distribution. Next the usual formula to condition a normal distribution on some variables is applied, to obtain the predictive distribution.
 $$\overline{\mathbf{f_*}} = K_*^\top K_y^{-1}\mathbf{y}$$
 $$cov(\mathbf{f_*}) = K_{**} - K_*^\top K_y^{-1} K_*$$
-
-For interpolation (noise free prediction) case $K_y$ euqals $\kappa(X,X)$. For noisy prediction $K_y$ gets and additional noise term $\kappa(X,X) + \sigma_n^2$.
+The mean posterior $\overline{\mathbf{f_*}}$ and convariance $cov(\mathbf{f_*})$ fully determines the posterior distribution for the predicted points. For interpolation (noise free prediction) $K_y$ is set to  $\kappa(X,X)$. For noisy prediction $K_y$ gets an additional noise term $\kappa(X,X) + \sigma_n^2I$. Figure \ref{gpr} shows a posterior distribution with and without noise.
 
 \begin{figure}
 
@@ -273,10 +269,12 @@ For interpolation (noise free prediction) case $K_y$ euqals $\kappa(X,X)$. For n
   %\includegraphics[scale=0.3]{figures/posterior_exp.pdf}
   %\end{minipage}%
 
-  \caption{Left: Posterior for some sample points, without noise term. The blue area displays the margin of the variance. Right: posterior with noise term.}
-
+  \caption{Left: Posterior for some sample points, without noise term. The blue area displays the margin of the variance. The variance is zero for observed points. Right: Posterior with noise term. Observed points have non-zero but reduced variance.}
+  \label{gpr}
 \end{figure}
 
+
+Note that even though the model is a Gaussian process, the calculations can be done with mutivaraite Gaussian distributions and have a time complexity of only $O(N^3)$.
 
 The actual implementation of \ac{GPR} requires further knowledge about numeric properties which are not discussed here. A practical algortihm description involving Cholesky decomposition can be found in \cite[Algorithm 2.1]{rasmussen_gaussian_2006}.
 
@@ -284,31 +282,39 @@ The actual implementation of \ac{GPR} requires further knowledge about numeric p
 
 
 \subsection{Covariance Functions}
-
-A \textit{stationary} kernel is a tanslation invariant function. It can be written as a function of $\x-\x'$.
+With the choice of the kernel function the generalization behavior can be modulated.  A property of most kernels in use is \textit{stationarity}. A stationary kernel can be written as a function of $\x-\x'$ and is hence a tanslation invariant function.
 
 A quadratic matrix $K$ with $\mathbf{v}^\top \mathbf{v} \ge 0$ for all $\mathbf{v} \in \mathbb{R}^n$.
 
-The \textbf{squared-exponential} kernel (SE), which is also called radial basis function kernel (RBF), has many desireble properties. For closer points the correlation tends towards one for while the correlation of farer points tends towards zero. This leads to very smooth function.
+The \textbf{squared-exponential} kernel (SE), which is also called radial basis function kernel (RBF), has many desireble properties. For closer points the correlation tends towards one, while the correlation of farer points tends towards zero. This leads to very smooth function.
+$$\kappa_{se}(x, x') = exp\bigg(-\frac{(x-x')^2}{2\ell^2}\bigg)$$
+The two parameters varaince $sigma^2$ and lengthscale $\ell$ occur in many kernels.
 
-\paragraph{Kernel Hyperparamters}
-Parameters are optimized by optimizing the margnial likelihood ...
+With the \textit{periodical} kernel stationary periodical pattern can be fitted.
+$$\kappa_{per}(\x,\x') = \sigma^2exp\bigg(-\frac{2 \sin^2(\pi|x-x'|/p)}{\ell^2}\bigg)$$
+The \textit{exponential} kernel produces continous but non-differential functions.
+$$\kappa_{exp}(\x,\x') = exp\bigg(-\frac{|x-x'|}{\ell}\bigg)$$
+The \textbf{linear} kernel is non-stationary.
+$$\kappa_{lin}(x, x') = \sigma^2 + \x\cdot\x'$$
+GPR with a linear kernel is Bayesian linear regression.
 
 \paragraph{Kernel Composition}
-Kernels can be added or multiplied in order to gain a new composed kernels. A composed kernels inherits properties of its base kernels.
+Kernels can be combined in order to gain new kernels, which inherits properties of both base kernels. The product of two linear kernels for example will assume a quadratic trend in the data. The local periodic kernel is the product of the periodic and the rbf kernel.
+
+\paragraph{Kernel Hyperparamesters}
+Parameters are optimized by optimizing the margnial likelihood ...
 
 \begin{figure}
   \includegraphics[width=1\textwidth]{figures/kernels_and_samples.pdf}
   \caption{The upper row are the convariance functions. The lower row the corresponding samples from the prior distribution.}
-  \label{kernels_and_samples}
+  \label{kernels}
 \end{figure}
 
-
+\newpage
 
 
 \section{Bayesian Optimization}
-Bayesian optimization is model-based optimization with a Bayesian model. The
-- mential pelikan stuff
+Bayesian optimization (BO) is model-based black-box optimization with a probabilistic model for the surrogate and hyperparameter optimization is one application. This approach was first explored by Harold Kushner in 1964 \cite{kushner_new_1964}. A coprehensive introduction to the topic can be found in \cite{shahriari_taking_2016}.
 
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization with aquistion functions.
@@ -327,7 +333,7 @@ $S \leftarrow \emptyset$\;
 \caption{SMBO}
 \end{algorithm}
 
-The algorithm starts by initializing an empty set $S$ that is about store pairs $(x,y)$ of argument and result of the objective function (line 1). Loop is entered that iterates until a stopping criterium is reached. Such a criterium is usually a timeout, maximal number of iterations or sufficient performance of a configuration (line 2 \& 7). A curve/model is fittet through the pairs in $S$ (line 3). The model is used to conduct inference about unseen points of the objection. The aquisition function calculates a value that indicates how usefull/promising an evaluation of a point is. The point with the maximal aquisition value gets selected to be the next evaluation point (line 4). The next point gets evaluated(line 5). Add new pair to set $S$ (line 6).
+The algorithm starts by initializing an empty set $S$ that is about to store pairs $(x,y)$ containing argument and result of the objective function (line 1). Loop is entered that iterates until a stopping criterium is reached. Such a criterium is usually a timeout, maximal number of iterations or sufficient performance of a configuration (line 2 \& 7). A curve/model is fittet through the pairs in $S$ (line 3). The model is used to conduct inference about unseen points of the objection. The aquisition function calculates a value that indicates how usefull/promising an evaluation of a point is. The point with the maximal aquisition value gets selected to be the next evaluation point (line 4). The next point gets evaluated(line 5). Add new pair to set $S$ (line 6).
 
 \begin{figure}
   \includegraphics[width=1\textwidth]{figures/bayesian_optimization.png}
@@ -414,7 +420,8 @@ An application of GPR for HPO of a deep belief network is described in \cite{ber
 
 
 \section{Search Space Construction}
-The majority of \ac{HPO} algorithms are designed for domains of the form $\mathbb{R}^n$. In reality however parameter search spaces can be much more complicated. This section discribes a formalism to construct search spaces in a convenient way. First of all it must be possible to describe the parameter space of a single algorithm, which can contain an arbitrary number of integer, floating point or nominal valued parameters. Second it shall be possible to include the choice of an algorithm into the optimization process. Thrid parameters with special structure (like trees or graphs), shall also be describable in a natural way.
+\label{construction}
+The majority of \ac{HPO} algorithms are designed for domains that are subsets of $\mathbb{R}^n$. In reality however parameter search spaces can be much more complicated. This section discribes a formalism to construct search spaces in a convenient way. First of all it must be possible to describe the parameter space of a single algorithm, which can contain an arbitrary number of integer, floating point or nominal valued parameters. Second it shall be possible to include the choice of an algorithm into the optimization process. Thrid parameters with special structure (like trees or graphs), shall also be describable in a natural way.
 
 The first basic idea is that domains of parameters can be combined to form a new parameter space. The second idea is, that in order to express the choice between multiple algorithms, that application of algorihtms or functions must be possible. It turned out to be easier to represent both combinations and function calls as trees of application nodes.
 The consequence is that the elements of a search space are not just vectors of parameter values but can be computation trees and the search space is a set of computation trees.
@@ -537,11 +544,7 @@ Two expressions can have the same meaning even if the representations are not eq
 
 \paragraph{Constants \& Variables}
 So far it is only possible to express search spaces over function trees.
-A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of a computation tree evaluation. Implementationwise the constant is a wrapper around a search space, that remembers the first chosen value of that search space.
-Constants allow to express structures beyond the capabilities of a context free grammars. For example a search space over matricies with arbitray size:
-
-Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures.
-Both constants and variables are not integrated into the system and will not be discussed further.
+A value that is computed once can only be used in a single other function call. With the introduction of \textit{constants} it is possible to remember the output of a computation tree evaluation. Implementationwise the constant is a wrapper around a search space, that remembers the first chosen value of that search space. Constants allow to express structures beyond the capabilities of a context free grammars. Variables are like constants, with additional ability to change value in the computation process. The elements of the search space obtain a cylic graph structures. Both constants and variables are not integrated into the system and will not be discussed further.
 
 \subsection{Simplification}
 Simplification of the search space expression can improve comprehensibility for humans, but can also improve performance of optimization algorithms applied to it. The other use of simplification is the transformation of instance expressions into a normal form, in order to detect equality of expressions.
@@ -645,57 +648,53 @@ With constants once computed values can be reused an apply to multiple functions
 
 
 \section{Optimization of Self-Referential Seach Space}
-Convential Bayesain optimization algorithms are only suitable for falt multidimesnional search spaces or search spaces containing conditional parameters (SMAC and TreeParzen). The specification language described in the previous chapters however allows for search spaces with an arbitrary amount of parameters. The following algorithm allows to employ any Bayesian optimization model for flat parameter spaces to be applied to recursive parameter spaces.
+Conventional Bayesain optimization algorithms are only suitable for flat multidimesnional search spaces or search spaces containing conditional parameters (SMAC and TreeParzen). The specification language described in the previous chapters however allows for search spaces with an arbitrary amount of parameters. The following algorithm allows to employ any Bayesian optimization model for flat parameter spaces to be applied to recursive parameter spaces.
 
-The basic idea of the algorihm is to select subspaces from the search space as long as no joined node is presend in the tree any more. The resulting search space has only function applications and primitives and is therefore flat. On this subspace a flat optimizer can be applied.
+The basic idea of the algorihm is to repetitively select subspaces from the search space until no joined node is present in the expression any more. The algorihm creates a meta tree where every node represents an expansion (selection) of the previous expression. This is similar to the depiction in figure \ref{levels}. The leaf nodes of the meta tree assigned with search space which possess only function applications and primitives. This flat subspace can be optimized locally with a conventional flat BO algorithm. The $\tau$ values used in the aquisition funciton is hereby set to the best value observed among all local optimizations.
 
-The algorihm creates a tree where every node represents an expansion of the previous expression. A working variable $W$ is initialized with the root node associated to the original search space $G$. If $G$ has join nodes, a full selection $G^*$ is chosen from $G$ due to some selection criterion. If $G^*$ has not been explored, a node is created. The node for $G^*$ is assigned to $W$. This steps are repreated until $W$ contains no join nodes any more. The resulting search space flat, a conventional \ac{BOA} is applied to select the next evaluation point from this search space. Since the selection criterion for a subspace makes use of the best aquisition value of the subspace's child nodes, each nodes keeps track of this value. After the chosen instance has been evaluated the results gets stored to the leaf node. The aquisition values have changed and need to be recalculated. The maximal aquisition value get propagated down through the meta tree as long as it is the best value in this subset. If the newly evaluated point hat the best observed performance, the aquisition values of all subtrees have to be recalculated.
-
-
+Algorithm \ref{treebo} lists the steps form optimization in infinite-tree shaped search spaces. The root node of the meta tree is associated with the expression of the whole search space $G$. A working variable $W$ that holds the meta node of the current subexpression, is initialized with the root node (line 4). Next a full selection is chosen from $G$ by some selection criterion (see below). The meta node associatiated with this new selection is assigned to $W$ (line 6). If this selection has not been explored yet a new meta node is created (line 7). This steps are repreated until $W$ contains no join nodes any more. A leaf node is reached. The resulting search space is flat, a conventional BO-algorithm is applied to select the next evaluation point from this search space (line 11). If the result $y$ is bigger or equal that the best observer value from all other evaluations $y_{best}$, only the surrogate model associated with $W$ needs to be updated (line 17). If it is however smaller (better) than $y_{best}$ the aquisiton function for all other models change and need to be updated (line 15).
 
 \begin{algorithm}[H]
 \SetAlgoLined
 initialize Root with G\;
-best\_value $\leftarrow$ $\infty$\;
-\For{i $\leftarrow$  0 \KwTo n}{
+$y_{best}$ $\leftarrow$ $\infty$\;
+\Repeat{stop criterion reached}{
   W $\leftarrow$ Root\;
   \While{W is not flat}{
     W $\leftarrow$ select(W, $crit$)\;
-    \If{Next = null}{
+    \If{W = null}{
       W $\leftarrow$ new node\;
     }
   }
-  p = next(W)\;
-  result = compute(p)\;
-  W.protocol.append(p, result)\;
-  \eIf{result $<$ best\_result}{
-    best\_result = result\;
+  $\x$ = next(W)\;
+  $y$ = compute($\x$)\;
+  \eIf{$y$ $<$ $y_{best}$}{
+    $y_{best}$ = y\;
     update all\;
   }{
     update W\;
-    down propagate best aquisition\;
   }
 }
 
 
-\caption{Bayesian Optimization for trees}
-
+\caption{BO for infinite-tree structured spaces}
+\label{treebo}
 \end{algorithm}
 %
 % \While{not flat(W.search_space) }{asd}
-\subsection*{selection criteria from subexpression}
-In two cases the subexpression selection is striaght forward: If on choice has been explored, an expansion can simply be chosen by random. If all choices are have at least been explored twice, the subexpression with the highest aquisition value would ne chosen. Any case in between with explored and unexplored choices can be chosen by different criteria.
-In the simplest approach a fix value, which servers as a default aquisition, would be assigned to any unexplored node. High default aquisitions would benefit exploration of unknown structures, for self-referential expressions this leads to a faster exploration of bigger structures. Lower values would rather encourage exploration of varaints of known structures.
+\subsection{Selection Criteria from Subexpressions}
+The selection of a subselection (algorithm \ref{treebo} line 6) was not discribed in the previous passage. Since the selection criterion for a subspace makes use of the best aquisition value of the subspace's child nodes, each nodes keeps track of this value. Once a leaf node is reached a best aquisition value arises form the underlying surrogate model. The maximal aquisition value is down propagated through the meta tree as long as it is the best value of this subexpression. If all surrogate models need to updated the aquisition values of all subtrees is also updated.
+
+In two cases the subexpression selection is striaght forward: If a join node is completely unexplored, the selection is simply determined by random. In the other case, when all choices are sufficient explored, that an aquisition value is assigned to each child node, the subexpression with the highest value would ne chosen. Any case in between with explored and unexplored choices can be chosen by different criteria.
+
+In the simplest approach a fix value, which servers as a default aquisition, is assigned to any unexplored node. High default aquisitions would benefit exploration of unknown structures, for self-referential expressions this leads to a faster exploration of bigger structures. Lower values would rather encourage exploration of varaints of known structures.
 A more sophisticated approch is to apply \ac{GPR} on every selection level as well.
 
-
 \subsection{Extention to DAG-structured Search Spaces}
-Some search spaces can be restricted by introducing an function, that detect if two search spaces share the same extension.
-Identifying equivalent function trees with computer algebra systems.
+As discussed in section \ref{construction} the structural equality of subexpressions or semantic equality of different instances, turns the search space into a directed acyclic graph. In this case the expression meta tree also turns into DAG. Basically all update steps stay the same, with the exeption of the creation of new meta nodes. If an unexplored subexpression matches the expression of another meta node the pointer gets assigned to this node instead.
 
 \subsection{Parallelization}
 A sequential Bayesian Optimization Algorithm can be extended to parrallel Algorithm with one simple trick. If an evaluation point is chosen, instead of waiting for the actual result, the expeced value estimate, which is easilz exessible with the Gaussian model, is inserted as a placeholder. The selection process is initiated again and will chose another point since the variance of the former point is zero. One the computation is complete the placeholder value is substituted by the real value. In this way objective function evaluations can be parralelized, while parameter selection keeps sequential.
-
 
 \subsection{Integration with Manual Search}
 Manual guidance before and during the optimization process.
@@ -714,8 +713,6 @@ In an active learning setting point hints can be handeled without an model modif
 
 intuitive way to do this is ascribing an increase in probability to positive hints and and decrease in probability to negative hints.
 
-\paragraph{Credebility and Authority}
-The \textit{credebility factor} or \textit{authority factor} is a way to ...
 
 \subsection{Objective Function Approximation}
 

@@ -86,6 +86,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         X = np.array([self.transform(x) for x in X])
         Y = np.array(Y).reshape(-1, 1)
         log.debug('X.shape %s' % (X.shape,))
+        print('.....', X, self.observers['protocol'])
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.Gaussian_noise.constrain_fixed(0.0)
         if self.optimize_kernel:

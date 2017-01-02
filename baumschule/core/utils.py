@@ -1,4 +1,3 @@
-from .protocol import StandardProtocol
 import numpy as np
 
 def execfile(fname, glob=None, loc=None, compiler=None):
@@ -33,3 +32,5 @@ def get_minium_perfs(protocol):
          else:
              a.append(a[-1])
     return np.array(a)
+
+from .protocol import StandardProtocol

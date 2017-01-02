@@ -20,8 +20,6 @@ log.setLevel('DEBUG')
 
 default_av = 1. # aqisition value for unseen expansions
 
-# TODO maybe join TreeFarm and Node ???
-
 class TreeGPMinimizer(SequentialMinimizer):
 
     def __init__(self, search_space, threshold=1.0):

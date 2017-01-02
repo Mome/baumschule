@@ -114,6 +114,8 @@ def get_crown(search_space, include_primitives=True):
 def get_subspace(subspace, index, index_expansion=True):
     """Get a substructure from an expression."""
 
+    space = subspace
+
     for i in index:
         if i == -1:
             subspace = subspace.operator

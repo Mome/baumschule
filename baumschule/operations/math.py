@@ -2,11 +2,24 @@ import operator as pyop
 
 from ..core.spaces import Operation
 
+
+def add_op(*args):
+    out = args[0]
+    for x in args[1:]:
+        out = out + x
+    return out
+
+def mul_op(*args):
+    out = args[0]
+    for x in args[1:]:
+        out = out * x
+    return out
+
 # ---------------------- Artihmetics --------------------- #
 
 add = Operation(
     name="add",
-    func=pyop.add,
+    func=add_op,
     properties=(
         'associative',
         'commutative',
@@ -22,7 +35,7 @@ sub = Operation(
 
 mul = Operation(
     name="mul",
-    func=pyop.mul,
+    func=mul_op,
     properties=(
         'associative',
         'commutative',
