@@ -16,15 +16,16 @@ from ..core.protocol import PerfDictProtocol
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 default_av = 1. # aqisition value for unseen expansions
 
 class TreeGPMinimizer(SequentialMinimizer):
 
-    def __init__(self, search_space, threshold=1.0):
+    def __init__(self, search_space, aquifunc='ei', threshold=1.0):
         super().__init__(search_space)
-        self.root = Node(search_space, threshold, self)
+        self.root = Node(search_space, threshold, self, aquifunc)
+        self.aquifunc = aquifunc
 
     def compute_next(self):
         leaf = self.root.next_node()
@@ -51,8 +52,7 @@ class TreeGPMinimizer(SequentialMinimizer):
 
 
 class Node:
-    def __init__(self, search_space, threshold, parent):
-        print(type(search_space))
+    def __init__(self, search_space, threshold, parent, aquifunc=None):
         shape = fc_shape(search_space, include_primitives=False)
         expansions = np.empty(shape, dtype=object)
 
@@ -63,6 +63,10 @@ class Node:
         self.aquival = threshold # aquisition value
         self.aqui_indices = [] # stores expansion candidates
         self.parent = parent
+        if aquifunc == None:
+            self.aquifunc = parent.aquifunc
+        else:
+            self.aquifunc = aquifunc
 
     def update(self, best_val):
         aquival = self.aquival
@@ -107,15 +111,25 @@ class Node:
 
 
 class Leaf:
-    def __init__(self, search_space, parent, minimizer=None):
+    def __init__(self, search_space, parent, minimizer=None, aquifunc=None):
+
+        if aquifunc == None:
+            self.aquifunc = parent.aquifunc
+        else:
+            self.aquifunc = aquifunc
+
         if minimizer is None:
-            minimizer = FlatGPMinimizer(search_space)
+            minimizer = FlatGPMinimizer(
+                search_space=search_space,
+                aquifunc=self.aquifunc)
 
         minimizer.auto_update = False
 
         self.minimizer = minimizer
         self.search_space = search_space
         self.parent = parent
+
+
 
     @property
     def aquival(self):

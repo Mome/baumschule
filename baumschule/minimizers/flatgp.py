@@ -61,7 +61,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
             aquifunc = aquifunc_dict[aquifunc]
 
         if kernel == None:
-            kernel = GPy.kern.Bias(1) + GPy.kern.Linear(1) + GPy.kern.RBF(1)
+            kernel = GPy.kern.Bias(self.dim_number) + GPy.kern.RBF(self.dim_number)
         if aquiopt_cls == None:
             aquiopt_cls = RandomMinimizer
 
@@ -86,7 +86,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         X = np.array([self.transform(x) for x in X])
         Y = np.array(Y).reshape(-1, 1)
         log.debug('X.shape %s' % (X.shape,))
-        print('.....', X, self.observers['protocol'])
+        #print('.....', X, self.observers['protocol'])
         m = GPy.models.GPRegression(X, Y, self.kernel)
         m.Gaussian_noise.constrain_fixed(0.0)
         if self.optimize_kernel:
