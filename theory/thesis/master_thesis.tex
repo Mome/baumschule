@@ -97,7 +97,7 @@ City, Date & \
 
 \section{Introduction}
 In the past years a growing amount of collected data caused an increasing application of automated data processing in a wide range of areas streching from  science to industry.
-The heigh demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standards. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use / out-of-the-box solutions moved big software companies to develop big systems with features, like integratet plotting, data-IO or even model sharing. The dataflow processing computation model turned out especially suited for data processing.
+The heigh demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engeneering, machine learning is still in the process of finding efficient workflow standards. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use / out-of-the-box let to high-level led to interfaces that implement aspects of declarative model design. The dataflow processing computation model turned out especially suited for data processing. In the deep learning field libraries like Theano and Tensorflow allow the user to construct computation graphs, which are automatically optimized and compiled into efficient machine code.
 
 \begin{figure}[h]
   \centering
@@ -108,13 +108,12 @@ The heigh demand of experts with an understanding of computer programming and st
 
 Figure \ref{ml-workflow} shows a simlified view of a machine learning workflow. First an algorithm is selected, which is trained to obtain a model. The model is validated to measure generalization. This process is repeated for different algorithms, until a satisfying performance is reached, or a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this these.
 The selection is usually a two step process: First from the range of aplicable machine learning algorithms the most promising one is selected. This step is nearly always done manually. In a second step the algorithm configuration is chosen. This selection problem is addressed in the field of hyperparameter optimization.
-Hyperparamter optimization problems are usually black-box optimization problems, since less or nothing is known about the function. Furthermore the  landscape is often multimodal and sometimes discontinous. The especially nasty nature of this problem leads to a frequent usage of naive methods, like random or exhaustive search. In recent years however many publications on Bayesian optimization have delivered a more informed approach to hyperparameter optimization.
+Hyperparamter optimization problems are usually black-box optimization problems, since less or nothing is known about the function. Furthermore the  landscape is often multimodal and sometimes discontinous. The especially nasty nature of this problem leads to a frequent usage of naive methods, like random or exhaustive search.
 In black-bock optimization the only source of information about the objective function, is the evaluation of the objective function itself. Model-based global optimization methods try to harness this information by estimatating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
 In recent years Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesain model of the objective function, which essential means to have a distribution over function values, enabled to express the trade of between exploration and exploitation as a form of inference.
-The problem of also automating the choice of the ML-algorithm is classified as \textit{automated machine learning}. The Combined Algorithm Selection and Hyperparameter optimization problem is also denoted by its acronym \textit{CASH} \cite{feurer_efficient_2015}. The configuration space is of cause different among different algorithms, such that the presence or relevance of a certain parameter depends on the algorithm previously selected. Algorithms like Tree-Parzen-Estimator and SMAC have been developed to deal with this conditional parameters.
-Going a step further the parameter space can become even more complicated. If one considers for example multilayer perceptrons, where the number of layers needs to be determined before the number of neurons per layer can be chosen. In this case the number of model paramters can be of arbitray number. (put kernel example maybe here!)
-This work proposes a formalism to state optimization problems by describing the structure of search spaces together, that range from simple one-dimensional strucutres to complicated infinte structures. The second contribution is an algorithm that extends known Bayesian optimization algorithm, such that self-referential search space description can be examined in an efficent manner.
-(make my point clearer here!)
+Hyperparamter optimization can be extendet to a simultanious selection of algorithm and configuration. This problem is formally defined in \cite{feurer_efficient_2015} as the Combined Algorithm Selection and Hyperparameter optimization problem \textit{CASH} and belogs to the field of \textit{automated machine learning}. The configuration space varies among different algorithms, such that the relevance of a certain parameter depends on the selected algorithm. The Tree-Parzen-Estimator and SMAC have been developed to deal with this conditional parameters.
+Going a step further the parameter space can become even more complicated. If one considers for example multilayer perceptrons, where the number of layers needs to be chosen before the number of neurons per layer. In this case the number of model paramters can be of arbitray number. Another example is the space choice of a kernel in a support vector machine or a Gaussian process regression, where the combination of kernels is defined by a grammar of base kerels and kernel combinations.
+This work proposes a formalism to state optimization problems by describing the structure of search spaces together with a distribution over the values. The search spaces can range from simple one-dimensional or multi-dimensional strucutres, over spaces that comprise multiple algorithms and their hyperparameters to complicated infinte grammar based structures. This is achieved by allowing to add expressions that refere to the search space itself. The language is comparable to the computation graph construction in Theano with the ability to formulate sets or distribtuions of computation trees. The syntax is related to a language for hyperparameter optimization problem description described in \cite{bergstra_making_2013} which was also used for the hyperopt libray \cite{bergstra_hyperopt:_2013}. The second contribution is an algorithm that extends known Bayesian optimization algorithm, such that optimizations on self-referential search space descriptions can be conducted. The algorithms is effectively a solver for problems stated in the language.
 Section 2 discusses the probelm of global black-box optimization in general. Section 3 narrows the view point to hyperparamter optimization.
 Section 4 shortly introduces Gaussian process regression, since they are from the Bayesian model in the algorithms.
 Section 5 explains methods of Bayesian optimization.
@@ -126,7 +125,7 @@ In Section 9 the results of a row of experiments that apply the system to variou
 \newpage
 
 \section{Hyperparameter Optimization}
-In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In \acf{ML} a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The \ac{ML} definition is adopted here. The selection procedure usually involves repetitive training of \ac{ML}-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the \ac{ML}-algorithm itself. Other terms for \ac{HPO} are hyperarameter \textit{search} or \textit{tuning}.
+In Bayesain statistics the term \textit{hyperparameter} referes to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparamters are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In ML a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The ML definition is adopted here. The selection procedure usually involves repetitive training of ML-algorithm with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the ML-algorithm itself. Other terms for HPO are hyperarameter \textit{search} or \textit{tuning}.
 Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterions.
 
 Despite decades of research in global optimization the predominant methods for HPO are of modest complexity. A review of all 86 papers from the NIPS2014 conference revealed that the fast majority used either grid search or default parameters\footnote{\url{http://github.com/jaak-s/nips2014-survey}}. Grid search (sometime also "parameter scan"), is an exhaustive search over a predefined subset of the full parameter space. The points have equal distance within one input dimension forming the interjections of a grid, whereby all kind of varaition is possible in the placements. In contrast the random search picks samples from a distribution over the parameter space (mostly uniform distribution). Both methods are unadaptive in the way that the next parameter setting $\lambda$ is independent of any previous evaluation. A combination of one of these methods together with random search is also popular. A reasons for this preference is that both algorithms are trivial to implement and parallelize. A recent comparison between random and grid search has shown that random search is empirically and theoretically superior \cite{bergstra_random_2012}. This result is explained by the  \textit{low effective dimension} of the parameter space. Intuitively that means that the value of certain parameters can become irrelevant if other parameters have a certain allocation. In grid search all settings of an ineffective parameter are evalutated while the rest of the parameters are constant in each step. In random search all parameters change all the time, such that an optimization with an ineffective parameter is equivalent to a lower dimensional optimization with this parameter fixed.
@@ -158,10 +157,8 @@ On the most general level optimization algorithms are devidable by some rough di
 \subsection{Bandit Problems}
 Hyperparameter optimization falls into the class of multiarmed-bandit problems. The name makes use of a metaphor, where a gambler is faced to choose a lever from $n$ different one-armed bandits. The goal is to maximize the profit (or minimize the losses) by trading off exploration (trying new levers) and exploitation (playing at the most profitable machine). Applied to the hyperparameter problem, a parameter configuration takes the role of a lever from the metaphor. For parameter spaces comming from a real domain (or other infinte spaces) the problem is also called \textit{infinite bandit problem}.
 
-
-sequential decision making
-with limited information
-stationary bandit
+%sequential decision making with limited information
+%stationary bandit
 
 
 \subsection{Active Learning \& Experimental design}
@@ -297,12 +294,13 @@ $$\kappa_{exp}(\x,\x') = exp\bigg(-\frac{|x-x'|}{\ell}\bigg)$$
 The \textbf{linear} kernel is non-stationary.
 $$\kappa_{lin}(x, x') = \sigma^2 + \x\cdot\x'$$
 GPR with a linear kernel is Bayesian linear regression.
+The kernel parameter can be varied in order to improve the datafit. These parameters are usually ajusted by optimizing the marginal likelihood.
 
 \paragraph{Kernel Composition}
-Kernels can be combined in order to gain new kernels, which inherits properties of both base kernels. The product of two linear kernels for example will assume a quadratic trend in the data. The local periodic kernel is the product of the periodic and the rbf kernel.
+Kernels can be combined in order to gain new kernels, which inherits properties of both base kernels. The product of two linear kernels for example will assume a quadratic trend in the data. The local periodic kernel is the product of the periodic and the RBF kernel.
 
-\paragraph{Kernel Hyperparamesters}
-Parameters are optimized by optimizing the margnial likelihood ...
+\paragraph{Non-Continous Variables}
+It is possible to define meaningfull kernels for all kinds of  non-continous variables. For interger valued variables the same kernels still be used. For nominal scaled variables a euclidian distance variable values cannot be assumend any more. A kernel especially for categorical variables is described in \cite{hutter_sequential_2011}. It is based on the hamming distance, which is known from coding theory and counts the common digits of a bitstring. A simple trick to use the kernels for continous variables on categorical ones is to use a one-hot coding on the categories together with a RBF kernel. Each category is map in a new dimension. This approach can be problematic for a big amount of categorical values, since optimization and prediction can become costlier.
 
 \begin{figure}
   \includegraphics[width=1\textwidth]{figures/kernels_and_samples.pdf}
@@ -407,11 +405,11 @@ Where $\sigma_\epsilon$ denotes the noise variance and $\sigma(\x)$ (like above)
 
 \subsection{Conditional Parameters}
 
-\paragraph{SMAC}
-The Sequential-Model Based Algorithm Configuration, developed by Hutter et al. and used in the Auto-Weka \cite{thornton_auto-weka:_2013} and Auto-Sklearn \cite{feurer_efficient_2015}. SMAC is based on Random Forrests.
-
 \paragraph{The Tree-Parzen Algorithm}
 The Tree-Parzen Algorithm \cite{bergstra_algorithms_2011} is a Bayesian-Optimization algorithm for tree-structured parameter spaces. Instead of modelling $p(y|\x)$ directly, $p(\x|y)$ and $p(y)$ are modelled. Instead of Gaussian processes, Gaussian-Mixture Model and Parzen-window kernel density estimation are used.
+
+\paragraph{SMAC}
+The Sequential-Model Based Algorithm Configuration \cite{hutter_sequential_2011} is used in Auto-Weka \cite{thornton_auto-weka:_2013} and Auto-Sklearn \cite{feurer_efficient_2015}. SMAC is based on Random Forrests.
 
 \paragraph{Tree and Graph Kernels/Metrics}
 An application of GPR for HPO of a deep belief network is described in \cite{bergstra_algorithms_2011}. Where multiple GP are fittet to each independent parameter groups, including the conditional groups that indicate which other goups to consider. This way they manage to use kernels that are not suitable for conditional parameter spaces out off to box. Kernels for conditional parameter spaces are developed in \cite{swersky_raiders_2014, chandar_hierarchical_2016}.
@@ -938,25 +936,7 @@ Product by $\emptyset$ annihilates $A$:
 $$\emptyset \times a = a \times \emptyset = \emptyset$$
 
 
-\section*{List of Acronyms}
-\begin{acronym}
-  \acro{AI}{artificial intelligence}
-  \acro{BO}{Bayesian Optimization}
-  \acro{BOA}{Bayesian optimization algorithm}
-  \acro{BGO}{Bayesian global optimization}
-  \acro{DAG}{directed acyclic graph}
-  \acro{EGO}{efficient global optimization}
-  \acro{GO}{global optimization}
-  \acro{HPO}{hyperparameter optimization}
-  \acro{IAF}{information acquisition function}
-  \acro{ML}{machine learning}
-  \acro{SMAC}{sequential model-based algorithm configuration}
-  \acro{SMBO}{sequential model-based optimization}
-  \acro{GPR}{Gaussian Process Regression}
-\end{acronym}
-
-
 \printbibliography
 
 
-\end{document}
+ \end{document}
