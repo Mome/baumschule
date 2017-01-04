@@ -22,7 +22,7 @@ default_av = 1. # aqisition value for unseen expansions
 
 class TreeGPMinimizer(SequentialMinimizer):
 
-    def __init__(self, search_space, aquifunc='ei', threshold=1.0):
+    def __init__(self, search_space, threshold=1.0, aquifunc='ei'):
         super().__init__(search_space)
         self.root = Node(search_space, threshold, self, aquifunc)
         self.aquifunc = aquifunc

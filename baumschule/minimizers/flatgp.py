@@ -16,6 +16,7 @@ from .simple import RandomMinimizer
 from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
 from ..core.simplify import simplify
+from ..core.to_graphviz import todot
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -53,6 +54,8 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
         """
 
         super().__init__(search_space=search_space, engine=engine)
+
+        print(todot(search_space).source)
 
         # infere argumments
         if aquifunc == None:
@@ -140,7 +143,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
                 return sample(self.search_space)
 
         instance = self.best_aqui_instance
-        instance = simplify(instance)
+        #instance = simplify(instance)
         return instance
 
 
