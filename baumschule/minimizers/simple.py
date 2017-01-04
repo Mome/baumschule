@@ -14,7 +14,7 @@ class RandomMinimizer(SequentialMinimizer):
 
     def pick_next(self):
         instance = sample(self.search_space)
-        instance = simplify(instance)
+        #instance = simplify(instance)
         return instance
 
 
@@ -30,5 +30,5 @@ class ExhaustiveMinimizer(SequentialMinimizer):
 
     def pick_next(self):
         instance = next(self.iterator)
-        instance = simplify(instance)
+        #instance = simplify(instance)
         return instance

@@ -16,7 +16,6 @@ from .simple import RandomMinimizer
 from ..core.space_utils import fc_shape, expand, get_crown, get_subspace
 from ..core.random_variables import sample
 from ..core.simplify import simplify
-from ..core.to_graphviz import todot
 
 log = logging.getLogger(__name__)
 logging.basicConfig()
@@ -55,15 +54,13 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
 
         super().__init__(search_space=search_space, engine=engine)
 
-        print(todot(search_space).source)
-
         # infere argumments
         if aquifunc == None:
             aquifunc = expected_improvement
         elif type(aquifunc) is str:
             aquifunc = aquifunc_dict[aquifunc]
 
-        if kernel == None:
+        if kernel == None and self.dim_number:
             kernel = GPy.kern.Bias(self.dim_number) + GPy.kern.RBF(self.dim_number)
         if aquiopt_cls == None:
             aquiopt_cls = RandomMinimizer
@@ -131,6 +128,9 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
 
 
     def pick_next(self):
+        print('.', end='')
+        if self.dim_number == 0:
+            return self.search_space
 
         if len(self.observers['protocol']) < 2:
             return sample(self.search_space)
@@ -139,7 +139,7 @@ class FlatGPMinimizer(FlatMinimizer, SequentialMinimizer):
             try:
                 self.update()
             except Exception as e:
-                print('Updating failed:', type(e), e)
+                print('pick_next : Updating failed:', type(e), e)
                 return sample(self.search_space)
 
         instance = self.best_aqui_instance

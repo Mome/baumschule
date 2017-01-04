@@ -136,16 +136,20 @@ class Leaf:
         return self.minimizer.best_aquival
 
     def update(self, best_perf, down_propagate=False):
-        self.minimizer.update(best_perf)
+        try:
+            self.minimizer.update(best_perf)
 
-        if down_propagate:
-            parent = self.parent
-            while parent:
-                if self.aquival < parent.aquival:
-                    parent.aquival = self.aquival
-                    parent = self.parent
-                else:
-                    break
+            if down_propagate:
+                parent = self.parent
+                while parent:
+                    if self.aquival < parent.aquival:
+                        parent.aquival = self.aquival
+                        parent = self.parent
+                    else:
+                        break
+        except Exception as e:
+            print('leaf:updating failed:' + str(e))
+
 
     def next_node(self):
         return self

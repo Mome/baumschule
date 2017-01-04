@@ -95,7 +95,7 @@ City, Date & \
 \newpage
 
 \begin{abstract}
-Especially for non-experts the task of choosing a suitable machine learning algorithm can be complicated. This often includes the choice of good performing hyperparameters, which can consist of simple switches or whole model structures. The automation of this process could reduce the effort and knowhow required to construct efficient pipelines. In recent years the application of Gaussian process based Bayesian optimization (BO) algorithms to hyperparameter optimization problems showed an improvement over conventional methods. In the community of automatic machine learning BO has been extended to conditional parameter spaces allowing the search over multiple algorithms at the same time. The parameter space of kernel methods or neural networks however has a more complicated grammar-based structure. This thesis develops a formalism to describe simple or complex search spaces in a convenient manner. The expressiveness allows for the combination of multiple algorithms into one search space, as well as the formulation of grammar- based search spaces by self-referential expressions. Furthermore a BO based algorithm is presented that automatically optimizes over all search spaces that are expressible in the new language.
+The task of choosing a suitable machine learning algorithm can be complicated, especially for non-experts. This often includes the choice of well performing hyperparameters, which can consist of simple switches or whole model structures. The automation of this process could reduce the effort and know-how required to construct efficient pipelines. In recent years the application of Gaussian process-based Bayesian optimization (BO) algorithms to hyperparameter optimization problems showed an improvement over conventional methods. In the community of automatic machine learning, BO has been extended to conditional parameter spaces allowing the search over multiple algorithms at the same time. The parameter space of kernel methods or neural networks, however, has a more complicated grammar-based structure. This thesis develops a formalism to describe simple or complex search spaces in a convenient manner. Its expressiveness allows for the combination of multiple algorithms into one search space as well as the formulation of grammar-based search spaces by self-referential expressions. Furthermore, a BO-based algorithm is presented that automatically optimizes over all search spaces that are expressible in the proposed formalism.
 \end{abstract}
 
 % For some algorithms a tree- or graph-structured search spaces
@@ -103,7 +103,7 @@ Especially for non-experts the task of choosing a suitable machine learning algo
 
 \section{Introduction}
 In the past years a growing amount of collected data caused an increasing application of automated data processing in a wide range of areas stretching from  science to industry.
-The high demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skill set into machine learning methods. Other than more traditional parts of software engineering, machine learning is still in the process of finding efficient workflow standards. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use / out-of-the-box let to high-level led to interfaces that implement aspects of declarative model design. The dataflow processing computation model turned out especially suited for data processing. In the deep learning field libraries like Theano and Tensorflow allow the user to construct computation graphs, which are automatically optimized and compiled into efficient machine code.
+The high demand of experts with an understanding of computer programming and statistical methods causes many people from other fields to expand their skills into machine learning methods. Unlike more traditional parts of software engineering, machine learning is still in the process of finding efficient workflow standards. More and more data processing software libraries targeting different aspects of machine learning application are released. Especially the need for easy-to-use / out-of-the-box methods let to high-level interfaces that implement aspects of declarative model design. The dataflow programming model turned out especially suited for data processing. In the deep learning field, libraries like Theano and Tensorflow allow the user to construct computation graphs, which are automatically optimized and compiled into efficient machine code.
 
 \begin{figure}[h]
   \centering
@@ -112,109 +112,109 @@ The high demand of experts with an understanding of computer programming and sta
   \label{ml-workflow}
 \end{figure}
 
-Figure \ref{ml-workflow} shows a simplified view of a machine learning workflow. First an algorithm is selected, which is trained to obtain a model. The model is validated to measure generalization. This process is repeated for different algorithms, until a satisfying performance is reached, or a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this these.
-The selection is usually a two step process: First from the range of applicable machine learning algorithms the most promising one is selected. This step is nearly always done manually. In a second step the algorithm configuration is chosen. This selection problem is addressed in the field of hyperparameter optimization.
-Hyperparameter optimization problems are usually black-box optimization problems, since less or nothing is known about the function. Furthermore the  landscape is often multi-modal and sometimes discontinuous. The especially nasty nature of this problem leads to a frequent usage of naive methods, like random or exhaustive search.
-In black-bock optimization the only source of information about the objective function, is the evaluation of the objective function itself. Model-based global optimization methods try to harness this information by estimating the objection function, allowing to make predictions for unknown points. In this way the number of function evaluations should be kept low (since this is the costly step), while the amount of information about the objective function, especially good performing areas, which is obtained in the process should be maximized.
-In recent years Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesian model of the objective function, which essential means to have a distribution over function values, enabled to express the trade of between exploration and exploitation as a form of inference.
-Hyperparameter optimization can be extended to a simultaneous selection of algorithm and configuration. This problem is formally defined in \cite{feurer_efficient_2015} as the Combined Algorithm Selection and hyperparameter optimization problem \textit{CASH} and belongs to the field of \textit{automated machine learning}. The configuration space varies among different algorithms, such that the relevance of a certain parameter depends on the selected algorithm. The Tree-Parzen-Estimator and SMAC have been developed to deal with this conditional parameters.
-Going a step further the parameter space can become even more complicated. If one considers for example multi-layer perceptrons, where the number of layers needs to be chosen before the number of neurons per layer. In this case the number of model parameters can be of arbitrary number. Another example is the space choice of a kernel in a support vector machine or a Gaussian process regression, where the combination of kernels is defined by a grammar of base kernels and kernel combinations.
-This work proposes a formalism to state optimization problems by describing the structure of search spaces together with a distribution over the values. The search spaces can range from simple one-dimensional or multi-dimensional structures, over spaces that comprise multiple algorithms and their hyperparameter to complicated infinite grammar based structures. This is achieved by allowing to add expressions that refer to the search space itself. The language is comparable to the computation graph construction in Theano with the ability to formulate sets or distributions of computation trees. The syntax is related to a language for hyperparameter optimization problem description described in \cite{bergstra_making_2013} which was also used for the hyperopt library \cite{bergstra_hyperopt:_2013}. The second contribution is an algorithm that extends known Bayesian optimization algorithm, such that optimizations on self-referential search space descriptions can be conducted. The algorithms is effectively a solver for problems stated in the language.
-The work is related to automatic programming with was in the past mostly approached with genetic programming. In \cite{goertzel_learning_2005} a population based (also called Bayesian optimization algorihtm) was used to evolve programs. More recently recurrent neural networks were used in an reinforcement learning approach to learn network architectures for deep networks \cite{zoph_neural_2016}. In \cite{schaechtle_probabilistic_2015} Gaussian processes are embedded into a probabilistc programming language and finding a kernel from a grammar of kernel compositions is formulated as a hyperparameter problem.
-Section 2 discusses the problem of global black-box optimization in general. Section 3 narrows the view point to hyperparameter optimization.
-Section 4 shortly introduces Gaussian process regression, since they are from the Bayesian model in the algorithms.
-Section 5 explains methods of Bayesian optimization.
-Section 6 describes the search space description formalism.
-Finally section 7 explains the tree Bayesian algorithm.
-Section 8 give some comments to the implementation and show code examples.
-In Section 9 the results of a row of experiments that apply the system to various different problems is presented.
+Figure \ref{ml-workflow} shows a simplified view of a machine learning workflow. First, an algorithm is selected, which is trained to obtain a model. Second, the model is validated to measure generalization. This process is repeated for different algorithms until a satisfying performance is reached or a time limit is exceeded. This selection procedure, which is not considered as training in the previous overview, is the subject of research in this thesis. The selection is usually a two step process: first, from the range of applicable machine learning algorithms the most promising one is selected. This step is nearly always done manually. Second, the algorithm configuration is chosen. This selection problem is addressed in the field of hyperparameter optimization (HPO).
+HPO problems are usually black-box optimization problems, since little or nothing is known about the objective function in beforehand. Furthermore, the  landscape is often multimodal and sometimes discontinuous. The especially intricate nature of this problem leads to a frequent usage of naive methods, like random or exhaustive search.
+In black-bock optimization the only source of information about the objective function is the evaluation of the function itself. Model-based global optimization methods try to harness this information by estimating the objective function, allowing to make predictions for unknown points. Since this is the costly step the number of function evaluations should be kept low, while the amount of information obtained in the process, especially from well performing function segements, should be maximized.
+In recent years, Bayesian optimization as a method for hyperparameter optimization received some attention. A Bayesian model of the objective function, which essentially means a distribution over function values, enabled to express the tradeoff between exploration and exploitation as a form of inference.
+Hyperparameter optimization can be extended to a simultaneous selection of algorithm and configuration. This problem is formally defined in \cite{feurer_efficient_2015} as the \textit{Combined Algorithm Selection and Hyperparameter Optimization problem}, or \textit{CASH}, and belongs to the field of \textit{automated machine learning}. The configuration space varies among different algorithms, such that the relevance of a certain parameter depends on the selected algorithm. The Tree-Parzen-Estimator and \textit{Sequential-Model Based Algorithm Configuration} (\textit{SMAC}) have been developed to deal with these conditional parameters.
+
+These algorithms, however, cannot deal with hierachical parameter space of arbitrary depth. Multi-layer perceptrons require choosing the number of layers before choosing the number of neurons per layer. In this case the number of model parameters can be arbitrary. Another example is the choice of a kernel in a support vector machine or a Gaussian process regression, where the combination of kernels is defined by a grammar of base kernels and kernel combinations.
+This work proposes a formalism to state optimization problems by describing the structure of search spaces together with a distribution over the values. The search spaces can range from simple one-dimensional or multi-dimensional structures, over spaces that comprise multiple algorithms and their hyperparameters, to complicated infinite grammar based structures. This is achieved by allowing to add expressions that refer to the search space itself. The language is comparable to the computation graph construction in Theano with the ability to formulate sets or distributions of computation trees. The syntax is related to a language for hyperparameter optimization problem description proposed in \cite{bergstra_making_2013}, which was also used for the \textit{hyperopt} library \cite{bergstra_hyperopt:_2013}. In addition to the formalism, this work proposes an algorithm that extends known Bayesian optimization algorithms, such that optimization on self-referential search space descriptions can be conducted. The algorithm is effectively a solver for problems stated in the language.
+The work is related to automatic programming which, was mostly approached with genetic programming in the past. In \cite{goertzel_learning_2005} a population-based algorithm (also called Bayesian optimization algorihtm) was used to evolve programs. More recently, recurrent neural networks were used in an reinforcement learning approach to learn network architectures for deep networks \cite{zoph_neural_2016}. In \cite{schaechtle_probabilistic_2015} Gaussian processes are embedded in a probabilistic programming language and finding a kernel from a grammar of kernel compositions is formulated as a hyperparameter problem.
+Section 2 discusses the problem of hyperparameter optimization in general.
+Section 3 briefly introduces Gaussian process regression, which is the basis for model-based HPO.
+Section 4 explains methods of Bayesian optimization.
+Section 5 describes the search space description formalism.
+Section 6 explains the HPO algorithm for self-referential search spaces.
+Section 7 gives details on the implementation and show code examples.
+In Section 8, the results of one application are presented.
 
 
 \section{Hyperparameter Optimization}
-In Bayesian statistics the term \textit{hyperparameter} refers to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparameter are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In machine learning (ML) a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. The ML definition is adopted here. The selection procedure usually involves repetitive training of ML-algorithms with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for hyperparameters as \textit{outer loop} in contrast to \textit{inner loop} parameters that are selected by the ML-algorithm itself. Other terms for HPO are hyperparameter \textit{search} or \textit{tuning}. Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterion.
+Different fields have developed different terminology. In Bayesian statistics the term hyperparameter refers to a parameter of the prior distribution. In \textit{hierarchical models} the prior distribution over the hyperparameter are called \textit{hyperpriors} respectively \cite[p.408]{bishop_neural_1995}. In machine learning (ML) a hyperparameter is any parameter that needs to be assigned before the training of other parameters can begin. Other terms for hyperparameter optimization are hyperparameter \textit{search} or \textit{tuning}. Also \textit{model selection} means essentially the same thing, the focus is however more on the selection criterion. The ML definition is adopted here. The selection procedure usually involves repetitive training of ML-algorithms with various hyperparameter combinations and rating by some quality measure. This nesting gives rise to an alternative label for HPO as an \textit{outer loop}, in contrast to \textit{inner loop} parameters, which are selected by the ML-algorithm itself.
 
-Despite decades of research in global optimization the predominant methods for hyperparmeter optimization (HPO) are of modest complexity. A review of all 86 papers from the NIPS2014 conference revealed that the fast majority used either grid search or default parameters \footnote{\url{http://github.com/jaak-s/nips2014-survey}}. Grid search (sometime also "parameter scan"), is an exhaustive search over a predefined subset of the full parameter space. The points have equal distance within one input dimension forming the interjections of a grid, whereby all kinds of variations are possible for the placements. In contrast random search picks samples from a distribution over the parameter space (mostly uniform distribution). Both methods are unadaptive in the way that the next parameter setting $\lambda$ is independent of any previous evaluation. A combination of one of these methods together with random search is also popular. A reasons for this preference is that both algorithms are trivial to implement and parallelize. A recent comparison between random and grid search has shown that random search is empirically and theoretically superior \cite{bergstra_random_2012}. This result is explained by the  \textit{low effective dimension} of the parameter space. Intuitively this means that the value of certain parameters can become irrelevant if other parameters have a certain allocation. In grid search all settings of an ineffective parameter are evaluated while the rest of the parameters are constant in each step. In random search all parameters change all the time, such that an optimization with an ineffective parameter is equivalent to a lower dimensional optimization with this parameter fixed.
+Despite decades of research in global optimization, the predominant methods for HPO are of modest complexity. A review of all 86 papers from the NIPS2014 conference revealed that the vast majority used either grid search or default parameters\footnote{\url{http://github.com/jaak-s/nips2014-survey}}. Grid search (sometime called \textit{parameter scan}) is an exhaustive search over a predefined set of equal distant points within the parameter space. In contrast, random search picks samples from a (typically uniform) distribution over the parameter space. Both methods are unadaptive in the sense that the next parameter setting is independent of any previous evaluation. A combination of one of these methods together with manual search is also popular. A reason for the preference for these algorithms is that both are trivial to implement and parallelize. A recent comparison between random and grid search has shown that random search is empirically and theoretically superior \cite{bergstra_random_2012}. This result is explained by the  \textit{low effective dimension} of the parameter space. Intuitively, this means that certain parameters can become irrelevant if other parameters take certain values. In grid search all settings of an ineffective parameter are evaluated while the rest of the parameters are constant in each step. In random search all parameters change all the time, such that an optimization with an ineffective parameter is equivalent to a lower-dimensional optimization with this parameter fixed.
 
 \subsection{Global Optimization}
-Optimization problems occur in a wide range of fields in various different forms. There are different fields that are exclusively concerned with optimization problems of one kind or another. \textit{Mathematical programming} is the subbranch of applied mathematics, that targets optimization. Classes of problems are stated formally, often together with additional equality or inequality constraints. The solution (algorithm) comes usually with a formal proof of convergence or accurracy bounds. The field of \textit{Metaheuristics}
-on the other hand is rather based on intuitions, metaphoric priniciples and validation by simulation. A metaheuristic can be defined as "a high-level problem-independent algorithmic framework that provides a set of guidelines or strategies to develop heuristic optimization algorithms"\cite{sorensen_history_2014}. Due to generality in method and application of the field, a vast amount of algorithms that are targeted to global optimization, led to a confusing (almost litteral) \textit{zoo of metaheuristics}. Researches with sometimes minor mathematical background, adopted metaphors from other scientific fields to describe algorithms in unconventional terminology which disguised the relations to more established methods \cite{sorensen_metaheuristics-metaphor_2015}.
+Optimization problems occur in a wide range of fields some of which are exclusively concerned with optimization problems of one kind or another. \textit{Mathematical programming} is the subbranch of applied mathematics that targets optimization. Classes of problems are stated formally, often together with additional equality or inequality constraints. The solution (algorithm) comes usually with a formal proof of convergence or accurracy bounds. The field of \textit{metaheuristics}
+on the other hand is rather based on intuitions, metaphoric priniciples, and validation by simulation. A metaheuristic can be defined as "a high-level problem-independent algorithmic framework that provides a set of guidelines or strategies to develop heuristic optimization algorithms"\cite{sorensen_history_2014}. Due to generality in method and application of the field, a vast amount of algorithms that target global optimization has led to a confusing \textit{zoo of metaheuristics}. Researchers with sometimes minor mathematical background adopted metaphors from other scientific fields to describe algorithms in unconventional terminology which obscured the relations to more established methods \cite{sorensen_metaheuristics-metaphor_2015}.
 
 
-On the most general level optimization algorithms are dividable by some rough distinctions:
+On the most general level, optimization algorithms can be devided by some rough distinctions:
 
 \begin{itemize}
-  \item \textit{Local} optimization as opposed to \textit{global} optimization aims to find local minimas. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points. Most optimization problems in machine learning are local, since successful algorithms are usually designed such that the parameter space is convex and can be minimizes efficiently.
+  \item \textit{Local} as opposed to \textit{global} optimization aims to find local minima. A local algorithm can be the basis of a global algorithm, for example with local optimization from different starting points. Most optimization problems in machine learning are local, since successful algorithms are usually designed such that the parameter space is convex and can be minimized efficiently.
 
-  \item An algorithm which makes use of the first derivative of the objective function is called \textit{gradient based} or a first order method. Algorithms that make use of the second derivative are called second order method. Famous examples are Gradient descent or newton method.
+  \item An algorithm which makes use of the first derivative of the objective function is called a \textit{gradient-based} or \textit{first order} method. Algorithms that make use of the second derivative are called \textit{second order} method. Famous examples are Gradient descent or the Newton method. Algorithms that make no use of derivatives are called \textit{derivative free}.
 
-  \item If an optimization method involves random sampling at some point it is called \textit{stochastic} and \textit{deterministic} if not. This must be distinguished from \textit{probabilistic} methods that use probability theory but are usually deterministic. In the metaheuristics community the terms "heuristic" is roughly used for "stochastic" and "exact" for deterministic. Whereby the field of origin (metaheuristics or mathematics) is also a factor for the terminology.
+  \item If an optimization method involves random sampling at some point it is called \textit{stochastic}, or \textit{deterministic} otherwise. This must be distinguished from \textit{probabilistic} methods, which use probability theory but are usually deterministic. In the metaheuristics community the term "heuristic" and "exact" are roughly used for "stochastic" and "deterministic" respectively.
 
-  \item More sophisticated GO algorithms than random search or grid search can be divided into \textit{model-based} or \textit{instance-based} (a.k.a. model-free or direct) methods. Instance based methods can further devided into single instance and population methods, which remember multiple instances.
+  \item More sophisticated global optimization algorithms than random search or grid search can be divided into \textit{model-based} and \textit{instance-based} (also known as \textit{model-free} or \textit{direct}) methods. Instance-based methods can be further divided into single-instance and population-based methods, the latter of which keep a record of multiple instances.
 
-  \item While most optimization problems in research are \textit{single-objective}, in fields like economics or operation research multi-objective optimizations are targeted. In this problems the concept of  pareto optimal solutions plays a big role.
+  \item While most optimization problems in research are \textit{single-objective}, in fields like economics or operation research \textit{multi-objective} optimizations occur. In these problems the concept of Pareto optimal solutions plays a big role.
 
   \item Sometimes the objective function can be stochastic. Usually this happens when there is a true underlying function but the measurement of this function is distorted by noise. In hyperparameter optimization it is common that the objective algorithm is stochastic (e.g. MCMC-algorithms).
 
 \end{itemize}
 
 
-
 \subsection{Bandit Problems}
-Hyperparameter optimization falls into the class of multi-armed-bandit problems. The name makes use of a metaphor, where a gambler is faced to choose a lever from $n$ different one-armed bandits. The goal is to maximize the profit (or minimize the losses) by trading off exploration (trying new levers) and exploitation (playing at the most profitable machine). Applied to the hyperparameter problem, a parameter configuration takes the role of a lever from. For parameter spaces coming from a real domain (or other infinite spaces) the problem is also called \textit{infinite bandit problem}. Bandit problems also form a theoretical basis for reinforcement learning.
+Hyperparameter optimization falls into the class of multi-armed-bandit problems. The name makes use of a metaphor, where a gambler is faced to choose a lever from $n$ different one-armed bandits. The goal is to maximize the profit (or minimize the losses) by trading off exploration (trying new levers) and exploitation (playing at the most profitable machine so far). Applied to the hyperparameter problem, a parameter configuration takes the role of a lever. For parameter spaces coming from a real domain (or other infinite spaces) the problem is also called \textit{infinite bandit problem}. Bandit problems also form a theoretical basis for reinforcement learning.
 
 %sequential decision making with limited information
 %stationary bandit
 
 
 \subsection{Active Learning}
-Active learning is a related method, that is applied to classification tasks with lots of unlabeled data, which are expensive to label. It is very similar to BO in the way that promising unlabeled data point are selected by a model, which is adapted for every new label. The differences is that the labels are delivered by a human (called the \textit{oracle}) and that the samples come usually from a finite set (\textit{pool based sampling}) \cite{settles_active_2010}.
+Active learning is a related method, which is applied to classification tasks with lots of unlabeled data that are expensive to label. It is very similar to BO in the sense that promising unlabeled data points are selected by a model, which is adapted for every new label. The difference is that the labels are delivered by a human (called the \textit{oracle}) and that the samples usually come from a finite set (\textit{pool based sampling}) \cite{settles_active_2010}.
 % - optimal experimental design
 % - response surface model
 % - Experimental design
 
 \subsection{Machine Learning as Optimization}
-Most ML problems are expressible as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or by maximization of fitness or utility function. From this perspective learning, on the most general level, can be stated as a global black-box optimization problem problem.
+Most ML problems are expressible as optimization problems \cite{bennett_interplay_2006}. Training algorithms are (usually) derived by solving the minimization problem of some error or energy function or by maximization of a fitness or utility function. From this perspective learning, on the most general level, can be stated as a global black-box optimization problem.
 $$\x^* = \argmin_{\x \in \mathcal{X}} f(\x)$$
-A best general solution of this problem does of cause not exists. Due to \textit{No Free Lunch} theorem for optimization, which roughly speaking states that the average performance of any algorithm across all possible optimization problems is identical. In other words efficient optimization without any assumptions or prior over the hypothesis space is impossible. Luckily in most cases the assumption can be made that points which are close in the input space are probability also close in the outputspace. This requires a topology (structure) of the search space, which is naturally given for real or integer valued inputs.
+A best general solution of this problem does of course not exists, due to the \textit{No Free Lunch} theorem for optimization, which roughly speaking, states that the average performance of any algorithm across all possible optimization problems is identical. In other words, efficient optimization without any assumptions or prior over the hypothesis space is impossible. Luckily, in most cases the assumption can be made that points which are close in the input space are probably also close in the outputspace. This requires a topology of the search space, which is naturally given for ordinal scaled inputs.
 
-In his famous \textit{Statistical Learning Theory}, Vladimir Vapnik states the \textit{General Setting of the Learning Problem} as a minimization of the risk function \cite{vapnik_overview_1999}.
+In his famous \textit{Statistical Learning Theory}, Vladimir Vapnik states the \textit{General Setting of the Learning Problem} as a minimization of the risk function \cite{vapnik_overview_1999}:
 \begin{equation}
 R(\alpha) = \int Q(z,\alpha)dP(z)
 \label{risk}
 \end{equation}
-The risk $R$ takes the role of the objective function. $P$ is the true probability distribution over the data. The function $Q$, which is parametrized by $alpha$, measures the performance on a single data point $z$. The structure of $Q$ is unspecified and incorporates a possible model, algorithm or loss function. While this general risk function is not as general as the name may suggest it still covers a majority of problems in machine learning. Since $P$ is usually unknown and represented by samples (the data), it is estimated by the more practical empirical risk function.
+The risk $R$ takes the role of an objective function. $P$ is the true probability distribution over the data. The function $Q$, which is parametrized by $\alpha$, measures the performance on a single data point $z$. The structure of $Q$ is unspecified and incorporates a possible model, algorithm, or loss function. While this general risk function is not as general as the name may suggest it still covers a majority of problems in machine learning. Since $P$ is usually unknown and represented by samples (the data), it is estimated by the more practical empirical risk function:
 \begin{equation}
 R_{emp}(\alpha) = \frac{1}{l} \sum_{i=1}^l Q(z_i,\alpha)
 \label{empirical risk}
 \end{equation}
 Depending on the problem the function $Q$ takes different forms. For supervised learning, for example, a data point $z$ is a tuple of a dependent and an independent variable $(x,y)$. The task is to find a function $f$ that maps from $x$ to $y$. Eventually $Q$ can be written in terms of a loss function $L(y,f(x,\alpha))$.
-To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor mapping hyperparameter setting $\lambda$ and a training set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparameter problem as it is defined by Bergstra et al. in \cite{bergstra_random_2012}.
+To make it even more specific the function $f$ is actually the result of a learning algorithm $\mathcal{A}$, which can be seen as a functor that maps a hyperparameter setting $\lambda$ and a training set $X_{train}$ into the hypothesis space. This leads to the definition of the hyperparameter problem as it is defined by Bergstra et al. \cite{bergstra_random_2012}.
 \begin{equation}
 \lambda^{(*)} = \argmin_{\lambda \in \Lambda} \E_{\x \sim \mathcal{G}_\x}\big[\mathcal{L}\big(\x;\mathcal{A}_\lambda(X_{train})\big)\big]
 \label{hypa_opt_1}
 \end{equation}
-Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not required to be sampled form $G_x$, and thus covers learning problems where the data during training is different of data during application.
-In order to avoid overfitting and estimate the generalization error, model selection techniques are applied. In special cases measures which trade off number of parameter and sample size with the training loss (like BIC or AIC) can be applied. In most practical application however, having a separated training and validation set is most popular. The empirical risk version of the hyperparameter optimization with crossvalidataion looks like this:
+Equation \ref{hypa_opt_1} is a special case of the risk function, with $Q = \mathcal{L}$ and $\alpha$ the fitted model. Note that $X_{train}$ is not required to be sampled form $\mathcal{G}_\x$ and thus covers learning problems where the data during training is different from the data during application.
+In order to avoid overfitting and estimate the generalization error, model selection techniques are applied. In special cases, measures which trade off number of parameters and sample size with the training loss (like BIC or AIC) can be applied. In most practical applications,  however, having separate training and validation set is most popular. The empirical risk version of the hyperparameter optimization with cross-validation is given by:
 \begin{equation}
   \Psi(\lambda) = \sum_{x \in X_{val}} \mathcal{L}\big(x;\mathcal{A}_\lambda(X_{train})\big)
 \end{equation}
-This form of a objective function is also called respond function in the experiment design literature. In most cases an exhaustive search over the whole parameter space is infeasible. The search is thus limited to a finite subset $\{\lambda_1, \lambda_2, ... \} \subset \Lambda$:
+This form of an objective function is also called response function in the experimental design literature. In most cases, an exhaustive search over the whole parameter space is infeasible. The search is thus limited to a finite subset $\{\lambda_1, \lambda_2, ... \} \subset \Lambda$:
 \begin{equation}
   \hat{\lambda} = \argmin_{\lambda \in \{\lambda_1, \lambda_2, ... \}} \Psi(\lambda)
 \label{empirical hypa_opt_1}
 \end{equation}
-Now we have a practical definition of hyperparameter optimization. The crusial part of an optimization algorithm is
+Now we have a practical definition of hyperparameter optimization.
 % risk with loss function
 %\begin{equation}
 %R(\alpha) = \int L(y,f(x,\alpha))dP(x,y)
 %\end{equation}
 
 \subsection{Properties of HPO}
-HPO problems have some properties that distinguishes them from other black-box optimization problems. Training of machine learning algorithms can take minutes, hours, days or more. The costlier an evaluation is, the less evaluations are available within fixed time boundaries. Indeed the performance of an HPO algorithms can almost solely measured by the number of evaluations it takes to find values close to the optimum or in reverse the best value after a fixed number of iterations. Most global optimization algorithms relay on a high amount of evaluations, which makes them unfit for HPO. The longer an evaluation takes the more time can be spend on inferring the next optimal evaluation point. So there is a tradeoff between intelligent selection and massive sampling. The evaluation time can also vary for different parameter settings. Consider the number of neurons in a neural network. More neurons take obviously longer to train than fewer neurons.
-As for other black-box optimization problems there is little knowledge about the search space. But HPO problems go even further in the way that the parameter domains can have very different structure. Search spaces range from simple homogeneous Cartesian search spaces to heterogeneous graph shaped spaces, with mixtures of real, integer or categorical valued parameters. While ML-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently, usually with a convex search space, HPO spaces have no such design benefits.
+HPO problems have some properties that distinguishe them from other black-box optimization problems. Training of machine learning algorithms can take minutes, hours, days, or more. The costlier an evaluation is, the less evaluations are available within fixed time boundaries. The performance of an HPO algorithm can, in fact, be measured almost entierly by the number of evaluations it takes to find values close to the optimum or, equivalently, the best value after a fixed number of iterations. Most global optimization algorithms relay on a high amount of evaluations, which makes them unfit for HPO. The longer an evaluation takes, the more time can be spent on inferring the next evaluation point. Thus there is a tradeoff between intelligent selection and massive sampling. The evaluation time can also vary for different parameter settings. Consider the number of neurons in a neural network. More neurons obviously take longer to train than fewer neurons.
+As for other black-box optimization problems, there is little knowledge about the search space. But HPO problems go even further in the sense that the parameter domains can have very different structures. Search spaces range from simple homogeneous Cartesian spaces to heterogeneous graph-structured spaces, with mixtures of real, integer, or categorical parameters. While ML-algorithms are usually defined in a way that inner loop parameters can be optimized efficiently, usually with a convex search space, HPO spaces have no such design benefits.
 
-On top of that a (perfect) hyperparameter optimization algorithm is also faced with other affordances. First of all multi-core processors and computer clusters are available for most researchers nowadays. This requires an optimization algorithm to be parallelizable. Second, a long optimization might not be a linear process and may require an interruption and a feature to storage the current state to disc and restored it later to continue computation. Also the experimenter's knowledge about the problem can change outside the optimization process. An algorithm that allows the interactive integration of new knowledge, maybe in the form of hints for good regions, is desirable.
-At last even if one can only make a few or no assumptions about the structure of a hyperparameter search space, one has always the option to use estimations to gather information about the function faster. Many machine learning processes are iteration based, so an estimation by \textit{early stopping} is possible. Another way to make an estimation is by using only a subset of the data. If preknowledge about an algorithm is available, the convergence behavior for more iterations can be extrapolated.
+On top of that a (perfect) hyperparameter optimization algorithm is also faced with other requirement. First of all, multi-core processors and computer clusters are available for most researchers nowadays. This requires an optimization algorithm to be parallelizable. Second, a long optimization might not be a linear process and may require an interruption and a facility to store the current state to disc and restore it later to continue computation. Also, the experimenter's knowledge about the problem can change outside the optimization process. An algorithm that allows the interactive integration of new knowledge, perhaps in the form of hints for good regions, is desirable.
+At last even if one can only make a few or no assumptions about the structure of a hyperparameter search space, one has always the option to use estimations to gather information about the function faster.
+Lastely, for iteration-based machine learning algorithms, a roughter approximation is always possible by \textit{early stopping}, in order to reduce computation recources. Another way to make an approximation is by using only a subset of the data. If preknowledge about an algorithm is available, the convergence behavior for more iterations can be extrapolated.
 % \paragraph{scalability}
 % \subsection*{computational costs}
 % - space \& time
@@ -224,14 +224,18 @@ At last even if one can only make a few or no assumptions about the structure of
 
 \section{Gaussian Processes Regression}
 \label{GPR}
-Regression is the problem of estimating the relationship between an independent random variable $X$ and a real-valued dependent random variable $Y$, by generalizing from examples. In frequentist settings one usually defines a parametrized family of underlying functions. A point estimator is then applied to find the set of parameters that explains/predicts the data the best. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximized over the model parameters. The semi-Bayesian maximum a posterior approach additionally assumes a prior probability over the model-parameters and can e.g. deal with overfitting in a natural way. Finally in the fully Bayesian approach the estimates are distributions over parameters rather than single parameters settings. Gaussian process regression goes even a step further by having a non-parametric model that grows in complexity with growing amount of data. ome authors prefer to call them infinite-parametric models for that reason.
+Regression is the problem of estimating the relationship between an independent random variable $X$ and a real-valued dependent random variable $Y$ by generalizing from examples. In frequentist settings one usually defines a parametrized family of underlying functions. A point estimator is then applied to find the set of parameters that best explains/predicts the data. In the famous maximum likelihood approach the conditional likelihood of the data $P(Y|X)$ is maximized over the model parameters. The semi-Bayesian \textit{maximum a posteriori} approach additionally assumes a prior probability over the model parameters and can deal with overfitting in a natural way. Finally, in the fully Bayesian approach the estimates are distributions over parameters rather than single parameter settings. Gaussian process  regression (GPR) goes a step further by having a non-parametric model that grows in complexity with growing amount of data. Some authors prefer to call them infinite-parametric models for that reason.
 
-A Gaussian process (GP) is a (usually infinite) collection of random variables, where any finite subset is multivariate normal distributed. These random variables can be indexed by $\x \in \mathbb{R}^n$, such that the GP can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, \x \mapsto f(\x)$. This is written like:
-$$f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}')\big)$$
-Where $m$ is the function of the expected value, and $\kappa$ the covariance function or kernel. The kernel determines the covariance between two function outputs in dependence to the function inputs.
-$$\kappa(\mathbf{x},\mathbf{x}') = \operatorname{cov}(f(\mathbf{x}),f(\mathbf{x}'))$$
+A Gaussian process is a (usually infinite) collection of random variables, where any finite subset is multivariate normal distributed. These random variables can be indexed by $\x \in \mathbb{R}^n$, such that the Gaussian process can be seen as a distribution over functions $\mathbb{R}^n \rightarrow \mathbb{R}, \x \mapsto f(\x)$. This is written
+\begin{equation}
+f(\mathbf{x}) \sim \mathcal{GP}\big(m(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}')\big)
+\end{equation}
+where $m$ is the function of the expected value, and $\kappa$ the covariance function or kernel. The kernel determines the covariance between two function outputs in dependence of the function inputs:
+\begin{equation}
+\kappa(\mathbf{x},\mathbf{x}') = \operatorname{cov}(f(\mathbf{x}),f(\mathbf{x}'))
+\end{equation}
 In order to sample from the prior the multvariat normal distribution can be used. The sample points $X_*$ are applied to the kernel to get the covariance matrix $K_{**} = \kappa(X_*,X_*)$. For comptational simplicity the prior mean is usually set to $m(\mathbf{x}) = \mathbf{0}$.
-$$\mathbf{f_*} \sim \mathcal{N}(\mathbf{\mathbf{\mu}}, K_{**})$$
+$$\mathbf{f_*} \sim \mathcal{N}(\mathbf{0}, K_{**})$$
 Samples for different covariance functions can be seen in figure \ref{kernels}.
 
 The key to use Gaussian processes for regression is the conditional distribution of unseen points in dependence of already observed points.
@@ -249,7 +253,7 @@ K_y & K_* \\
 \end{bmatrix}
 \Bigg)
 $$
-$K_y$ is the covariance matrix for some hypothetical input points. $K_*$ is the covariance of matrix of the observed and unobserved points. All four matrices together form a big covariance matrix for the joined distribution. Next the usual formula to condition a normal distribution on some variables is applied to obtain the predictive distribution.
+$K_y$ is the covariance matrix for some hypothetical input points. $K_*$ is the covariance matrix of the observed and unobserved points. All four matrices together form a big covariance matrix for the joined distribution. Next, the usual formula to condition a normal distribution on some variables is applied to obtain the predictive distribution.
 $$\overline{\mathbf{f_*}} = K_*^\top K_y^{-1}\mathbf{y}$$
 $$cov(\mathbf{f_*}) = K_{**} - K_*^\top K_y^{-1} K_*$$
 The mean posterior $\overline{\mathbf{f_*}}$ and convariance $cov(\mathbf{f_*})$ fully determines the posterior distribution for the predicted points. For interpolation (noise free prediction) $K_y$ is set to  $\kappa(X,X)$. For noisy prediction $K_y$ gets an additional noise term $\kappa(X,X) + \sigma_n^2I$. Figure \ref{gpr} shows a posterior distribution with and without noise.
@@ -279,51 +283,53 @@ Note that even though the model is a Gaussian process, the calculations can be d
 The actual implementation of GPR requires further knowledge about numeric properties which are not discussed here. A practical algorithm description involving Cholesky decomposition can be found in \cite[Algorithm 2.1]{rasmussen_gaussian_2006}.
 
 
-
-
-\subsection{Covariance Functions}
-With the choice of the kernel function the generalization behavior of the regression can be modulated. Covariance matricies must be quadratic, symmetric and can contain only positive values. Consequently any convariance function must be \textit{positive semi-definite}. A property of most kernels in use is \textit{stationarity}. A stationary kernel can be written as a function of $\x-\x'$ and is hence a translation invariant function.
-
-%A quadratic matrix $K$ with $\mathbf{v}^\top \mathbf{v} \ge 0$ for all $\mathbf{v} \in \mathbb{R}^n$.
-
-The \textbf{squared-exponential} kernel (SE), which is also called radial basis function kernel (RBF) is the most frequently used covariance function. For closer points the correlation tends towards one, while the correlation of farther points tends towards zero. This leads to very smooth function.
-$$\kappa_{se}(x, x') = exp\bigg(-\frac{(x-x')^2}{2\ell^2}\bigg)$$
-The two parameters variance $\sigma^2$ and lengthscale $\ell$ occur in many kernels. A lower lengthscale allows the assumed underlying function to change faster. The mean function looks more wavy. A higher $sigma$ signals higher uncertainty between two known points. A values from a sampled function can thus more deviate from the observed points.
-
-With the \textbf{periodical} kernel stationary periodical pattern can be fitted.
-$$\kappa_{per}(\x,\x') = \sigma^2exp\bigg(-\frac{2 \sin^2(\pi|x-x'|/p)}{\ell^2}\bigg)$$
-The \textbf{exponential} kernel produces continuous but non-differential functions.
-$$\kappa_{exp}(\x,\x') = exp\bigg(-\frac{|x-x'|}{\ell}\bigg)$$
-The \textbf{linear} kernel is non-stationary.
-$$\kappa_{lin}(x, x') = \sigma^2 + \x\cdot\x'$$
-GPR with a linear kernel is Bayesian linear regression.
-The kernel parameter can be adjusted in order to improve the data fit, which is usually done by optimizing the marginal likelihood.
-
-\paragraph{Kernel Composition}
-Kernels can be combined in order to gain new kernels. A composed kernel inherits properties of the base kernels. The product of two linear kernels for example will assume a quadratic trend in the data. The local periodic kernel is the product of the periodic and the RBF kernel.
-
-\paragraph{Non-Continuous Variables}
-It is possible to define meaningful kernels for all kinds of non-continuous variables. For integer valued variables the same kernels can still be used. For nominal scaled variables an Euclidean distance between the values cannot be assumed any more. A kernel especially for categorical variables is described in \cite{hutter_sequential_2011}. It is based on the Hamming distance, which is known from coding theory and counts common digits in a bit string. A simple trick to use the kernels for continuous variables on categorical variables is t one-hot coding. Each category is assigned to a new dimension. This approach can be problematic for a big amount of categorical values, since optimization and prediction can become costlier.
-
 \begin{figure}
   \includegraphics[width=1\textwidth]{figures/kernels_and_samples.pdf}
   \caption{The upper row are the covariance functions. The lower row the corresponding samples from the prior distribution.}
   \label{kernels}
 \end{figure}
 
+\subsection{Covariance Functions}
+With the choice of the kernel function the generalization behavior of the regression can be modulated. Covariance matricies must be quadratic, symmetric, and must contain only positive values. Consequently, any convariance function must be \textit{positive semi-definite}. A property of most kernels in use is \textit{stationarity}. A stationary kernel can be written as a function of $\x-\x'$ and is hence a translation-invariant function. In the following four kinds of kernel are described.
+
+%A quadratic matrix $K$ with $\mathbf{v}^\top \mathbf{v} \ge 0$ for all $\mathbf{v} \in \mathbb{R}^n$.
+
+The \textbf{squared-exponential} (SE) kernel, which is also called radial basis function kernel (RBF) is the most frequently used covariance function. For closer points the correlation tends towards one, while the correlation of farther points tends towards zero. This leads to very smooth functions;
+$$\kappa_{se}(x, x') = exp\bigg(-\frac{(x-x')^2}{2\ell^2}\bigg)$$
+The two parameters variance $\sigma^2$ and lengthscale $\ell$ occur in many kernels. A lower lengthscale allows the assumed underlying function to change faster. The mean function looks more wavy. A higher variance indicates a higher uncertainty between two known points. A value from a sampled function can thus deviate more from the training data.
+
+With the \textbf{periodical} kernel stationary periodical pattern can be fitted:
+$$\kappa_{per}(\x,\x') = \sigma^2exp\bigg(-\frac{2 \sin^2(\pi|x-x'|/p)}{\ell^2}\bigg)$$
+
+The \textbf{exponential} kernel produces continuous but non-differential functions:
+$$\kappa_{exp}(\x,\x') = exp\bigg(-\frac{|x-x'|}{\ell}\bigg)$$
+
+The \textbf{linear} kernel is non-stationary:
+$$\kappa_{lin}(x, x') = \sigma^2 + \x\cdot\x'$$
+GPR with a linear kernel is Bayesian linear regression.
+
+The kernel parameter can be adjusted in order to improve the data fit, which is usually done by optimizing the marginal likelihood.
+
+\paragraph{Kernel Composition}
+Kernels can be combined in order to obtain new kernels. A composed kernel inherits properties of the base kernels. The product of two linear kernels for, example will assume a quadratic trend in the data. The local periodic kernel is the product of the periodic and the RBF kernel.
+
+\paragraph{Non-Continuous Variables}
+It is possible to define meaningful kernels for all kinds of non-continuous variables. For integer-valued variables the same kernels can still be used. For nominal-scaled variables a Euclidean distance between the values cannot be assumed anymore. A kernel specifically for categorical variables is described in \cite{hutter_sequential_2011}. It is based on the Hamming distance, which is known from coding theory and counts common digits in a bit string. A simple trick to use the kernels for continuous variables on categorical variables is one-hot coding, which assignes each category to a new dimension. This approach can be problematic for a big amount of categorical values, since optimization and prediction can become costlier.
+
 \newpage
 
 
 \section{Bayesian Optimization}
-Bayesian optimization (BO) is model-based black-box optimization with a probabilistic model for the surrogate and hyperparameter optimization is one application. A comprehensive introduction to the topic can be found in \cite{shahriari_taking_2016}.
+Bayesian optimization (BO) is model-based black-box optimization with a probabilistic surrogate model, and hyperparameter optimization is one application. A comprehensive introduction to the topic can be found in \cite{shahriari_taking_2016}.
 
 \begin{figure}
-  \includegraphics[width=1\textwidth]{figures/bayesian_optimization.png}
-  \caption{Three steps in a Gaussian process based SMBO.}
+  \includegraphics[width=1\textwidth]{figures/bo_step1.pdf}
+  \includegraphics[width=1\textwidth]{figures/bo_step2.pdf}
+  \caption{Two steps in a Gaussian process based SMBO.}
   \label{bayesian optimization}
 \end{figure}
 
-Figure \ref{bayesian optimization} shows three iterations of Bayesian optimization of a maximization problem. The dashed black line depicts the true underlying funtion, which is only known at two point, marked with a black dot. The drawn solid black line is GP mean. The blue margin around the mean depicts the standard deviation. The green line is is the acquisition function, has high values for high variance or mean. The red triangle in the first subfigure indicates the maximum of the acquisition function. This is the very same point that gets pick for evaluation. The new datapoint changes the belief about the objective function. In the second subplot maximum of the surrogate has changed and another point is chosen for evaluation.
+Figure \ref{bayesian optimization} shows two iterations of Bayesian optimization. The dashed black line depicts the true underlying funtion. Black dots are known points. The solid blue line is the GP mean. The blue margin around the mean depicts the standard deviation. The green line is the acquisition function, which has high values for high variance or high mean. In the first subfigure only two data points are known. The red dot indicates the maximum of the acquisition function. This is the very same point that gets pick for evaluation. The new datapoint changes the belief about the objective function. In the second subplot maximum of the surrogate has changed and another point is chosen for evaluation.
 
 \subsection{SMBO}
 Sequential model-based optimization is a very general algorithmic pattern for global optimization.
@@ -385,7 +391,7 @@ There are also other acquisition functions like Entropy search, which are not di
 
 \subsection*{Acquisition optimization}
 The use of SMBO leads to a new non-convex optimization of the surrogate function. The acquisition function can often be more multimodal and difficult to optimize than the original objective function. he much shorter evaluation time enables the efficient applicability of conventional global optimization methods which often rely on numerous evaluations (but no secondary optimization problem) to find good approximative solutions.
-Most frequencly this is done by grid search. Methods that have been applied are for example: evolutionary algorithms, DIRECT, L-BFGS-B, dynamic grids, SOO or BAM-SOO.
+Most frequencly this is done by grid search. Methods that have been applied are for example: evolutionary algorithms, DIRECT, L-BFGS-B, dynamic grids, SOO or BAM-SOO \cite{shahriari_taking_2016}.
 
 \subsection{Noisy Objective Functions}
 In machine learning experiments the objective function can be noisy, when explicit randomness is used in the algorithm or approximations of the true function are used. As described in section \ref{GPR} GPR can be defined with an additive noise term. The classical defintions of acquisition function (section \ref{aquifuncs}) are only defined for deterministic objective functions. They heavily relay on a vanishing variance at a position once it has been observed.  In stochastic models the model variance will however converge to the noise variance ant the acquisition value never drops. SMBO algorithm would evaluate the same point ad infinitum. Redemption can come from a separate consideration of epistemic and measurement uncertainty.
@@ -415,11 +421,12 @@ A more natural way to deal with conditional parameters in Gaussian processes is 
 
 \section{Search Space Construction}
 \label{construction}
-The majority of HPO algorithms are designed for domains that are subsets of $\mathbb{R}^n$. In reality however parameter search spaces can be much more complicated. This section describes a formalism to construct search spaces in a convenient way. First of all it must be possible to describe the parameter space of a single algorithm, which can contain an arbitrary number of integer, floating point or nominal valued parameters. Second it shall be possible to include the choice of an algorithm into the optimization process. Third parameters with special structure (like trees or graphs), shall also be describable in a natural way.
+The majority of HPO algorithms are designed for domains that are subsets of $\mathbb{R}^n$. In reality, however, parameter search spaces can be much more complicated. This section describes a formalism to construct search spaces in a convenient way. First of all, it must be possible to describe the parameter space of a single algorithm, which can contain an arbitrary number of integer, floating point, or nominal parameters. Second it should be possible to include the choice of an algorithm into the optimization process. Third, parameters with special structure (like trees or graphs) should also be describable in a convenient way.
 
-The first basic idea is that domains of parameters can be combined to form a new parameter space. The second idea is, that in order to express the choice between multiple algorithms, that application of algorithms or functions must be possible. It turned out to be easier to represent both combinations and function calls as trees of application nodes.
+The first basic idea of the proposed formalism is that domains of parameters can be combined to form a new parameter space. The second idea is that in order to express hierachical parameters,
+search spaces can be applied to functions or algorithms. The third idea is to allow self-reference in order to express grammar-based structures. It turned out that it is easier to represent both combinations and function calls as trees of application nodes.
 The consequence is that the elements of a search space are not just vectors of parameter values but can be computation trees and the search space is a set of computation trees.
-Since a search space can be described in multiple ways is must be distinguished between how a space is described and what is described. The term \textit{expression} is used to refer to the representation of a search search space. A singleton expression is called an \textit{instance}. Only instances are executable. The set of all instances that can be produced by a expression $G$ is called the \textit{extension} of $G$. The corresponding notation is a following apostrophe $G'$. While an unique extension can be assigned to every expression, an extension can be represented by multiple search spaces.
+Since a search space can be described in multiple ways is must be distinguished between how a space is described and what is described. The term \textit{expression} is used to refer to the representation of a search space. A singleton expression is called an \textit{instance}. Only instances are executable. The set of all instances that can be produced by a expression $G$ is called the \textit{extension} of $G$. The corresponding notation is a following apostrophe $G'$. While an unique extension can be assigned to every expression, an extension can be represented by multiple search spaces.
 
 \subsection{Primitive Spaces}
 
@@ -676,6 +683,7 @@ $y_{best}$ $\leftarrow$ $\infty$\;
 \end{algorithm}
 %
 % \While{not flat(W.search_space) }{asd}
+
 \subsection{Selection Criteria from Subexpressions}
 The selection of a subexpression (algorithm \ref{treebo} line 6) was not described in the previous passage. Since the selection criterion for a subspace makes use of the best acquisition value of the subspace's child nodes, each nodes keeps track of this value. Once a leaf node is reached a best acquisition value arises form the underlying surrogate model. The maximal acquisition value is down propagated through the meta tree as long as it is the best value of this subexpression. If all surrogate models need to updated the acquisition values of all subtrees is also updated.
 
@@ -683,6 +691,8 @@ In two cases the subexpression selection is straight forward: If a join node is 
 
 In the simplest approach a fix value, which servers as a default acquisition, is assigned to any unexplored node. High default acquisitions would benefit exploration of unknown structures, for self-referential expressions this leads to a faster exploration of bigger structures. Lower values would rather encourage exploration of variants of known structures.
 A more sophisticated approach is to apply GPR on every selection level as well.
+
+At this point the importance search space simplification shall be mentioned. A join node of the for $join(A,B,C)$ has the same underlying search space as $\join(A,\join(B,C,))$. The algorithm however has two join nodes and in the second two join nodes to choose from. A flatter tree mean that fewer descisions need to be done and descisions that need to be can be done more informed, because they can be done in relation to other variables on the same level of the meta tree.
 
 \subsection{Extention to DAG-structured Search Spaces}
 As discussed in section \ref{construction} the structural equality of subexpressions or semantic equality of different instances, turns the search space into a directed acyclic graph. In this case the expression meta tree also turns into DAG. Basically all update steps stay the same, with the exception of the creation of new meta nodes. If an unexplored subexpression matches the expression of another meta node the pointer gets assigned to this node instead.
@@ -758,6 +768,8 @@ min_obj.run()
 
 \end{minted}
 
+\newpage
+
 \paragraph{Kernel Grammar}
 
 \begin{minted}{python}
@@ -801,9 +813,9 @@ opt_obj.run()
 
 \end{minted}
 
+\newpage
 
 \paragraph{Multilayer Perceptron, with variable layers}
-The ...
 
 
 \begin{minted}{python}
@@ -856,10 +868,11 @@ min_obj.observers['standard'].to_csv('mnist_mlp.csv')
   \label{mlp_search_space}
 \end{figure}
 
+\newpage
 
 \section{Experiment}
 
-The first experiment compares four optimizations on a join node of a two-dimensional and one-dimensional function. The search space definition looks like this:
+The experiment compares four optimizations on a join node of a two-dimensional and one-dimensional function. The search space definition looks like this:
 \begin{minted}{python}
 @operation
 def f(x, y):
@@ -887,7 +900,7 @@ ss = join(
   \label{1d2d_perfs}
 \end{figure}
 
-Figure \ref{1d2d_perfs} best result for an algorithm per iteration. The random algorithm samples $x$ and $y$ from a uniform distribution over $[-100, 100]$. The Gaussian process BO algorithm for trees is with expected improvment is displayed with a red lines, probability of improvment is cyan. The green line shows a separate optimization of $g$ and $f$ with it flat GP optimizer and EI acquisition.
+Figure \ref{1d2d_perfs} shows the best result for an algorithm per iteration. The random algorithm samples $x$ and $y$ from a uniform distribution over $[-100, 100]$. The Gaussian process BO algorithm for trees is with expected improvment is displayed with a red lines, probability of improvment is cyan. The green line shows a separate optimization of $g$ and $f$ with it flat GP optimizer and EI acquisition.
 Random search, as it is expected, performes the worse than any BO algorithm. The joined optimization with EI also performs as expected better than the separated optimization. Surprisingly BO with PI performes the best.
 
 %\subsection{Gaussian Process Regression}
@@ -907,7 +920,6 @@ Random search, as it is expected, performes the worse than any BO algorithm. The
 %  \item{Connection to Reinforcement Learning}
 %  \item{Integration with Workflow-Managers}
 %\end{enumerate}
-
 
 \newpage
 \appendix
@@ -932,7 +944,7 @@ $$=(\mu-\tau)\bigg(1-\Phi\bigg(\frac{\tau-\mu}{\sigma}\bigg)\bigg) + \sigma \cdo
 $$ = (\mu - \tau) \cdot \Phi \bigg(\frac{\mu-\tau}{\sigma}\bigg) + \sigma \cdot \phi \bigg(\frac{\mu-\tau}{\sigma}\bigg)$$
 
 
-\section{Formal descriptions}
+\section{Formal Descriptions}
 Join and prod over parameter-lists form an idempotent semiring:
 
 $(A, \cup)$ is a idempotent commutative monoid (or join-semilatice with zero) with identity element $\emptyset$:
